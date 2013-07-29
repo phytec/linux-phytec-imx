@@ -154,6 +154,18 @@ config MFD_MXC_HDMI_ANDROID
 	  This is the core driver for the Freescale i.MX6 on-chip HDMI.
 	  This MFD driver connects with the video and audio drivers for HDMI.
 
+config MFD_DA9063
+	bool "Dialog Semiconductor DA9063 PMIC Support"
+	select MFD_CORE
+	select REGMAP_I2C
+	select REGMAP_IRQ
+	depends on I2C=y && GENERIC_HARDIRQS
+	help
+	  Say yes here for support for the Dialog Semiconductor DA9063 PMIC.
+	  This includes the I2C driver and core APIs.
+	  Additional drivers must be enabled in order to use the functionality
+	  of the device.
+
 config MFD_MC13783
 	tristate
 
