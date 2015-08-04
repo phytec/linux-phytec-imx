@@ -113,6 +113,7 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx53-mba53.dtb \
 	imx53-qsb.dtb \
 	imx53-smd.dtb \
+	imx6dl-phytec-mira-rdk-nand.dtb \
 	imx6dl-sabreauto.dtb \
 	imx6dl-sabreauto-ecspi.dtb \
 	imx6dl-sabreauto-flexcan1.dtb \
@@ -124,6 +125,8 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6dl-sabresd-pf200.dtb \
 	imx6dl-wandboard.dtb \
 	imx6q-arm2.dtb \
+	imx6q-phytec-mira-rdk-emmc.dtb \
+	imx6q-phytec-mira-rdk-nand.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
 	imx6q-sabreauto-flexcan1.dtb \
