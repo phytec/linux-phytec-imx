@@ -12,6 +12,7 @@
 
 #include "imx6qdl.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 
 / {
 	model = "Phytec phyCORE-i.MX6";
@@ -20,7 +21,6 @@
 	aliases {
 		ipu0 = &ipu1;
 		rtc1 = &da9062_rtc;
-		rtc2 = &snvs_rtc;
 	};
 
 	memory {

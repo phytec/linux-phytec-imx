@@ -19,6 +19,7 @@
 
 / {
 	model = "Phytec phyBOARD-MIRA Quad Carrier-Board with nand";
+	model-short = "miraq";
 	compatible = "phytec,imx6q-pbac06", "phytec,imx6qdl-pcm058", "fsl,imx6q";
 
 	aliases {
@@ -30,7 +31,7 @@
 	};
 };
 
-&can1 {
+&flexcan1 {
 	status = "okay";
 };
 
@@ -46,9 +47,9 @@
 	status = "okay";
 };
 
-&hdmi {
+/* &hdmi {
 	status = "okay";
-};
+};*/
 
 &i2c1 {
 	status = "okay";

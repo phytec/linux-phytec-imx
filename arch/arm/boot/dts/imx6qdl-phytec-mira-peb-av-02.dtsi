@@ -29,12 +29,6 @@
 		pinctrl-0 = <&pinctrl_disp0_1>;
 		status = "disabled";
 
-		port {
-			display0_in: endpoint {
-				remote-endpoint = <&ipu1_di0_disp0>;
-			};
-		};
-
 		display-timings {
 			ET0700 {
 				clock-frequency = <33264000>;
@@ -130,8 +124,4 @@
 			fsl,pins = <MX6QDL_PAD_EIM_DA2__GPIO3_IO02	0x80000000>;
 		};
 	};
-};
-
-&ipu1_di0_disp0 {
-	remote-endpoint = <&display0_in>;
 };
