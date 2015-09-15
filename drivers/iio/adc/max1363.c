@@ -1511,7 +1511,7 @@ static int max1363_probe(struct i2c_client *client,
 
 	st = iio_priv(indio_dev);
 
-	st->reg = devm_regulator_get(&client->dev, "vcc");
+	st->reg = devm_regulator_get(&client->dev, "vcc3v3");
 	if (IS_ERR(st->reg)) {
 		ret = PTR_ERR(st->reg);
 		goto error_unregister_map;
