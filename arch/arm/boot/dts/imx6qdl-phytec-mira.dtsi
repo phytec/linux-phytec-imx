@@ -400,21 +400,6 @@
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <18>;
 		status = "disabled";
-
-		display-timings {
-			native-mode = <&timing0>;
-			timing0: auog104stn01 {
-				clock-frequency = <40000000>;
-				hactive = <800>;
-				vactive = <600>;
-				hback-porch = <216>;
-				hfront-porch = <40>;
-				hsync-len = <128>;
-				vback-porch = <35>;
-				vfront-porch = <10>;
-				vsync-len = <2>;
-			};
-		};
 	};
 };
 
