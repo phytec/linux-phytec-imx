@@ -607,14 +607,18 @@ static int gpmi_get_clks(struct gpmi_nand_data *this)
 		r->clock[i] = clk;
 	}
 
-	if (GPMI_IS_MX6(this))
+	if (GPMI_IS_MX6(this)) {
 		/*
 		 * Set the default value for the gpmi clock.
 		 *
 		 * If you want to use the ONFI nand which is in the
 		 * Synchronous Mode, you should change the clock as you need.
 		 */
-		clk_set_rate(r->clock[0], 22000000);
+		/* clk_set_rate(r->clock[0], 22000000);*/
+		clk_set_rate(r->clock[0], 68571528);
+		printk("%s: Setting clock to 68571528. Real value is %lu\n",
+				__func__, clk_get_rate(r->clock[0]));
+	}
 
 	return 0;
 
@@ -669,14 +673,16 @@ static int init_hardware(struct gpmi_nand_data *this)
 	 * (although, with less-than-optimal performance).
 	 */
 	struct nand_timing  safe_timing = {
-		.data_setup_in_ns        = 80,
-		.data_hold_in_ns         = 60,
+		/* Hardcode timings for Spansion and Samsung chips */
+		.data_setup_in_ns        = 15,
+		.data_hold_in_ns         = 10,
 		.address_setup_in_ns     = 25,
 		.gpmi_sample_delay_in_ns =  6,
-		.tREA_in_ns              = -1,
-		.tRLOH_in_ns             = -1,
-		.tRHOH_in_ns             = -1,
+		.tREA_in_ns              = 20,
+		.tRLOH_in_ns             =  5,
+		.tRHOH_in_ns             = 15,
 	};
+	printk("%s: Using safe_timing for Samsung and Spansion\n", __func__);
 
 	/* Initialize the hardwares. */
 	ret = gpmi_init(this);
