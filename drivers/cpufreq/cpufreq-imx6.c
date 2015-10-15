@@ -345,11 +345,17 @@ static int imx6_cpufreq_probe(struct platform_device *pdev)
 		goto put_node;
 	}
 
-	arm_reg = devm_regulator_get(cpu_dev, "arm");
-	pu_reg = devm_regulator_get(cpu_dev, "pu");
-	soc_reg = devm_regulator_get(cpu_dev, "soc");
+	arm_reg = devm_regulator_get(cpu_dev, "cpu");
+	pu_reg = devm_regulator_get(cpu_dev, "vddpu");
+	soc_reg = devm_regulator_get(cpu_dev, "vddsoc");
 	if (IS_ERR(arm_reg) || IS_ERR(soc_reg)) {
 		dev_err(cpu_dev, "failed to get regulators\n");
+		dev_err(cpu_dev, "arm_reg: %s\n",
+			IS_ERR(arm_reg) ? "failed" : "ok");
+		dev_err(cpu_dev, "pu_reg: %s\n",
+			IS_ERR(pu_reg) ? "failed" : "ok");
+		dev_err(cpu_dev, "soc_reg: %s\n",
+			IS_ERR(soc_reg) ? "failed" : "ok");
 		ret = -ENOENT;
 		goto put_node;
 	}
