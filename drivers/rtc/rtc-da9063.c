@@ -407,7 +407,7 @@ static int da9063_rtc_probe(struct platform_device *pdev)
 			rtc->config = &da9063_ad_regs;
 	}
 
-	rtc->regmap = dev_get_regmap(pdev->dev.parent, NULL);
+	rtc->regmap = dev_get_regmap(pdev->dev.parent, "bank0");
 	if (!rtc->regmap) {
 		dev_warn(&pdev->dev, "Parent regmap unavailable.\n");
 		return -ENXIO;

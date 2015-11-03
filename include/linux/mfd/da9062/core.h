@@ -43,7 +43,9 @@ enum da9062_irqs {
 
 struct da9062 {
 	struct device *dev;
+	struct i2c_client *i2c_1;
 	struct regmap *regmap;
+	struct regmap *regmap1;
 	struct regmap_irq_chip_data *regmap_irq;
 };
 

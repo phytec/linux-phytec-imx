@@ -203,7 +203,7 @@ int get_device_type(struct da9062 *chip)
 	int device_id, variant_id, variant_mrc;
 	int ret;
 
-	ret = regmap_read(chip->regmap, DA9062AA_DEVICE_ID, &device_id);
+	ret = regmap_read(chip->regmap1, DA9062AA_1_DEVICE_ID, &device_id);
 	if (ret < 0) {
 		dev_err(chip->dev, "Cannot read chip ID.\n");
 		return -EIO;
@@ -213,7 +213,7 @@ int get_device_type(struct da9062 *chip)
 		return -ENODEV;
 	}
 
-	ret = regmap_read(chip->regmap, DA9062AA_VARIANT_ID, &variant_id);
+	ret = regmap_read(chip->regmap1, DA9062AA_1_VARIANT_ID, &variant_id);
 	if (ret < 0) {
 		dev_err(chip->dev, "Cannot read chip variant id.\n");
 		return -EIO;
@@ -295,21 +295,25 @@ static const struct regmap_range da9062_aa_readable_ranges[] = {
 	}, {
 		.range_min = DA9062AA_BBAT_CONT,
 		.range_max = DA9062AA_BBAT_CONT,
+	},
+};
+
+static const struct regmap_range da9062_1_aa_readable_ranges[] = {
+	{
+		.range_min = DA9062AA_1_INTERFACE,
+		.range_max = DA9062AA_1_CONFIG_E,
 	}, {
-		.range_min = DA9062AA_INTERFACE,
-		.range_max = DA9062AA_CONFIG_E,
+		.range_min = DA9062AA_1_CONFIG_G,
+		.range_max = DA9062AA_1_CONFIG_K,
 	}, {
-		.range_min = DA9062AA_CONFIG_G,
-		.range_max = DA9062AA_CONFIG_K,
+		.range_min = DA9062AA_1_CONFIG_M,
+		.range_max = DA9062AA_1_CONFIG_M,
 	}, {
-		.range_min = DA9062AA_CONFIG_M,
-		.range_max = DA9062AA_CONFIG_M,
+		.range_min = DA9062AA_1_TRIM_CLDR,
+		.range_max = DA9062AA_1_GP_ID_19,
 	}, {
-		.range_min = DA9062AA_TRIM_CLDR,
-		.range_max = DA9062AA_GP_ID_19,
-	}, {
-		.range_min = DA9062AA_DEVICE_ID,
-		.range_max = DA9062AA_CONFIG_ID,
+		.range_min = DA9062AA_1_DEVICE_ID,
+		.range_max = DA9062AA_1_CONFIG_ID,
 	},
 };
 
@@ -374,9 +378,13 @@ static const struct regmap_range da9062_aa_writeable_ranges[] = {
 	}, {
 		.range_min = DA9062AA_BBAT_CONT,
 		.range_max = DA9062AA_BBAT_CONT,
-	}, {
-		.range_min = DA9062AA_GP_ID_0,
-		.range_max = DA9062AA_GP_ID_19,
+	},
+};
+
+static const struct regmap_range da9062_1_aa_writeable_ranges[] = {
+	{
+		.range_min = DA9062AA_1_GP_ID_0,
+		.range_max = DA9062AA_1_GP_ID_19,
 	},
 };
 
@@ -401,9 +409,19 @@ static const struct regmap_access_table da9062_aa_readable_table = {
 	.n_yes_ranges = ARRAY_SIZE(da9062_aa_readable_ranges),
 };
 
+static const struct regmap_access_table da9062_1_aa_readable_table = {
+	.yes_ranges = da9062_1_aa_readable_ranges,
+	.n_yes_ranges = ARRAY_SIZE(da9062_1_aa_readable_ranges),
+};
+
 static const struct regmap_access_table da9062_aa_writeable_table = {
 	.yes_ranges = da9062_aa_writeable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9062_aa_writeable_ranges),
+};
+
+static const struct regmap_access_table da9062_1_aa_writable_table = {
+	.yes_ranges = da9062_1_aa_writeable_ranges,
+	.n_yes_ranges = ARRAY_SIZE(da9062_1_aa_writeable_ranges),
 };
 
 static const struct regmap_access_table da9062_aa_volatile_table = {
@@ -411,28 +429,25 @@ static const struct regmap_access_table da9062_aa_volatile_table = {
 	.n_yes_ranges = ARRAY_SIZE(da9062_aa_volatile_ranges),
 };
 
-static const struct regmap_range_cfg da9062_range_cfg[] = {
-	{
-		.range_min = DA9062AA_PAGE_CON,
-		.range_max = DA9062AA_CONFIG_ID,
-		.selector_reg = DA9062AA_PAGE_CON,
-		.selector_mask = 1 << DA9062_I2C_PAGE_SEL_SHIFT,
-		.selector_shift = DA9062_I2C_PAGE_SEL_SHIFT,
-		.window_start = 0,
-		.window_len = 256,
-	}
-};
-
-static struct regmap_config da9062_regmap_config = {
+static struct regmap_config const da9062_regmap0_config = {
+	.name = "bank0",
 	.reg_bits = 8,
 	.val_bits = 8,
-	.ranges = da9062_range_cfg,
-	.num_ranges = ARRAY_SIZE(da9062_range_cfg),
-	.max_register = DA9062AA_CONFIG_ID,
+	.max_register = DA9062AA_BBAT_CONT,
 	.cache_type = REGCACHE_RBTREE,
 	.rd_table = &da9062_aa_readable_table,
 	.wr_table = &da9062_aa_writeable_table,
 	.volatile_table = &da9062_aa_volatile_table,
+};
+
+static struct regmap_config const da9062_regmap1_config = {
+	.name = "bank1",
+	.reg_bits = 8,
+	.val_bits = 8,
+	.max_register = DA9062AA_1_CONFIG_ID,
+	.cache_type = REGCACHE_RBTREE,
+	.rd_table = &da9062_1_aa_readable_table,
+	.wr_table = &da9062_1_aa_writable_table,
 };
 
 static int da9062_i2c_probe(struct i2c_client *i2c,
@@ -454,12 +469,26 @@ static int da9062_i2c_probe(struct i2c_client *i2c,
 		return -EINVAL;
 	}
 
-	chip->regmap = devm_regmap_init_i2c(i2c, &da9062_regmap_config);
+	chip->regmap = devm_regmap_init_i2c(i2c, &da9062_regmap0_config);
 	if (IS_ERR(chip->regmap)) {
 		ret = PTR_ERR(chip->regmap);
 		dev_err(chip->dev, "Failed to allocate register map: %d\n",
 			ret);
 		return ret;
+	}
+
+	chip->i2c_1 = i2c_new_dummy(i2c->adapter, i2c->addr + 1);
+	if (!chip->i2c_1) {
+		dev_err(chip->dev, "failed to register 2nd i2c address\n");
+		return -ENOMEM;
+	}
+
+	chip->regmap1 = devm_regmap_init_i2c(chip->i2c_1, &da9062_regmap1_config);
+	if (IS_ERR(chip->regmap1)) {
+		ret = PTR_ERR(chip->regmap1);
+		dev_err(chip->dev, "Failed to allocate register map: %d\n",
+			ret);
+		goto out;
 	}
 
 	ret = da9062_clear_fault_log(chip);
@@ -468,7 +497,7 @@ static int da9062_i2c_probe(struct i2c_client *i2c,
 
 	ret = get_device_type(chip);
 	if (ret)
-		return ret;
+		goto out;
 
 	ret = regmap_add_irq_chip(chip->regmap, i2c->irq,
 			IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_SHARED,
@@ -477,7 +506,7 @@ static int da9062_i2c_probe(struct i2c_client *i2c,
 	if (ret) {
 		dev_err(chip->dev, "Failed to request IRQ %d: %d\n",
 			i2c->irq, ret);
-		return ret;
+		goto out;
 	}
 
 	irq_base = regmap_irq_chip_get_base(chip->regmap_irq);
@@ -488,7 +517,13 @@ static int da9062_i2c_probe(struct i2c_client *i2c,
 	if (ret) {
 		dev_err(chip->dev, "Cannot register child devices\n");
 		regmap_del_irq_chip(i2c->irq, chip->regmap_irq);
-		return ret;
+		goto out;
+	}
+
+out:
+	if (ret < 0) {
+		if (chip->i2c_1)
+			i2c_unregister_device(chip->i2c_1);
 	}
 
 	return ret;
@@ -500,6 +535,7 @@ static int da9062_i2c_remove(struct i2c_client *i2c)
 
 	mfd_remove_devices(chip->dev);
 	regmap_del_irq_chip(i2c->irq, chip->regmap_irq);
+	i2c_unregister_device(chip->i2c_1);
 
 	return 0;
 }
