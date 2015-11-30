@@ -32,6 +32,8 @@ struct pwm_bl_data {
 	bool			enabled;
 	int			enable_gpio;
 	unsigned long		enable_gpio_flags;
+	int			binary_gpio;
+	unsigned long		binary_gpio_flags;
 	unsigned int		scale;
 	int			(*notify)(struct device *,
 					  int brightness);
@@ -54,6 +56,13 @@ static void pwm_backlight_power_on(struct pwm_bl_data *pb, int brightness)
 			gpio_set_value(pb->enable_gpio, 1);
 	}
 
+	if (gpio_is_valid(pb->binary_gpio)) {
+		if (pb->binary_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW)
+			gpio_set_value(pb->binary_gpio, 0);
+		else
+			gpio_set_value(pb->binary_gpio, 1);
+	}
+
 	pwm_enable(pb->pwm);
 	pb->enabled = true;
 }
@@ -71,6 +80,13 @@ static void pwm_backlight_power_off(struct pwm_bl_data *pb)
 			gpio_set_value(pb->enable_gpio, 1);
 		else
 			gpio_set_value(pb->enable_gpio, 0);
+	}
+
+	if (gpio_is_valid(pb->binary_gpio)) {
+		if (pb->binary_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW)
+			gpio_set_value(pb->binary_gpio, 1);
+		else
+			gpio_set_value(pb->binary_gpio, 0);
 	}
 
 	pb->enabled = false;
@@ -189,6 +205,14 @@ static int pwm_backlight_parse_dt(struct device *dev,
 	if (gpio_is_valid(data->enable_gpio) && (flags & OF_GPIO_ACTIVE_LOW))
 		data->enable_gpio_flags |= PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
 
+	data->binary_gpio = of_get_named_gpio_flags(node, "binary-gpios", 0,
+						    &flags);
+	if (data->binary_gpio == -EPROBE_DEFER)
+		data->binary_gpio = -1;
+
+	if (gpio_is_valid(data->binary_gpio) && (flags & OF_GPIO_ACTIVE_LOW))
+		data->binary_gpio_flags |= PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
+
 	return 0;
 }
 
@@ -280,6 +304,7 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 		pb->scale = data->max_brightness;
 
 	pb->enable_gpio = data->enable_gpio;
+	pb->binary_gpio = data->binary_gpio;
 	pb->enable_gpio_flags = data->enable_gpio_flags;
 	pb->notify = data->notify;
 	pb->notify_after = data->notify_after;
@@ -300,6 +325,22 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 		if (ret < 0) {
 			dev_err(&pdev->dev, "failed to request GPIO#%d: %d\n",
 				pb->enable_gpio, ret);
+			goto err_alloc;
+		}
+	}
+
+	if (gpio_is_valid(pb->binary_gpio)) {
+		unsigned long flags;
+
+		if (pb->binary_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW)
+			flags = GPIOF_OUT_INIT_HIGH;
+		else
+			flags = GPIOF_OUT_INIT_LOW;
+
+		ret = gpio_request_one(pb->binary_gpio, flags, "binary");
+		if (ret < 0) {
+			dev_err(&pdev->dev, "failed to request GPIO#%d: %d\n",
+				pb->binary_gpio, ret);
 			goto err_alloc;
 		}
 	}
@@ -356,6 +397,8 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 err_gpio:
 	if (gpio_is_valid(pb->enable_gpio))
 		gpio_free(pb->enable_gpio);
+	if (gpio_is_valid(pb->binary_gpio))
+		gpio_free(pb->binary_gpio);
 err_alloc:
 	if (data->exit)
 		data->exit(&pdev->dev);

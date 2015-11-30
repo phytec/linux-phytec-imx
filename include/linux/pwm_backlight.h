@@ -18,6 +18,8 @@ struct platform_pwm_backlight_data {
 	unsigned int *levels;
 	int enable_gpio;
 	unsigned long enable_gpio_flags;
+	int binary_gpio;
+	unsigned long binary_gpio_flags;
 	int (*init)(struct device *dev);
 	int (*notify)(struct device *dev, int brightness);
 	void (*notify_after)(struct device *dev, int brightness);
