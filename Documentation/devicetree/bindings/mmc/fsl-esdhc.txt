@@ -19,6 +19,8 @@ Optional properties:
     "bus-width = <1>" property.
   - sdhci,auto-cmd12: specifies that a controller can only handle auto
     CMD12.
+  - fsl,fbclk-sel: Either set bit FBCLK_SEL to 0 or 1 in register SDHCx_MIX_CTRL
+    If unset, the bit isn't touched.
 
 Example:
 
@@ -29,4 +31,13 @@ sdhci@2e000 {
 	interrupt-parent = <&ipic>;
 	/* Filled in by U-Boot */
 	clock-frequency = <0>;
+};
+
+esdhc@70008000 {
+	compatible = "fsl,imx51-esdhc";
+	reg = <0x70008000 0x4000>;
+	interrupts = <2>;
+	cd-gpios = <&gpio1 6 0>; /* GPIO1_6 */
+	wp-gpios = <&gpio1 5 0>; /* GPIO1_5 */
+	fsl,fbclk-sel = <1>;
 };

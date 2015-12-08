@@ -173,6 +173,11 @@ struct pltfm_imx_data {
 	} multiblock_status;
 	u32 uhs_mode;
 	u32 is_ddr;
+	enum {
+		FBCLK_SEL_IGNORE = -1,
+		FBCLK_SEL_UNSET = 0,
+		FBCLK_SEL_SET = 1
+	} fbclk_sel;
 };
 
 static struct platform_device_id imx_esdhc_devtype[] = {
@@ -885,6 +890,7 @@ static int esdhc_set_uhs_signaling(struct sdhci_host *host, unsigned int uhs)
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct pltfm_imx_data *imx_data = pltfm_host->priv;
 	struct esdhc_platform_data *boarddata = &imx_data->boarddata;
+	int val;
 
 	switch (uhs) {
 	case MMC_TIMING_UHS_SDR12:
@@ -916,6 +922,17 @@ static int esdhc_set_uhs_signaling(struct sdhci_host *host, unsigned int uhs)
 			writel(v, host->ioaddr + ESDHC_DLL_CTRL);
 		}
 		break;
+	}
+
+	if (imx_data->fbclk_sel != FBCLK_SEL_IGNORE) {
+		dev_dbg(mmc_dev(host->mmc),
+			"Setting bit FBCLK_SEL to %d!\n", imx_data->fbclk_sel);
+		val = readl(host->ioaddr + ESDHC_MIX_CTRL);
+		if (imx_data->fbclk_sel == FBCLK_SEL_SET)
+			val |= ESDHC_MIX_CTRL_FBCLK_SEL;
+		else /* fbclk_sel == FBCLK_SEL_UNSET */
+			val &= ~ESDHC_MIX_CTRL_FBCLK_SEL;
+		writel(val, host->ioaddr + ESDHC_MIX_CTRL);
 	}
 
 	return esdhc_change_pinstate(host, uhs);
@@ -1012,6 +1029,7 @@ static int sdhci_esdhc_imx_probe(struct platform_device *pdev)
 	struct esdhc_platform_data *boarddata;
 	int err;
 	struct pltfm_imx_data *imx_data;
+	int fbclk_sel;
 
 	host = sdhci_pltfm_init(pdev, &sdhci_esdhc_imx_pdata);
 	if (IS_ERR(host))
@@ -1180,6 +1198,22 @@ static int sdhci_esdhc_imx_probe(struct platform_device *pdev)
 	}
 
 	device_set_wakeup_capable(&pdev->dev, 1);
+
+	err = of_property_read_u32(pdev->dev.of_node, "fsl,fbclk-sel", &fbclk_sel);
+	if (err && err != -EINVAL) {
+		dev_err(mmc_dev(host->mmc),
+			"Error getting dtb property 'fsl,fbclk-sel': %d", err);
+	} else if (err == -EINVAL) {
+		imx_data->fbclk_sel = FBCLK_SEL_IGNORE;
+	} else if (fbclk_sel == 0 || fbclk_sel == 1) {
+		if (fbclk_sel)
+			imx_data->fbclk_sel = FBCLK_SEL_SET;
+		else  /* fbclk_sel == 0 */
+			imx_data->fbclk_sel = FBCLK_SEL_UNSET;
+	} else {
+		dev_err(mmc_dev(host->mmc),
+		"dtb property 'fsl,fbclk-sel' has invalid value. Ignoring!");
+	}
 
 	err = sdhci_add_host(host);
 	if (err)
