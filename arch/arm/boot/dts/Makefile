@@ -127,6 +127,7 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6q-arm2.dtb \
 	imx6q-phytec-mira-rdk-emmc.dtb \
 	imx6q-phytec-mira-rdk-nand.dtb \
+	imx6q-phytec-mira-etm0700.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
 	imx6q-sabreauto-flexcan1.dtb \
