@@ -27,6 +27,10 @@
 #include <linux/mfd/da9063/registers.h>
 #include <linux/mfd/da9063/core.h>
 
+#ifdef CONFIG_ANDROID_INTF_ALARM_DEV
+#include "../staging/android/uapi/android_alarm.h"
+#endif
+
 #define YEARS_TO_DA9063(year)		((year) - 100)
 #define MONTHS_TO_DA9063(month)		((month) + 1)
 #define YEARS_FROM_DA9063(year)		((year) + 100)
@@ -487,6 +491,10 @@ static int da9063_rtc_probe(struct platform_device *pdev)
 					   &da9063_rtc_ops, THIS_MODULE);
 	if (IS_ERR(rtc->rtc_dev))
 		return PTR_ERR(rtc->rtc_dev);
+
+#ifdef CONFIG_ANDROID_INTF_ALARM_DEV
+	android_alarm_set_rtc_clock(rtc->rtc_dev);
+#endif
 
 	da9063_data_to_tm(data, &rtc->alarm_time, rtc);
 	rtc->rtc_sync = false;
