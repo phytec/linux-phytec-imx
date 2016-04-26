@@ -50,6 +50,8 @@ static uint32_t alarm_pending;
 static uint32_t alarm_enabled;
 static uint32_t wait_pending;
 
+static struct rtc_device *rtc_clock = NULL;
+
 struct devalarm {
 	union {
 		struct hrtimer hrt;
@@ -57,6 +59,11 @@ struct devalarm {
 	} u;
 	enum android_alarm_type type;
 };
+
+void android_alarm_set_rtc_clock(struct rtc_device *rtc)
+{
+	rtc_clock = rtc;
+}
 
 static struct devalarm alarms[ANDROID_ALARM_TYPE_COUNT];
 
@@ -164,6 +171,8 @@ static int alarm_set_rtc(struct timespec *ts)
 		return rv;
 	if (rtc_dev)
 		rv = rtc_set_time(rtc_dev, &new_rtc_tm);
+	if (rtc_clock)
+		rv = rtc_set_time(rtc_clock, &new_rtc_tm);
 
 	spin_lock_irqsave(&alarm_slock, flags);
 	alarm_pending |= ANDROID_ALARM_TIME_CHANGE_MASK;

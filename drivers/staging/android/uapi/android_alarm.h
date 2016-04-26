@@ -59,4 +59,6 @@ enum android_alarm_return_flags {
 #define ANDROID_ALARM_BASE_CMD(cmd)         (cmd & ~(_IOC(0, 0, 0xf0, 0)))
 #define ANDROID_ALARM_IOCTL_TO_TYPE(cmd)    (_IOC_NR(cmd) >> 4)
 
+void android_alarm_set_rtc_clock(struct rtc_device *rtc);
+
 #endif
