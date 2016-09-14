@@ -97,7 +97,7 @@
 
 		ocram: sram@00905000 {
 			compatible = "mmio-sram";
-			reg = <0x00905000 0x1B000>;
+			reg = <0x00905000 0x3B000>;
 			clocks = <&clks 142>;
 		};
 
@@ -136,7 +136,6 @@
 
 		aips1: aips-bus@02000000 {
 			vpu@02040000 {
-				iramsize = <0>;
 				status = "okay";
 			};
 
