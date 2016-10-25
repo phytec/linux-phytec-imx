@@ -46,16 +46,18 @@
 };
 
 &iomuxc {
-	pinctrl_gpio_keys: gpio_keysgrp {
-		fsl,pins = <
-			MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x79
-		>;
-	};
+	imx6ul-phytec-segin-peb-eval-01 {
+		pinctrl_gpio_keys: gpio_keysgrp {
+			fsl,pins = <
+				MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x79
+			>;
+		};
 
-	pinctrl_user_leds: user_ledsgrp {
-		fsl,pins = <
-			MX6UL_PAD_JTAG_MOD__GPIO1_IO10		0x79
-			MX6UL_PAD_GPIO1_IO01__GPIO1_IO01	0x79
-		>;
+		pinctrl_user_leds: user_ledsgrp {
+			fsl,pins = <
+				MX6UL_PAD_JTAG_MOD__GPIO1_IO10		0x79
+				MX6UL_PAD_GPIO1_IO01__GPIO1_IO01	0x79
+			>;
+		};
 	};
 };

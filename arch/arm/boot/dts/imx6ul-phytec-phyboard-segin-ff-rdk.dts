@@ -20,7 +20,7 @@
 	compatible = "phytec,imx6ul-pbacd10", "phytec,imx6ul-pcl063","fsl,imx6ul";
 };
 
-&can1 {
+&flexcan1 {
 	status = "okay";
 };
 
