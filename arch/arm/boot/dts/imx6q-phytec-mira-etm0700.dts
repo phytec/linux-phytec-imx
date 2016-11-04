@@ -166,3 +166,7 @@
 &usdhc1 {
 	status = "okay";
 };
+
+&vpu {
+	status = "okay";
+};
