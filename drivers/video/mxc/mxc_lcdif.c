@@ -56,7 +56,7 @@ static struct fb_videomode lcdif_modedb[] = {
 	0,},
 	{
 	/* 800x480 @ 60 Hz, pixel clk @ 33.26MHz */
-	"ETM0700", 60, 800, 480, 30066, 216, 40, 35, 10, 128, 2,
+	"ETM0700", 60, 800, 480, 30066, 88, 40, 33, 10, 128, 2,
         FB_SYNC_SHARP_MODE,
         FB_VMODE_NONINTERLACED,
 	0,},
