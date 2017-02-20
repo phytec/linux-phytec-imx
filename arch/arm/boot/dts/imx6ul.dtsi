@@ -153,6 +153,7 @@
 				      "ahb", "ocram", "periph2", "periph2_pre", "periph2_clk2", "periph2_clk2_sel",
 				      "step", "mmdc";
 			fsl,max_ddr_freq = <400000000>;
+			status = "disabled";
 		};
 
 		pmu {
