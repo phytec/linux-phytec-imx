@@ -21,6 +21,10 @@
 	};
 };
 
+&pwm3 {
+	status = "okay";
+};
+
 &lcdif {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lcdif_dat>;
