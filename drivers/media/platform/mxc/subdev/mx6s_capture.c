@@ -273,6 +273,12 @@ static struct mx6s_fmt formats[] = {
 		.pixelformat	= V4L2_PIX_FMT_SBGGR8,
 		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
 		.bpp		= 1,
+	}, {
+		.name		= "GRAY (Y8)",
+		.fourcc		= V4L2_PIX_FMT_GREY,
+		.pixelformat	= V4L2_PIX_FMT_GREY,
+		.mbus_code	= MEDIA_BUS_FMT_Y8_1X8,
+		.bpp		= 1,
 	}
 };
 
@@ -717,6 +723,7 @@ static int mx6s_csi_enable(struct mx6s_csi_dev *csi_dev)
 	if (pix->field == V4L2_FIELD_INTERLACED)
 		csi_tvdec_enable(csi_dev, true);
 
+
 	/* For mipi csi input only */
 	if (csi_dev->csi_mux_mipi == true) {
 		csi_dmareq_rff_enable(csi_dev);
@@ -804,6 +811,7 @@ static int mx6s_configure_csi(struct mx6s_csi_dev *csi_dev)
 	switch (csi_dev->fmt->pixelformat) {
 	case V4L2_PIX_FMT_YUV32:
 	case V4L2_PIX_FMT_SBGGR8:
+	case V4L2_PIX_FMT_GREY:
 		width = pix->width;
 		break;
 	case V4L2_PIX_FMT_UYVY:
@@ -835,6 +843,7 @@ static int mx6s_configure_csi(struct mx6s_csi_dev *csi_dev)
 			cr18 |= BIT_MIPI_DATA_FORMAT_YUV422_8B;
 			break;
 		case V4L2_PIX_FMT_SBGGR8:
+		case V4L2_PIX_FMT_GREY:
 			cr18 |= BIT_MIPI_DATA_FORMAT_RAW8;
 			break;
 		default:
