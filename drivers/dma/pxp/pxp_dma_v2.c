@@ -912,14 +912,21 @@ static void pxp_set_csc(struct pxps *pxp)
 		}
 	} else if (input_is_YUV && !output_is_YUV) {
 		/*
-		 * Input = YUV, Output = RGB
+		 * Input = Y8 or YUV, Output = RGB
 		 * Use CSC1 to convert to RGB
 		 */
 
-		/* CSC1 - YUV->RGB */
-		__raw_writel(0x84ab01f0, pxp->base + HW_PXP_CSC1_COEF0);
-		__raw_writel(0x01980204, pxp->base + HW_PXP_CSC1_COEF1);
-		__raw_writel(0x0730079c, pxp->base + HW_PXP_CSC1_COEF2);
+		if (s0_params->pixel_fmt == PXP_PIX_FMT_GREY) {
+			/* CSC1 - Y8 -> RGB (but monochrome) */
+			__raw_writel(0x04000000, pxp->base + HW_PXP_CSC1_COEF0);
+			__raw_writel(0x00000000, pxp->base + HW_PXP_CSC1_COEF1);
+			__raw_writel(0x00000000, pxp->base + HW_PXP_CSC1_COEF2);
+		} else {
+			/* CSC1 - YUV->RGB */
+			__raw_writel(0x84ab01f0, pxp->base + HW_PXP_CSC1_COEF0);
+			__raw_writel(0x01980204, pxp->base + HW_PXP_CSC1_COEF1);
+			__raw_writel(0x0730079c, pxp->base + HW_PXP_CSC1_COEF2);
+		}
 
 		/* CSC2 - Bypass */
 		__raw_writel(0x1, pxp->base + HW_PXP_CSC2_CTRL);
