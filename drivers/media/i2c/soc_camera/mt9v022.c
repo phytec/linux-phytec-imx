@@ -14,6 +14,7 @@
 #include <linux/delay.h>
 #include <linux/log2.h>
 #include <linux/module.h>
+#include <linux/of.h>
 
 #include <media/mt9v022.h>
 #include <media/soc_camera.h>
@@ -21,6 +22,7 @@
 #include <media/v4l2-subdev.h>
 #include <media/v4l2-clk.h>
 #include <media/v4l2-ctrls.h>
+#include <media/v4l2-of.h>
 
 /*
  * mt9v022 i2c address 0x48, 0x4c, 0x58, 0x5c
@@ -29,6 +31,7 @@
  */
 
 static char *sensor_type;
+static char *colour = "colour";
 module_param(sensor_type, charp, S_IRUGO);
 MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
 
@@ -502,7 +505,10 @@ static int mt9v022_s_power(struct v4l2_subdev *sd, int on)
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 	struct mt9v022 *mt9v022 = to_mt9v022(client);
 
-	return soc_camera_set_power(&client->dev, ssdd, mt9v022->clk, on);
+	if (mt9v022->clk)
+		return soc_camera_set_power(&client->dev, ssdd, mt9v022->clk, on);
+
+	return 0;
 }
 
 static int mt9v022_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
@@ -650,7 +656,6 @@ static int mt9v022_video_probe(struct i2c_client *client)
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 	s32 data;
 	int ret;
-	unsigned long flags;
 
 	ret = mt9v022_s_power(&mt9v022->subdev, 1);
 	if (ret < 0)
@@ -708,23 +713,28 @@ static int mt9v022_video_probe(struct i2c_client *client)
 	 * different routing of the data lines.
 	 */
 	if (ssdd->query_bus_param)
-		flags = ssdd->query_bus_param(ssdd);
-	else
-		flags = SOCAM_DATAWIDTH_10;
+		ssdd->flags = ssdd->query_bus_param(ssdd);
+	else {
+		/* in case of device-tree this flag is already set */
+		if (!client->dev.of_node)
+			ssdd->flags = SOCAM_DATAWIDTH_10;
+	}
 
-	if (flags & SOCAM_DATAWIDTH_10)
+	if (ssdd->flags & SOCAM_DATAWIDTH_10)
 		mt9v022->num_fmts++;
 	else
 		mt9v022->fmts++;
 
-	if (flags & SOCAM_DATAWIDTH_8)
+	if (ssdd->flags & SOCAM_DATAWIDTH_8)
 		mt9v022->num_fmts++;
 
 	mt9v022->fmt = &mt9v022->fmts[0];
 
-	dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor\n",
+	dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor "
+		 "with %d bit interface\n",
 		 data, mt9v022->model == MT9V022IX7ATM ?
-		 "monochrome" : "colour");
+		 "monochrome" : "colour",
+		 ssdd->flags & SOCAM_DATAWIDTH_10 ? 10 : 8);
 
 	ret = mt9v022_init(client);
 	if (ret < 0)
@@ -732,6 +742,7 @@ static int mt9v022_video_probe(struct i2c_client *client)
 
 ei2c:
 	mt9v022_s_power(&mt9v022->subdev, 0);
+
 	return ret;
 }
 
@@ -860,19 +871,75 @@ static struct v4l2_subdev_ops mt9v022_subdev_ops = {
 	.sensor	= &mt9v022_subdev_sensor_ops,
 };
 
-static int mt9v022_probe(struct i2c_client *client,
-			 const struct i2c_device_id *did)
+static struct mt9v022_platform_data *
+mt9v022_get_of_pdata(struct i2c_client *client)
+{
+	struct mt9v022_platform_data *pdata;
+	struct soc_camera_subdev_desc *ssdd;
+	struct v4l2_of_endpoint endpoint;
+	struct device_node *np;
+	struct property *prop;
+
+	np = of_graph_get_next_endpoint(client->dev.of_node, NULL);
+	if (!np) {
+		dev_err(&client->dev, "endpoint missing or invalid\n");
+		return NULL;
+	}
+
+	if (v4l2_of_parse_endpoint(np, &endpoint) < 0) {
+		dev_err(&client->dev, "endpoint invalid\n");
+		goto err;
+	}
+
+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+	if (!pdata) {
+		dev_err(&client->dev, "insufficient memory\n");
+		goto err;
+	}
+
+	ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
+	if (!ssdd) {
+		dev_err(&client->dev, "insufficient memory\n");
+		goto err;
+	}
+
+	prop = of_find_property(np, "is_8_bit_if", NULL);
+	if (prop)
+		ssdd->flags = SOCAM_DATAWIDTH_8;
+	else /* default to 10 bit interface */
+		ssdd->flags = SOCAM_DATAWIDTH_10;
+
+	prop = of_find_property(np, "y_skip_top", NULL);
+	if (prop) {
+		of_property_read_u16(np, "y_skip_top", &pdata->y_skip_top);
+	}
+
+	prop = of_find_property(np, "sensor_type_color", NULL);
+	if (prop) {
+		sensor_type = colour;
+	}
+
+	ssdd->drv_priv = pdata;
+	pdata->ssdd = ssdd;
+
+	of_node_put(np);
+
+	return pdata;
+
+ err:
+	of_node_put(np);
+
+	return NULL;
+}
+
+static int mt9v022_generic_probe(struct i2c_client *client,
+				 const struct i2c_device_id *did,
+				 struct mt9v022_platform_data *pdata,
+				 struct soc_camera_subdev_desc *ssdd)
 {
 	struct mt9v022 *mt9v022;
-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-	struct mt9v022_platform_data *pdata;
 	int ret;
-
-	if (!ssdd) {
-		dev_err(&client->dev, "MT9V022 driver needs platform data\n");
-		return -EINVAL;
-	}
+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
 		dev_warn(&adapter->dev,
@@ -884,7 +951,6 @@ static int mt9v022_probe(struct i2c_client *client,
 	if (!mt9v022)
 		return -ENOMEM;
 
-	pdata = ssdd->drv_priv;
 	v4l2_i2c_subdev_init(&mt9v022->subdev, client, &mt9v022_subdev_ops);
 	v4l2_ctrl_handler_init(&mt9v022->hdl, 6);
 	v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
@@ -939,20 +1005,55 @@ static int mt9v022_probe(struct i2c_client *client,
 	mt9v022->rect.width	= MT9V022_MAX_WIDTH;
 	mt9v022->rect.height	= MT9V022_MAX_HEIGHT;
 
-	mt9v022->clk = v4l2_clk_get(&client->dev, "mclk");
-	if (IS_ERR(mt9v022->clk)) {
-		ret = PTR_ERR(mt9v022->clk);
-		goto eclkget;
+	if (!client->dev.of_node) {
+		mt9v022->clk = v4l2_clk_get(&client->dev, "mclk");
+		if (IS_ERR(mt9v022->clk)) {
+			ret = PTR_ERR(mt9v022->clk);
+			goto eclkget;
+		}
+	} else {
+		/* use csi clock which is already clocked */
+		mt9v022->clk = NULL;
 	}
 
 	ret = mt9v022_video_probe(client);
 	if (ret) {
-		v4l2_clk_put(mt9v022->clk);
-eclkget:
+		if (!client->dev.of_node)
+			v4l2_clk_put(mt9v022->clk);
+ eclkget:
 		v4l2_ctrl_handler_free(&mt9v022->hdl);
+
+		goto err;
 	}
 
+	mt9v022->subdev.dev = &client->dev;
+	ret = v4l2_async_register_subdev(&mt9v022->subdev);
+
+ err:
 	return ret;
+}
+
+static int mt9v022_probe(struct i2c_client *client,
+			    const struct i2c_device_id *did)
+{
+	struct mt9v022_platform_data *pdata = mt9v022_get_of_pdata(client);
+	struct soc_camera_subdev_desc *ssdd;
+
+	if (client->dev.of_node) {
+		pdata = mt9v022_get_of_pdata(client);
+		ssdd = pdata ? pdata->ssdd : NULL;
+		client->dev.platform_data = ssdd;
+	} else {
+		ssdd = soc_camera_i2c_to_desc(client);
+		pdata = ssdd ? ssdd->drv_priv : NULL;
+	}
+
+	if (!pdata || !ssdd) {
+		dev_err(&client->dev, "MT9V022 driver needs platform data\n");
+		return -EINVAL;
+	}
+
+	return mt9v022_generic_probe(client, did, pdata, ssdd);
 }
 
 static int mt9v022_remove(struct i2c_client *client)
@@ -960,7 +1061,8 @@ static int mt9v022_remove(struct i2c_client *client)
 	struct mt9v022 *mt9v022 = to_mt9v022(client);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 
-	v4l2_clk_put(mt9v022->clk);
+	if (!client->dev.of_node)
+		v4l2_clk_put(mt9v022->clk);
 	v4l2_device_unregister_subdev(&mt9v022->subdev);
 	if (ssdd->free_bus)
 		ssdd->free_bus(ssdd);
@@ -968,6 +1070,15 @@ static int mt9v022_remove(struct i2c_client *client)
 
 	return 0;
 }
+
+#ifdef CONFIG_OF
+static const struct of_device_id new_mt9v024_of_match[] = {
+	{ .compatible = "new,mt9v024" },
+	{ /* Sentinel */ }
+};
+MODULE_DEVICE_TABLE(of, new_mt9v024_of_match);
+#endif
+
 static const struct i2c_device_id mt9v022_id[] = {
 	{ "mt9v022", 0 },
 	{ }
@@ -977,6 +1088,9 @@ MODULE_DEVICE_TABLE(i2c, mt9v022_id);
 static struct i2c_driver mt9v022_i2c_driver = {
 	.driver = {
 		.name = "mt9v022",
+#ifdef CONFIG_OF
+		.of_match_table = of_match_ptr(new_mt9v024_of_match),
+#endif
 	},
 	.probe		= mt9v022_probe,
 	.remove		= mt9v022_remove,

@@ -10,6 +10,7 @@
 #define __MT9V022_H__
 
 struct mt9v022_platform_data {
+	struct soc_camera_subdev_desc *ssdd;
 	unsigned short y_skip_top;	/* Lines to skip at the top */
 };
 
