@@ -1493,9 +1493,13 @@ static int mx6s_vidioc_streamon(struct file *file, void *priv,
 	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -EINVAL;
 
-	ret = vb2_streamon(&csi_dev->vb2_vidq, i);
-	if (!ret)
-		v4l2_subdev_call(sd, video, s_stream, 1);
+	/*
+	 * enable stream before activating csi because it waits for data and
+	 * runs into timeout if we enable it after the subdevice
+	 */
+	v4l2_subdev_call(sd, video, s_stream, 1);
+	if (vb2_streamon(&csi_dev->vb2_vidq, i))
+		v4l2_subdev_call(sd, video, s_stream, 0);
 
 	return ret;
 }
