@@ -17,6 +17,7 @@
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/version.h>
+#include <linux/i2c.h>
 
 #include <linux/videodev2.h>
 
@@ -1967,17 +1968,24 @@ static int v4l_dbg_g_register(const struct v4l2_ioctl_ops *ops,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	struct v4l2_dbg_register *p = arg;
 	struct video_device *vfd = video_devdata(file);
+	struct i2c_client *client;
 	struct v4l2_subdev *sd;
 	int idx = 0;
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	if (p->match.type == V4L2_CHIP_MATCH_SUBDEV) {
+	if (p->match.type == V4L2_CHIP_MATCH_SUBDEV ||
+	    p->match.type == V4L2_CHIP_MATCH_I2C_ADDR) {
 		if (vfd->v4l2_dev == NULL)
 			return -EINVAL;
-		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev)
+		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev) {
 			if (p->match.addr == idx++)
 				return v4l2_subdev_call(sd, core, g_register, p);
+
+			client = v4l2_get_subdevdata(sd);
+			if (p->match.addr == client->addr)
+				return v4l2_subdev_call(sd, core, g_register, p);
+		}
 		return -EINVAL;
 	}
 	if (ops->vidioc_g_register && p->match.type == V4L2_CHIP_MATCH_BRIDGE &&
@@ -1995,17 +2003,24 @@ static int v4l_dbg_s_register(const struct v4l2_ioctl_ops *ops,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	const struct v4l2_dbg_register *p = arg;
 	struct video_device *vfd = video_devdata(file);
+	struct i2c_client *client;
 	struct v4l2_subdev *sd;
 	int idx = 0;
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	if (p->match.type == V4L2_CHIP_MATCH_SUBDEV) {
+	if (p->match.type == V4L2_CHIP_MATCH_SUBDEV ||
+	    p->match.type == V4L2_CHIP_MATCH_I2C_ADDR) {
 		if (vfd->v4l2_dev == NULL)
 			return -EINVAL;
-		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev)
+		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev) {
 			if (p->match.addr == idx++)
 				return v4l2_subdev_call(sd, core, s_register, p);
+
+			client = v4l2_get_subdevdata(sd);
+			if (p->match.addr == client->addr)
+				return v4l2_subdev_call(sd, core, s_register, p);
+		}
 		return -EINVAL;
 	}
 	if (ops->vidioc_s_register && p->match.type == V4L2_CHIP_MATCH_BRIDGE &&
