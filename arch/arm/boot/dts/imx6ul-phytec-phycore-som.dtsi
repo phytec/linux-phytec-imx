@@ -49,6 +49,27 @@
 			clock-frequency = <50000000>;
 		};
 	};
+
+	regulators {
+		reg_gpio_dvfs: regulator@6 {
+			compatible = "regulator-gpio";
+			pinctrl-names= "default";
+			pinctrl-0 = <&pinctrl_dvfs>;
+			regulator-min-microvolt = <1300000>;
+			regulator-max-microvolt = <1400000>;
+			regulator-name = "gpio_dvfs";
+			regulator-type = "voltage";
+			gpios = <&gpio4 14 GPIO_ACTIVE_HIGH>;
+			states = <1300000 0x1 1400000 0x0>;
+			enable-active-high;
+		};
+	};
+};
+
+&cpu0 {
+	arm-supply = <&reg_arm>;
+	soc-supply = <&reg_soc>;
+	dc-supply = <&reg_gpio_dvfs>;
 };
 
 &fec1 {
@@ -112,6 +133,12 @@
 	pinctrl-names = "default";
 
 	imx6ul-phytec-phycore-som {
+		pinctrl_dvfs: dvfsgrp {
+			fsl,pins = <
+				MX6UL_PAD_NAND_CE1_B__GPIO4_IO14	0x79
+			>;
+		};
+
 		pinctrl_enet1: enet1grp {
 			fsl,pins = <
 				MX6UL_PAD_ENET1_RX_EN__ENET1_RX_EN	0x1b0b0
