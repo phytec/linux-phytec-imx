@@ -1507,7 +1507,8 @@ static int mx6s_vidioc_streamon(struct file *file, void *priv,
 	 * runs into timeout if we enable it after the subdevice
 	 */
 	v4l2_subdev_call(sd, video, s_stream, 1);
-	if (vb2_streamon(&csi_dev->vb2_vidq, i))
+	ret = vb2_streamon(&csi_dev->vb2_vidq, i);
+	if (ret)
 		v4l2_subdev_call(sd, video, s_stream, 0);
 
 	return ret;
