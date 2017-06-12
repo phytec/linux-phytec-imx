@@ -1572,6 +1572,54 @@ static int mx6s_vidioc_s_crop(struct file *file, void *priv,
 	return v4l2_subdev_call(sd, video, s_crop, a);
 }
 
+static int mx6s_vidioc_g_ctrl(struct file *file, void *priv,
+				struct v4l2_control *a)
+{
+	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	int ret;
+
+	ret = v4l2_subdev_g_ctrl(sd, a);
+
+	return ret;
+}
+
+static int mx6s_vidioc_s_ctrl(struct file *file, void *priv,
+				struct v4l2_control *a)
+{
+	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	int ret;
+
+	ret = v4l2_subdev_s_ctrl(sd, a);
+
+	return ret;
+}
+
+static int mx6s_vidioc_queryctrl(struct file *file, void *priv,
+				struct v4l2_queryctrl *a)
+{
+	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	int ret;
+
+	ret = v4l2_subdev_queryctrl(sd, a);
+
+	return ret;
+}
+
+static int mx6s_vidioc_querymenu(struct file *file, void *priv,
+				struct v4l2_querymenu *a)
+{
+	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	int ret;
+
+	ret = v4l2_subdev_querymenu(sd, a);
+
+	return ret;
+}
+
 static int mx6s_vidioc_g_parm(struct file *file, void *priv,
 			     struct v4l2_streamparm *a)
 {
@@ -1680,6 +1728,10 @@ static const struct v4l2_ioctl_ops mx6s_csi_ioctl_ops = {
 	.vidioc_streamoff     = mx6s_vidioc_streamoff,
 	.vidioc_g_parm        = mx6s_vidioc_g_parm,
 	.vidioc_s_parm        = mx6s_vidioc_s_parm,
+	.vidioc_s_ctrl        = mx6s_vidioc_s_ctrl,
+	.vidioc_g_ctrl        = mx6s_vidioc_g_ctrl,
+	.vidioc_queryctrl     = mx6s_vidioc_queryctrl,
+	.vidioc_querymenu     = mx6s_vidioc_querymenu,
 	.vidioc_enum_framesizes = mx6s_vidioc_enum_framesizes,
 	.vidioc_enum_frameintervals = mx6s_vidioc_enum_frameintervals,
 };
