@@ -41,6 +41,14 @@
 	status = "okay";
 };
 
+&pxp {
+	status = "okay";
+};
+
+&pxp_v4l2 {
+	status = "okay";
+};
+
 &reg_can1_en {
 	status = "okay";
 };
