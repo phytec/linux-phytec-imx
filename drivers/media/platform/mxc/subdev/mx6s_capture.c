@@ -307,6 +307,8 @@ struct mx6s_csi_dev {
 	struct v4l2_subdev	*sd;
 	struct v4l2_device	v4l2_dev;
 
+	u32 use_count;
+
 	struct vb2_queue			vb2_vidq;
 	struct vb2_alloc_ctx		*alloc_ctx;
 	struct v4l2_ctrl_handler	ctrl_handler;
@@ -1158,6 +1160,9 @@ static int mx6s_csi_open(struct file *file)
 	if (mutex_lock_interruptible(&csi_dev->lock))
 		return -ERESTARTSYS;
 
+	if (++csi_dev->use_count > 1)
+		goto unlock;
+
 	csi_dev->alloc_ctx = vb2_dma_contig_init_ctx(csi_dev->dev);
 	if (IS_ERR(csi_dev->alloc_ctx))
 		goto unlock;
@@ -1198,6 +1203,11 @@ static int mx6s_csi_close(struct file *file)
 	struct v4l2_subdev *sd = csi_dev->sd;
 
 	mutex_lock(&csi_dev->lock);
+
+	if (--csi_dev->use_count > 0) {
+		mutex_unlock(&csi_dev->lock);
+		return 0;
+	}
 
 	vb2_queue_release(&csi_dev->vb2_vidq);
 
