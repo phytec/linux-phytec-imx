@@ -20,6 +20,10 @@
 		stdout-path = &uart1;
 	};
 
+	aliases {
+		rtc0 = &i2c_rtc;
+		rtc1 = &snvs_rtc;
+	};
 
 	/*
 	 * Set the minimum memory size here and
