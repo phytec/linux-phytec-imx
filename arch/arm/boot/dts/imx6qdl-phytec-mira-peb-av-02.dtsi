@@ -11,59 +11,35 @@
  */
 
 / {
-
 	backlight: backlight {
-		compatible = "pwm-backlight";
-		brightness-levels = <0 4 8 16 32 64 128 255>;
-		default-brightness-level = <7>;
-		power-supply = <&reg_display>;
-		pwms = <&pwm1 0 5000000>;
-		enable-gpios = <&gpio2 28 GPIO_ACTIVE_LOW>;
-		status = "disabled";
-	};
-
-	display: display@di0 {
-		compatible = "fsl,imx-parallel-display";
-		interface-pix-fmt = "rgb24";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_disp0_1>;
-		status = "disabled";
-
-		display-timings {
-			ET0700 {
-				clock-frequency = <33264000>;
-				hactive = <800>;
-				vactive = <480>;
-				hback-porch = <88>;
-				hsync-len = <128>;
-				hfront-porch = <40>;
-				vback-porch = <33>;
-				vsync-len = <2>;
-				vfront-porch = <10>;
-				hsync-active = <0>;
-				vsync-active = <0>;
-				de-active = <1>;
-				pixelclk-active = <0>;
-			};
-		};
+		pinctrl-0 = <&pinctrl_disp0_pwr>;
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 50000>;
+		brightness-levels = <0 4 8 16 32 64 128 255>;
+		default-brightness-level = <6>;
+		binary-gpios = <&gpio3 22 0>; /* on or off -> depends on brightness */
+		status = "okay";
 	};
 
-	regulator {
-		compatible = "simple-bus";
-		#address-cells = <1>;
-		#size-cells = <0>;
+	mxcfb1: fb@0 {
+		disp_dev = "lcd";
+		interface_pix_fmt = "RGB24";
+		mode_str = "ETM0700";
+		default_bpp = <16>;
+		int_clk = <0>;
+		late_init = <0>;
+		status = "okay";
+	};
 
-		reg_display: regulator@5 {
-			compatible = "regulator-fixed";
-			enable-active-high;
-			gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_disp0_pwr>;
-			regulator-name = "display";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-		};
-
+	lcd@0 {
+		compatible = "fsl,lcd";
+		ipu_id = <0>;
+		disp_id = <0>;
+		default_ifmt = "RGB24";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ipu1_1>;
+		status = "okay";
 	};
 };
 
@@ -75,7 +51,7 @@
 		pinctrl-0 = <&pinctrl_edt_ft5x06>;
 		interrupt-parent = <&gpio3>;
 		interrupts = <2 0>;
-		status = "disabled";
+		status = "okay";
         };
 };
 
