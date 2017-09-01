@@ -29,15 +29,6 @@
 	chosen {
 		linux,stdout-path = &uart2;
 	};
-
-	mxcfb1: fb@0 {
-		disp_dev = "hdmi";
-		interface_pix_fmt = "RGB24";
-		default_bpp = <16>;
-		int_clk = <0>;
-		late_init = <0>;
-		status = "okay";
-	};
 };
 
 &flexcan1 {
@@ -53,22 +44,6 @@
 };
 
 &gpmi {
-	status = "okay";
-};
-
-&hdmi_core {
-	status = "okay";
-};
-
-&hdmi_video {
-	status = "okay";
-};
-
-&hdmi_audio {
-	status = "okay";
-};
-
-&hdmi_cec {
 	status = "okay";
 };
 
