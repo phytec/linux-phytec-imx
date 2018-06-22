@@ -37,6 +37,86 @@
 			linux,default-trigger = "heartbeat";
 		};
 	};
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_vcc1v8: vcc1v8 {
+			compatible = "regulator-fixed";
+			regulator-name = "vcc1v8";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-always-on;
+		};
+
+		reg_vcc3v3: vcc3v3 {
+			compatible = "regulator-fixed";
+			regulator-name = "vcc3v3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+		};
+	};
+
+	sound {
+			compatible = "simple-audio-card";
+			simple-audio-card,name = "TLV320AIC3007";
+			simple-audio-card,format = "i2s";
+			simple-audio-card,bitclock-master = <&dailink_master>;
+			simple-audio-card,frame-master = <&dailink_master>;
+			simple-audio-card,widgets =
+					"Microphone", "Mic Jack",
+					"Line", "Line In",
+					"Line", "Line Out",
+					"Speaker", "Speaker",
+					"Headphone", "Headphone Jack";
+			simple-audio-card,routing =
+					"Line Out", "LLOUT",
+					"Line Out", "RLOUT",
+					"Speaker", "SPOP",
+					"Speaker", "SPOM",
+					"Headphone Jack", "HPLOUT",
+					"Headphone Jack", "HPROUT",
+					"MIC3L", "Mic Jack",
+					"MIC3R", "Mic Jack",
+					"Mic Jack", "Mic Bias",
+					"LINE1L", "Line In",
+					"LINE1R", "Line In";
+			status = "okay";
+
+			dailink_master: simple-audio-card,cpu {
+					sound-dai = <&sai2>;
+			};
+			simple-audio-card,codec {
+					sound-dai = <&tlv320aic3007>;
+			};
+	};
+};
+
+&clk {
+	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>;
+	assigned-clock-rates = <786432000>, <722534400>;
+};
+
+&i2c2 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
+
+	tlv320aic3007: tlv320aic3007@18 {
+			compatible = "ti,tlv320aic3007";
+			#sound-dai-cells = <0>;
+			reg = <0x18>;
+			clocks = <&clk IMX8MQ_SYS2_PLL_50M>;
+			AVDD-supply = <&reg_vcc3v3>;
+			IOVDD-supply = <&reg_vcc3v3>;
+			DRVDD-supply = <&reg_vcc3v3>;
+			DVDD-supply = <&reg_vcc1v8>;
+			status = "okay";
+	};
 };
 
 &pcie1{
@@ -44,6 +124,17 @@
 	pinctrl-0 = <&pinctrl_pcie1>;
 	clkreq-gpio = <&gpio5 29 GPIO_ACTIVE_LOW>;
 	ext_osc = <1>;
+	status = "okay";
+};
+
+&sai2 {
+	pinctrl-names = "default";
+	#sound-dai-cells = <0>;
+	pinctrl-0 = <&pinctrl_sai2>;
+	assigned-clocks = <&clk IMX8MQ_CLK_SAI2_SRC>,
+					<&clk IMX8MQ_CLK_SAI2_DIV>;
+	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <0>, <24576000>;
 	status = "okay";
 };
 
@@ -66,6 +157,13 @@
 
 &iomuxc {
 	imx8mq-polaris {
+		pinctrl_i2c2: i2c2grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL		0x4000007f
+				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA		0x4000007f
+			>;
+		};
+
 		pinctrl_leds: leds1grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
@@ -77,6 +175,19 @@
 		pinctrl_pcie1: pcie1grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_UART4_TXD_GPIO5_IO29	0x16
+			>;
+		};
+
+		pinctrl_sai2: sai2grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI2_MCLK_SAI2_MCLK		0xd6
+				MX8MQ_IOMUXC_SAI2_TXFS_SAI2_TX_SYNC		0xd6
+				MX8MQ_IOMUXC_SAI2_TXC_SAI2_TX_BCLK		0xd6
+				MX8MQ_IOMUXC_SAI2_TXD0_SAI2_TX_DATA0	0xd6
+				MX8MQ_IOMUXC_SAI2_RXFS_SAI2_RX_SYNC		0xd6
+				MX8MQ_IOMUXC_SAI2_RXC_SAI2_RX_BCLK		0xd6
+				MX8MQ_IOMUXC_SAI2_RXD0_SAI2_RX_DATA0	0xd6
+				MX8MQ_IOMUXC_GPIO1_IO02_GPIO1_IO2		0xd6
 			>;
 		};
 
