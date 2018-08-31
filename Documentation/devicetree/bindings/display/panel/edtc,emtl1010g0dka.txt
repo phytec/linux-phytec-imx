@@ -1,0 +1,7 @@
+Emerging Display Technologies Corporation 10" (1280x800) TFT-LCD panel
+
+Requiered properties:
+- compatible: should be "edtc,emtl1010g0dka"
+
+Thicompatible with the simple-panel binding, which is specified
+in simple-panel.txt in this directory.
