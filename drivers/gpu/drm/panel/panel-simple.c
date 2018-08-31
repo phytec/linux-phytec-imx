@@ -1796,6 +1796,35 @@ struct panel_desc_dsi {
 	unsigned int lanes;
 };
 
+
+static const struct drm_display_mode edtc_etml1010g0dka_mode = {
+	.clock = 120000,
+	.hdisplay = 1280,
+	.hsync_start = 1280 + 100,
+	.hsync_end = 1280 + 100 + 19,
+	.htotal = 1280 + 100 + 19 + 41,
+	.vdisplay = 800,
+	.vsync_start = 800 + 4,
+	.vsync_end = 800 + 4 + 4,
+	.vtotal = 800 + 4 + 4 + 15,
+	.vrefresh = 60,
+};
+
+static const struct panel_desc_dsi edtc_etml1010g0dka = {
+	.desc = {
+		.modes = &edtc_etml1010g0dka_mode,
+		.num_modes = 1,
+		.bpc = 8,
+		.size = {
+			.width = 216,
+			.height = 135,
+		},
+	},
+	.flags = MIPI_DSI_MODE_VIDEO,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
 static const struct drm_display_mode auo_b080uan01_mode = {
 	.clock = 154500,
 	.hdisplay = 1200,
@@ -1955,6 +1984,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "panasonic,vvx10f004b00",
 		.data = &panasonic_vvx10f004b00
+	}, {
+		.compatible = "edtc,etml1010g0dka",
+		.data = &edtc_etml1010g0dka
 	}, {
 		/* sentinel */
 	}
