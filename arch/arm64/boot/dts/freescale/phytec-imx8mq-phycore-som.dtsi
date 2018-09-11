@@ -53,6 +53,14 @@
 	};
 };
 
+&gpu {
+        status = "okay";
+};
+
+&gpu_pd {
+        power-supply = <&sw1a_reg>;
+};
+
 &i2c1 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
@@ -158,6 +166,13 @@
 	bus-width = <8>;
 	non-removable;
 	status = "disabled";
+};
+
+&vpu_pd {
+        power-supply = <&sw1c_reg>;
+};
+&vpu {
+        status = "okay";
 };
 
 &iomuxc {
