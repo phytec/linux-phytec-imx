@@ -13,12 +13,24 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
+#include <linux/regmap.h>
+
+#include <linux/device.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/of_graph.h>
-#include <linux/regmap.h>
+
+#include <video/mipi_display.h>
+#include <video/videomode.h>
+
+#include <drm/drmP.h>
+#include <drm/drm_atomic.h>
+#include <drm/drm_atomic_helper.h>
+#include <drm/drm_of.h>
+#include <drm/drm_panel.h>
+#include <drm/drm_crtc_helper.h>
 #include <drm/drm_mipi_dsi.h>
 
 #define LVDS_REG_SW_RST			0x09		/* SOFT_RESET */
@@ -26,18 +38,12 @@
 #define LVDS_REG_DSI_CLK_DIVIDER	0x0B		/* divider or multiplier for mipi-clk */
 #define LVDS_REG_PLL_EN			0x0D		/* PLL enable */
 #define LVDS_REG_CHA_DSI_LANES		0x10		/* number of DSI lanes */
-#define LVDS_CHA_DSI_EQ			0x11
 #define LVDS_REG_CHA_DSI_CLK_RANGE	0x12		/* DSI clock frequency range */
 
 /* CST register */
 #define CHA_24BPP_MODE			0x18
-#define CHA_LVDS_SWING			0x19
-#define CHA_REVERSE_LVDS		0x1a
-#define CHA_LVDS_CM_ADJUST		0x1b
 #define CHA_ACTIVE_LINE_LENGTH_LOW	0x20
 #define CHA_ACTIVE_LINE_LENGTH_HIGH	0x21
-#define CHA_VERTICAL_DISPLAY_SIZE_LOW	0x24
-#define CHA_VERTICAL_DISPLAY_SIZE_HIGH	0x25
 #define CHA_SYNC_DELAY_LOW		0x28
 #define CHA_SYNC_DELAY_HIGH		0x29
 #define CHA_HSYNC_PULSE_WIDTH_LOW	0x2c
@@ -46,16 +52,269 @@
 #define CHA_VSYNC_PULSE_WIDTH_HIGH	0x31
 #define CHA_HORIZONTAL_BACK_PORCH	0x34
 #define CHA_VERTICAL_BACK_PORCH		0x36
-#define CHA_HORIZONTAL_FRONT_PORCH	0x38
-#define CHA_VERTICAL_FRONT_PORCH	0x3a
 
 /* Test pattern register */
 #define CHA_TEST_PATTERN		0x3c
 
+/* MASK */
+#define LVDS_CLK_MASK			0x01
+#define ENABLE				0x01
+#define DISABLE				0x00
+#define LANE_MASK			0x26
+#define CLK_RANGE_STEP			0x1388
+#define LOW_MASK			0xff
+#define HIGH_MASK			0x08
 
 struct sn65dsi83 {
 	struct i2c_client *i2c;
 	struct regmap *i2c_regmap;
+
+	struct drm_connector connector;
+	struct drm_bridge bridge;
+	struct drm_panel *panel;
+	bool enabled;
+
+	struct device_node *host_node;
+	struct mipi_dsi_device *dsi;
+	u32 num_dsi_lanes;
+};
+
+static inline struct sn65dsi83 *
+		bridge_to_sn65dsi83(struct drm_bridge *bridge)
+{
+	return container_of(bridge, struct sn65dsi83, bridge);
+}
+
+static inline struct sn65dsi83 *
+		connector_to_sn65dsi83(struct drm_connector *connector)
+{
+	return container_of(connector, struct sn65dsi83, connector);
+}
+
+static void sn65dsi83_enable(struct drm_bridge *bridge)
+{
+	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
+
+	if (drm_panel_enable(sn_bridge->panel)) {
+		DRM_ERROR("failed to enable panel\n");
+		return;
+	}
+}
+
+static void sn65dsi83_disable(struct drm_bridge *bridge)
+{
+	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
+
+	if (!sn_bridge->enabled)
+		return;
+
+	sn_bridge->enabled = false;
+
+	if (drm_panel_disable(sn_bridge->panel)) {
+		DRM_ERROR("failed to disable panel\n");
+		return;
+	}
+}
+
+static int sn65dsi83_get_modes(struct drm_connector *connector)
+{
+	struct sn65dsi83 *sn_bridge = container_of(connector,
+					struct sn65dsi83, connector);
+
+	if (sn_bridge->panel)
+		return drm_panel_get_modes(sn_bridge->panel);
+
+	DRM_ERROR("no panel found\n");
+	return -ENODEV;
+}
+
+static enum drm_connector_status drm_sn65dsi83_detect(struct drm_connector
+						*connector, bool force)
+{
+	return connector_status_connected;
+}
+
+static const struct drm_connector_funcs sn65dsi83_connector_funcs = {
+	.dpms = drm_atomic_helper_connector_dpms,
+	.fill_modes = drm_helper_probe_single_connector_modes,
+	.detect = drm_sn65dsi83_detect,
+	.destroy = drm_connector_cleanup,
+	.reset = drm_atomic_helper_connector_reset,
+	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
+	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
+};
+
+static const struct drm_connector_helper_funcs sn65dsi83_helper_funcs = {
+	.get_modes = sn65dsi83_get_modes,
+};
+
+static void sn65dsi83_mode_set(struct drm_bridge *bridge,
+				struct drm_display_mode *mode,
+				struct drm_display_mode *adj_mode)
+{
+	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
+	struct mipi_dsi_device *dsi = sn_bridge->dsi;
+	struct regmap *regmap = sn_bridge->i2c_regmap;
+	int clk_range, bpp, mipi_clk, lvds_clk, clk_div, lanes, i;
+	unsigned int val;
+	char lvds_clk_range;
+	int clk[5] = {37500, 62500, 87500, 112500, 137500};
+	int clk_value[5] = {0x00, 0x01, 0x02, 0x04, 0x05};
+
+	regmap_write(regmap, LVDS_REG_SW_RST, DISABLE);
+	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
+
+	if (bpp == 6)
+		regmap_write(regmap, CHA_24BPP_MODE, 0x68);
+	else
+		regmap_write(regmap, CHA_24BPP_MODE, 0x78);
+
+	if (!mode) {
+		DRM_ERROR("failed to get displaymode\n");
+		return;
+	}
+
+	/* calculate current mipi_clk with the pixelclock entry from
+	 * panel-simple.c, bpp and the number of dsi lanes
+	 */
+
+	mipi_clk = (((mode->clock * bpp)/(8*(sn_bridge->num_dsi_lanes+1)))
+			*bpp)/(2*sn_bridge->num_dsi_lanes);
+
+	/* Calculate the lvds clock to configure the clk_range
+	 * at the sn65dsi83 device
+	 */
+
+	lvds_clk = (mipi_clk*2*sn_bridge->num_dsi_lanes)/bpp;
+	clk_range = mipi_clk / CLK_RANGE_STEP;
+
+	/* calculate the needed clock divider to set device
+	 * configuration
+	 */
+
+	clk_div =  (mipi_clk / lvds_clk) - 1;
+
+	for (i = 5; i >= 0; i--) {
+		if (lvds_clk < clk[i])
+			lvds_clk_range = clk_value[i];
+		else
+			lvds_clk_range = clk_value[4];
+	}
+
+	regmap_write(regmap, LVDS_REG_CLK_RANGE, (lvds_clk_range << 1)
+						| LVDS_CLK_MASK);
+	regmap_write(regmap, LVDS_REG_DSI_CLK_DIVIDER, clk_div << 3);
+
+	switch (dsi->lanes) {
+	case 4:
+		lanes = 0xE7;
+		break;
+	case 3:
+		lanes = 0xEF;
+		break;
+	case 2:
+		lanes = 0xF7;
+		break;
+	default:
+		lanes = 0xFF;
+		break;
+	}
+
+	regmap_read(regmap, LVDS_REG_CHA_DSI_LANES, &val);
+	regmap_write(regmap, LVDS_REG_CHA_DSI_LANES, lanes & val);
+	regmap_write(regmap, LVDS_REG_CHA_DSI_CLK_RANGE, clk_range);
+	regmap_write(regmap, CHA_ACTIVE_LINE_LENGTH_LOW, mode->htotal
+			& LOW_MASK);
+	regmap_write(regmap, CHA_ACTIVE_LINE_LENGTH_HIGH, mode->htotal
+			>> HIGH_MASK);
+	regmap_write(regmap, CHA_SYNC_DELAY_LOW, 0x28);
+	regmap_write(regmap, CHA_SYNC_DELAY_HIGH, 0x00);
+	regmap_write(regmap, CHA_HSYNC_PULSE_WIDTH_LOW,
+			(mode->hsync_end-mode->hsync_start) & LOW_MASK);
+	regmap_write(regmap, CHA_HSYNC_PULSE_WIDTH_HIGH,
+			(mode->hsync_end-mode->hsync_start) >> HIGH_MASK);
+	regmap_write(regmap, CHA_VSYNC_PULSE_WIDTH_LOW,
+			(mode->vsync_end-mode->vsync_start) & LOW_MASK);
+	regmap_write(regmap, CHA_VSYNC_PULSE_WIDTH_HIGH,
+			(mode->vsync_end-mode->vsync_start) >> HIGH_MASK);
+	regmap_write(regmap, CHA_HORIZONTAL_BACK_PORCH,
+			mode->htotal-mode->hsync_end);
+	regmap_write(regmap, CHA_VERTICAL_BACK_PORCH,
+			mode->vtotal-mode->vsync_end);
+	regmap_write(regmap, LVDS_REG_SW_RST, ENABLE);
+	regmap_write(regmap, LVDS_REG_PLL_EN, ENABLE);
+}
+
+static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
+{
+	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
+	struct mipi_dsi_host *host;
+	struct mipi_dsi_device *dsi;
+	const struct mipi_dsi_device_info info = {
+						   .type = "sn65dsi83",
+						   .node = NULL,
+						 };
+	int ret = 0;
+
+	if (!bridge->encoder) {
+		DRM_ERROR("Parent encoder object not found\n");
+		return -ENODEV;
+	}
+
+	sn_bridge->connector.polled = DRM_CONNECTOR_POLL_HPD;
+
+	ret = drm_connector_init(bridge->dev, &sn_bridge->connector,
+			&sn65dsi83_connector_funcs, DRM_MODE_CONNECTOR_LVDS);
+	if (ret) {
+		DRM_ERROR("failed to initialize connector with drm\n");
+		return ret;
+	}
+
+	drm_connector_helper_add(&sn_bridge->connector,
+				&sn65dsi83_helper_funcs);
+	drm_mode_connector_attach_encoder(&sn_bridge->connector,
+						bridge->encoder);
+
+	ret = drm_panel_attach(sn_bridge->panel, &sn_bridge->connector);
+	if (ret) {
+		DRM_ERROR("failed to attach panel\n");
+		drm_connector_cleanup(&sn_bridge->connector);
+		return ret;
+	}
+
+	host = of_find_mipi_dsi_host_by_node(sn_bridge->host_node);
+	if (!host) {
+		DRM_ERROR("failed to find dsi host\n");
+		return -EPROBE_DEFER;
+	}
+
+	dsi = mipi_dsi_device_register_full(host, &info);
+	if (IS_ERR(dsi)) {
+		DRM_ERROR("failed to create dsi device\n");
+		ret = PTR_ERR(dsi);
+		return ret;
+	}
+
+	sn_bridge->dsi = dsi;
+
+	dsi->lanes = sn_bridge->num_dsi_lanes;
+	dsi->format = MIPI_DSI_FMT_RGB888;
+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO;
+
+	ret = mipi_dsi_attach(dsi);
+	if (ret < 0) {
+		DRM_ERROR("failed to attach dsi to host\n");
+		mipi_dsi_device_unregister(dsi);
+	}
+
+	return 0;
+}
+
+static const struct drm_bridge_funcs sn65dsi83_bridge_funcs = {
+	.enable = sn65dsi83_enable,
+	.disable = sn65dsi83_disable,
+	.mode_set = sn65dsi83_mode_set,
+	.attach = sn65dsi83_bridge_attach,
 };
 
 static const struct regmap_range sn65dsi83_lvds_volatile_ranges[] = {
@@ -74,74 +333,91 @@ static const struct regmap_config sn65dsi83_lvds_regmap_config = {
 	.cache_type = REGCACHE_NONE,
 };
 
-static void sn65dsi83_lvds_set_interface(struct sn65dsi83 *sn65dsi83)
+void sn65dsi83_detach_dsi(struct sn65dsi83 *sn_bridge)
 {
-	struct regmap *regmap = sn65dsi83->i2c_regmap;
-
-	/* CLK configuration */
-	regmap_write(regmap, LVDS_REG_SW_RST, 0x00);
-	regmap_write(regmap, LVDS_REG_CLK_RANGE, 0x05);
-	regmap_write(regmap, LVDS_REG_DSI_CLK_DIVIDER, 0x10);
-	regmap_write(regmap, LVDS_REG_CHA_DSI_LANES, 0x26);
-	regmap_write(regmap, LVDS_CHA_DSI_EQ, 0x00);
-	regmap_write(regmap, LVDS_REG_CHA_DSI_CLK_RANGE, 0x2a);
-
-	/*CSR configuration */
-	regmap_write(regmap, CHA_24BPP_MODE, 0x78);
-	regmap_write(regmap, CHA_LVDS_SWING, 0x00);
-	regmap_write(regmap, CHA_REVERSE_LVDS, 0x03);
-	regmap_write(regmap, CHA_LVDS_CM_ADJUST, 0x00);
-	regmap_write(regmap, CHA_ACTIVE_LINE_LENGTH_LOW, 0x00);
-	regmap_write(regmap, CHA_ACTIVE_LINE_LENGTH_HIGH, 0x05);
-	regmap_write(regmap, CHA_VERTICAL_DISPLAY_SIZE_LOW, 0x00);
-	regmap_write(regmap, CHA_VERTICAL_DISPLAY_SIZE_HIGH, 0x00);
-	regmap_write(regmap, CHA_SYNC_DELAY_LOW, 0x20);
-	regmap_write(regmap, CHA_SYNC_DELAY_HIGH, 0x00);
-	regmap_write(regmap, CHA_HSYNC_PULSE_WIDTH_LOW, 0x32);
-	regmap_write(regmap, CHA_HSYNC_PULSE_WIDTH_HIGH, 0x00);
-	regmap_write(regmap, CHA_VSYNC_PULSE_WIDTH_LOW, 0x05);
-	regmap_write(regmap, CHA_VSYNC_PULSE_WIDTH_HIGH, 0x00);
-	regmap_write(regmap, CHA_HORIZONTAL_BACK_PORCH, 0x32);
-	regmap_write(regmap, CHA_VERTICAL_BACK_PORCH, 0x00);
-	regmap_write(regmap, CHA_HORIZONTAL_FRONT_PORCH, 0x00);
-	regmap_write(regmap, CHA_VERTICAL_FRONT_PORCH, 0x00);
-	regmap_write(regmap, LVDS_REG_SW_RST, 0x01);
-
-	/* Enable PLL*/
-	regmap_write(regmap, LVDS_REG_PLL_EN, 0x01);
-
+	mipi_dsi_detach(sn_bridge->dsi);
+	mipi_dsi_device_unregister(sn_bridge->dsi);
 }
+
+int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
+{
+	struct device_node *endpoint0, *endpoint1;
+
+	endpoint0 = of_graph_get_next_endpoint(np, NULL);
+	if (!endpoint0)
+		return -ENODEV;
+
+	endpoint1 = of_graph_get_next_endpoint(np, endpoint0);
+	if (!endpoint1)
+		return -ENODEV;
+
+	sn_bridge->host_node = of_graph_get_remote_port_parent(endpoint1);
+	if (!sn_bridge->host_node) {
+		of_node_put(endpoint1);
+		return -ENODEV;
+	}
+
+	of_node_put(endpoint1);
+	of_node_put(sn_bridge->host_node);
+
+	return 0;
+}
+
 static int sn65dsi83_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
-	struct sn65dsi83 *sn65dsi83;
+	struct sn65dsi83 *sn_bridge;
+	struct device_node *endpoint, *panel_node;
 	int ret = 0;
 
-	sn65dsi83 = devm_kzalloc(dev, sizeof(*sn65dsi83), GFP_KERNEL);
-	if (!sn65dsi83)
+
+	sn_bridge = devm_kzalloc(dev, sizeof(*sn_bridge), GFP_KERNEL);
+	if (!sn_bridge)
 		return -ENOMEM;
 
-	sn65dsi83->i2c = client;
-	sn65dsi83->i2c_regmap = devm_regmap_init_i2c(client,
+	sn_bridge->i2c_regmap = devm_regmap_init_i2c(client,
 					&sn65dsi83_lvds_regmap_config);
-	if (IS_ERR(sn65dsi83->i2c)) {
-		ret = PTR_ERR(sn65dsi83->i2c_regmap);
+	if (IS_ERR(sn_bridge->i2c)) {
+		ret = PTR_ERR(sn_bridge->i2c_regmap);
 		return ret;
 	}
 
-	//evtl. sw reset
+	of_property_read_u32(dev->of_node, "lanes_in",
+				&sn_bridge->num_dsi_lanes);
 
-	sn65dsi83_lvds_set_interface(sn65dsi83);
+	endpoint = of_graph_get_next_endpoint(dev->of_node, NULL);
+	if (endpoint) {
+		panel_node = of_graph_get_remote_port_parent(endpoint);
+		if (panel_node) {
+			sn_bridge->panel = of_drm_find_panel(panel_node);
+			of_node_put(panel_node);
+			if (!sn_bridge->panel)
+				return -EPROBE_DEFER;
+		}
+	}
+
+	sn65dsi83_parse_dt(dev->of_node, sn_bridge);
+	sn_bridge->i2c = client;
+	i2c_set_clientdata(client, sn_bridge);
+	sn_bridge->bridge.funcs = &sn65dsi83_bridge_funcs;
+	sn_bridge->bridge.of_node = dev->of_node;
+	ret = drm_bridge_add(&sn_bridge->bridge);
+	if (ret) {
+		DRM_ERROR("failed to add bridge\n");
+		return ret;
+	}
 
 	return 0;
-};
+}
 
 static int sn65dsi83_remove(struct i2c_client *client)
 {
-	struct sn65dsi83 *sn65dsi83 = i2c_get_clientdata(client);
+	struct sn65dsi83 *sn_bridge = i2c_get_clientdata(client);
 
-	i2c_unregister_device(sn65dsi83->i2c);
+	i2c_set_clientdata(client, sn_bridge);
+	sn65dsi83_detach_dsi(sn_bridge);
+	drm_bridge_remove(&sn_bridge->bridge);
 
 	return 0;
 }
@@ -158,6 +434,10 @@ static const struct i2c_device_id sn65dsi83_i2c_ids[] = {
 };
 MODULE_DEVICE_TABLE(i2c, sn65dsi83_i2c_ids);
 
+static struct mipi_dsi_driver sn65dsi83_dsi_driver = {
+	.driver.name = "sn65dsi83_dsi",
+};
+
 static struct i2c_driver sn65dsi83_driver = {
 	.driver = {
 		.name = "sn65dsi83",
@@ -168,6 +448,24 @@ static struct i2c_driver sn65dsi83_driver = {
 	.remove = sn65dsi83_remove,
 };
 module_i2c_driver(sn65dsi83_driver);
+
+static int __init sn65dsi83_init(void)
+{
+	if (IS_ENABLED(CONFIG_DRM_MIPI_DSI))
+		mipi_dsi_driver_register(&sn65dsi83_dsi_driver);
+
+	return i2c_add_driver(&sn65dsi83_driver);
+}
+module_init(sn65dsi83_init);
+
+static void __exit sn65dsi83_exit(void)
+{
+	i2c_del_driver(&sn65dsi83_driver);
+
+	if (IS_ENABLED(CONFIG_DRM_MIPI_DSI))
+		mipi_dsi_driver_unregister(&sn65dsi83_dsi_driver);
+}
+module_exit(sn65dsi83_exit);
 
 MODULE_AUTHOR("Janine Hagemann <j.hagemann@phytec.de>");
 MODULE_DESCRIPTION("SN65DSI83 MIPI/LVDS transmitter driver");
