@@ -289,6 +289,12 @@ static int const clks_init_on[] __initconst = {
 
 static struct clk_onecell_data clk_data;
 
+static int const clks_init_on_m4[] __initconst = {
+	IMX8MQ_CLK_M4_CG,
+	IMX8MQ_CLK_SAI1_CG, IMX8MQ_CLK_SAI2_CG,
+	IMX8MQ_CLK_UART2_CG,
+};
+
 static void __init imx8mq_clocks_init(struct device_node *ccm_node)
 {
 	struct device_node *np;
@@ -865,6 +871,14 @@ static void __init imx8mq_clocks_init(struct device_node *ccm_node)
 	clk_set_parent(clks[IMX8MQ_CLK_CSI2_CORE_SRC], clks[IMX8MQ_SYS1_PLL_266M]);
 	clk_set_parent(clks[IMX8MQ_CLK_CSI2_PHY_REF_SRC], clks[IMX8MQ_SYS2_PLL_1000M]);
 	clk_set_parent(clks[IMX8MQ_CLK_CSI2_ESC_SRC], clks[IMX8MQ_SYS1_PLL_800M]);
+
+	/*enable all the clocks just for bringup */
+
+	for (i = 0; i < ARRAY_SIZE(clks_init_on); i++)
+		clk_prepare_enable(clks[clks_init_on[i]]);
+
+	for (i = 0; i < ARRAY_SIZE(clks_init_on_m4); i++)
+		clk_prepare_enable(clks[clks_init_on_m4[i]]);
 
 	pr_info("i.MX8MQ clock driver init done\n");
 }
