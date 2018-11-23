@@ -19,6 +19,9 @@
 
 / {
 
+	aliases {
+		rtc0=&i2c_rtc;
+	};
 };
 
 &resmem {
@@ -155,6 +158,11 @@
 		compatible = "atmel,24c32";
 		reg = <0x52>;
 		pagesize = <32>;
+	};
+
+	i2c_rtc: rtc@68 {
+		compatible = "rv4162";
+		reg = <0x68>;
 	};
 };
 

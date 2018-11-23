@@ -14,10 +14,6 @@
  */
 
 / {
-	aliases {
-		rtc0 = &i2c_rtc;
-	};
-
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -143,12 +139,6 @@
 		reg = <0x2c>;
 		status = "okay";
 
-	};
-
-	i2c_rtc: rtc@68 {
-		compatible = "rv4162";
-		reg = <0x68>;
-		status = "okay";
 	};
 };
 
