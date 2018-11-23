@@ -188,6 +188,18 @@
 status = "okay";
 };
 
+&dcss {
+	status = "okay";
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&hdmi_cec {
+	status = "okay";
+};
+
 &iomuxc {
 	imx8mq-polaris {
 		pinctrl_i2c2: i2c2grp {
