@@ -142,10 +142,11 @@
 	};
 };
 
-&pcie1{
+&pcie1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie1>;
-	clkreq-gpio = <&gpio5 29 GPIO_ACTIVE_LOW>;
+	clkreq-gpio = <&gpio4 2 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio1 6 GPIO_ACTIVE_LOW>;
 	ext_osc = <1>;
 	status = "okay";
 };
@@ -315,7 +316,8 @@
 
 		pinctrl_pcie1: pcie1grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_UART4_TXD_GPIO5_IO29	0x16
+				MX8MQ_IOMUXC_SAI1_RXD0_GPIO4_IO2	0x16
+				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x16
 			>;
 		};
 
