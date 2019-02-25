@@ -14,6 +14,14 @@
  */
 
 / {
+	fan: gpio_fan {
+		compatible = "gpio-fan";
+		gpios =  <&gpio4 8 GPIO_ACTIVE_HIGH>;
+		gpio-fan,speed-map = <0     0
+				      13000 1>;
+		#cooling-cells = <2>;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -52,6 +60,32 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-always-on;
+	};
+
+	thermal-zones {
+		/* fan thermal */
+		fan-thermal {
+			polling-delay-passive = <250>;
+			polling-delay = <2000>;
+			thermal-sensors = <&tmu 1>;
+			trips {
+				fan_fan0: trip0 {
+				temperature = <70000>;
+				hysteresis = <5000>;
+				type = "active";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&fan_fan0>;
+					cooling-device =
+						<&fan
+						 THERMAL_NO_LIMIT
+						 THERMAL_NO_LIMIT>;
+				};
+			};
+		};
 	};
 
 	sound {
