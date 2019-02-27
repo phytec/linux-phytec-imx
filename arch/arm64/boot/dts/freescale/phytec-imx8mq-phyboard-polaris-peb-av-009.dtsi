@@ -1,0 +1,132 @@
+/*
+ * Copyright (C) 2018 PHYTEC Messtechnik GmbH
+ * Author: Janine Hagemann <j.hagemann@phytec.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/ {
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lcd>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_vcc3v3>;
+		pwms = <&pwm4 0 500000>;
+		enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
+		brightness-levels= <0 4 8 16 32 64 128 255>;
+		status = "disabled";
+	};
+
+	panel: panel {
+		compatible = "edt,etml1010g0dka";
+		backlight = <&backlight>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&bridge_out>;
+			};
+		};
+	};
+
+};
+
+&pwm4 {
+	status = "disabled";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm4>;
+};
+
+&i2c2 {
+	i2c_sn65dsi83: sn65dsi83@2c {
+		compatible = "ti,sn65dsi83";
+		reg = <0x2c>;
+		lanes_in = <4>;
+		status = "disabled";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				bridge_out: endpoint {
+					remote-endpoint = <&panel_in>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				bridge_in: endpoint {
+					remote-endpoint = <&dsi_out>;
+				};
+			};
+		};
+	};
+};
+
+&lcdif {
+	status = "disabled";
+	max-res = <1920>, <1080>;
+
+	port {
+
+		lcdif_mipi_dsi: mipi-dsi-endpoint {
+			remote-endpoint = <&mipi_dsi_in>;
+		};
+	};
+};
+
+&mipi_dsi_phy {
+	status = "disabled";
+};
+
+&mipi_dsi {
+	status = "disabled";
+	as_bridge;
+	sync-pol = <1>;
+	pwr-delay = <10>;
+
+	port@1 {
+		mipi_dsi_in: endpoint {
+			remote-endpoint = <&lcdif_mipi_dsi>;
+		};
+	};
+};
+
+&mipi_dsi_bridge {
+	status = "disabled";
+
+	port@1 {
+		dsi_out: endpoint {
+			remote-endpoint = <&bridge_in>;
+		};
+	};
+};
+
+&iomuxc {
+	peb-av-009 {
+		pinctrl_pwm4: pwm4grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16
+			>;
+		};
+
+		pinctrl_lcd: lcd0grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI3_TXD_GPIO5_IO1                 0x16
+			>;
+		};
+	};
+};
