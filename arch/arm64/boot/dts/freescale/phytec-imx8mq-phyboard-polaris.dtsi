@@ -46,6 +46,18 @@
 		};
 	};
 
+	reg_usb0_vbus: usb0-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb0-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb0_vbusen>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+
 	reg_vcc1v8: vcc1v8 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc1v8";
@@ -237,6 +249,20 @@
 	status = "okay";
 };
 
+&usb3_phy0 {
+	vbus-supply = <&reg_usb0_vbus>;
+	status = "okay";
+};
+
+&usb3_0 {
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "otg";
+	status = "okay";
+};
+
 &usb3_phy1 {
 	status = "okay";
 };
@@ -252,6 +278,12 @@
 
 &iomuxc {
 	imx8mq-polaris {
+		pinctrl_usb0_vbusen: usb0vengrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x16
+			>;
+		};
+
 		pinctrl_i2c2: i2c2grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL		0x4000007f
