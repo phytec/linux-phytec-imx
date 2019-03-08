@@ -31,6 +31,8 @@
 struct imx8mq_usb_phy {
 	struct phy *phy;
 	struct clk *clk;
+	struct device *dev;
+	struct regulator *vbus;
 	void __iomem *base;
 };
 
@@ -50,9 +52,46 @@ static int imx8mq_phy_exit(struct phy *_phy)
 	return 0;
 }
 
+static int imx8mq_phy_set_mode(struct phy *phy, enum phy_mode mode)
+{
+	struct imx8mq_usb_phy *imx_phy = phy_get_drvdata(phy);
+	int ret = 0;
+
+	if (!IS_ERR(imx_phy->vbus)) {
+		switch (mode) {
+		case PHY_MODE_USB_DEVICE:
+		case PHY_MODE_USB_OTG:
+			if (regulator_is_enabled(imx_phy->vbus)) {
+				ret = regulator_disable(imx_phy->vbus);
+				if (ret) {
+					dev_err(imx_phy->dev,
+						"failed to disable usb vbus regulator: %d\n",
+						ret);
+				}
+			}
+			break;
+		case PHY_MODE_USB_HOST:
+			if (!regulator_is_enabled(imx_phy->vbus)) {
+				ret = regulator_enable(imx_phy->vbus);
+				if (ret) {
+					dev_err(imx_phy->dev,
+						"failed to enable usb vbus regulator: %d\n",
+						ret);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	return ret;
+}
+
 static struct phy_ops imx8mq_usb_phy_ops = {
 	.init		= imx8mq_phy_start,
 	.exit		= imx8mq_phy_exit,
+	.set_mode	= imx8mq_phy_set_mode,
 	.owner		= THIS_MODULE,
 };
 
@@ -86,6 +125,7 @@ static int imx8mq_usb_phy_probe(struct platform_device *pdev)
 	struct phy_provider *phy_provider;
 	struct device *dev = &pdev->dev;
 	struct imx8mq_usb_phy *imx_phy;
+	struct device_node *np = pdev->dev.of_node;
 	struct resource *res;
 
 	imx_phy = devm_kzalloc(dev, sizeof(*imx_phy), GFP_KERNEL);
@@ -107,11 +147,22 @@ static int imx8mq_usb_phy_probe(struct platform_device *pdev)
 	if (IS_ERR(imx_phy->phy))
 		return PTR_ERR(imx_phy->phy);
 
+	if (of_find_property(np, "vbus-supply", NULL)) {
+		imx_phy->vbus = devm_regulator_get(&pdev->dev, "vbus");
+		if (IS_ERR(imx_phy->vbus))
+			return PTR_ERR(imx_phy->vbus);
+	} else {
+		dev_notice(&pdev->dev, "no vbus regulator");
+		imx_phy->vbus = ERR_PTR(-ENODEV);
+	}
+
 	phy_set_drvdata(imx_phy->phy, imx_phy);
 
 	imx8mq_usb_phy_init(imx_phy);
 
 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
+
+	imx_phy->dev = dev;
 
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
