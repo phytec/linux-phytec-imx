@@ -1,22 +1,14 @@
-/*
- * Copyright (c) 2017 NXP.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+// SPDX-License-Identifier: GPL-2.0+
+/* Copyright (c) 2017 NXP. */
 
 #include <linux/clk.h>
-#include <linux/module.h>
-#include <linux/platform_device.h>
-#include <linux/phy/phy.h>
 #include <linux/io.h>
+#include <linux/module.h>
+#include <linux/phy/phy.h>
+#include <linux/platform_device.h>
 
 #define PHY_CTRL0			0x0
 #define PHY_CTRL0_REF_SSP_EN		BIT(2)
-#define PHY_CTRL0_SSC_RANGE_MASK	(7 << 21)
-#define PHY_CTRL0_SSC_RANGE_4003PPM	(0x2 << 21)
 
 #define PHY_CTRL1			0x4
 #define PHY_CTRL1_RESET			BIT(0)
@@ -31,23 +23,48 @@
 struct imx8mq_usb_phy {
 	struct phy *phy;
 	struct clk *clk;
-	struct device *dev;
 	struct regulator *vbus;
 	void __iomem *base;
 };
 
-static int imx8mq_phy_start(struct phy *_phy)
+static int imx8mq_usb_phy_init(struct phy *phy)
 {
-	struct imx8mq_usb_phy *phy = phy_get_drvdata(_phy);
+	struct imx8mq_usb_phy *imx_phy = phy_get_drvdata(phy);
+	u32 value;
 
-	return clk_prepare_enable(phy->clk);
+	value = readl(imx_phy->base + PHY_CTRL1);
+	value &= ~(PHY_CTRL1_VDATSRCENB0 | PHY_CTRL1_VDATDETENB0 |
+		PHY_CTRL1_COMMONONN);
+	value |= PHY_CTRL1_RESET | PHY_CTRL1_ATERESET;
+	writel(value, imx_phy->base + PHY_CTRL1);
+
+	value = readl(imx_phy->base + PHY_CTRL0);
+	value |= PHY_CTRL0_REF_SSP_EN;
+	writel(value, imx_phy->base + PHY_CTRL0);
+
+	value = readl(imx_phy->base + PHY_CTRL2);
+	value |= PHY_CTRL2_TXENABLEN0;
+	writel(value, imx_phy->base + PHY_CTRL2);
+
+	value = readl(imx_phy->base + PHY_CTRL1);
+	value &= ~(PHY_CTRL1_RESET | PHY_CTRL1_ATERESET);
+	writel(value, imx_phy->base + PHY_CTRL1);
+
+	return 0;
 }
 
-static int imx8mq_phy_exit(struct phy *_phy)
+static int imx8mq_phy_power_on(struct phy *phy)
 {
-	struct imx8mq_usb_phy *phy = phy_get_drvdata(_phy);
+	struct imx8mq_usb_phy *imx_phy = phy_get_drvdata(phy);
 
-	clk_disable_unprepare(phy->clk);
+	return clk_prepare_enable(imx_phy->clk);
+}
+
+static int imx8mq_phy_power_off(struct phy *phy)
+{
+	struct imx8mq_usb_phy *imx_phy = phy_get_drvdata(phy);
+
+	clk_disable_unprepare(imx_phy->clk);
 
 	return 0;
 }
@@ -64,7 +81,7 @@ static int imx8mq_phy_set_mode(struct phy *phy, enum phy_mode mode)
 			if (regulator_is_enabled(imx_phy->vbus)) {
 				ret = regulator_disable(imx_phy->vbus);
 				if (ret) {
-					dev_err(imx_phy->dev,
+					dev_err(&phy->dev,
 						"failed to disable usb vbus regulator: %d\n",
 						ret);
 				}
@@ -74,7 +91,7 @@ static int imx8mq_phy_set_mode(struct phy *phy, enum phy_mode mode)
 			if (!regulator_is_enabled(imx_phy->vbus)) {
 				ret = regulator_enable(imx_phy->vbus);
 				if (ret) {
-					dev_err(imx_phy->dev,
+					dev_err(&phy->dev,
 						"failed to enable usb vbus regulator: %d\n",
 						ret);
 				}
@@ -89,36 +106,12 @@ static int imx8mq_phy_set_mode(struct phy *phy, enum phy_mode mode)
 }
 
 static struct phy_ops imx8mq_usb_phy_ops = {
-	.init		= imx8mq_phy_start,
-	.exit		= imx8mq_phy_exit,
+	.init           = imx8mq_usb_phy_init,
+	.power_on       = imx8mq_phy_power_on,
+	.power_off      = imx8mq_phy_power_off,
 	.set_mode	= imx8mq_phy_set_mode,
 	.owner		= THIS_MODULE,
 };
-
-static void imx8mq_usb_phy_init(struct imx8mq_usb_phy *phy)
-{
-	u32 value;
-
-	value = readl(phy->base + PHY_CTRL1);
-	value &= ~(PHY_CTRL1_VDATSRCENB0 | PHY_CTRL1_VDATDETENB0 |
-		   PHY_CTRL1_COMMONONN);
-	value |= PHY_CTRL1_RESET | PHY_CTRL1_ATERESET;
-	writel(value, phy->base + PHY_CTRL1);
-
-	value = readl(phy->base + PHY_CTRL0);
-	value |= PHY_CTRL0_REF_SSP_EN;
-	value &= ~PHY_CTRL0_SSC_RANGE_MASK;
-	value |= PHY_CTRL0_SSC_RANGE_4003PPM;
-	writel(value, phy->base + PHY_CTRL0);
-
-	value = readl(phy->base + PHY_CTRL2);
-	value |= PHY_CTRL2_TXENABLEN0;
-	writel(value, phy->base + PHY_CTRL2);
-
-	value = readl(phy->base + PHY_CTRL1);
-	value &= ~(PHY_CTRL1_RESET | PHY_CTRL1_ATERESET);
-	writel(value, phy->base + PHY_CTRL1);
-}
 
 static int imx8mq_usb_phy_probe(struct platform_device *pdev)
 {
@@ -158,11 +151,7 @@ static int imx8mq_usb_phy_probe(struct platform_device *pdev)
 
 	phy_set_drvdata(imx_phy->phy, imx_phy);
 
-	imx8mq_usb_phy_init(imx_phy);
-
 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-
-	imx_phy->dev = dev;
 
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
@@ -183,5 +172,4 @@ static struct platform_driver imx8mq_usb_phy_driver = {
 module_platform_driver(imx8mq_usb_phy_driver);
 
 MODULE_DESCRIPTION("FSL IMX8MQ USB PHY driver");
-MODULE_ALIAS("platform:imx8mq-usb-phy");
 MODULE_LICENSE("GPL");
