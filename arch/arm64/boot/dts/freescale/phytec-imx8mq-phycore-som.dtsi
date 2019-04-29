@@ -183,6 +183,12 @@
 		reg = <0x52>;
 		pagesize = <32>;
 	};
+
+	i2c_eeprom_id: eeprom@5a {
+		compatible = "atmel,24c32";
+		reg = <0x5a>;
+		pagesize = <32>;
+	};
 };
 
 &tmu {
