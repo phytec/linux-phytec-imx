@@ -30,11 +30,11 @@
 		states = <900000 0x1 1000000 0x0>;
 	};
 
-        thermal-zones {
-                cpu-thermal {
-                        thermal-sensors = <&tmu 0>;
-                };
-        };
+	thermal-zones {
+		cpu-thermal {
+			thermal-sensors = <&tmu 0>;
+		};
+	};
 };
 
 &A53_0 {
