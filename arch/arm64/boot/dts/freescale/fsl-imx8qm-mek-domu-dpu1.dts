@@ -499,6 +499,7 @@
 /delete-node/ &flexcan1;
 /delete-node/ &flexcan2;
 /delete-node/ &flexcan3;
+/delete-node/ &i2c0_lvds1;
 /delete-node/ &i2c1_lvds1;
 &irqsteer_lvds0 {
 	/delete-property/ interrupt-parent;

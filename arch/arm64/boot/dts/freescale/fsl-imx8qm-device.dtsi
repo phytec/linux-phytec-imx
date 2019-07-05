@@ -2914,6 +2914,20 @@
 		status = "disabled";
 	};
 
+	i2c0_lvds0: i2c@56246000 {
+		compatible = "fsl,imx8qm-lpi2c";
+		reg = <0x0 0x56246000 0x0 0x1000>;
+		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-parent = <&irqsteer_lvds0>;
+		clocks = <&clk IMX8QM_LVDS0_I2C0_CLK>,
+			 <&clk IMX8QM_LVDS0_I2C0_IPG_CLK>;
+		clock-names = "per", "ipg";
+		assigned-clocks = <&clk IMX8QM_LVDS0_I2C0_CLK>;
+		assigned-clock-rates = <24000000>;
+		power-domains = <&pd_lvds0_i2c0>;
+		status = "disabled";
+	};
+
 	i2c1_lvds0: i2c@56247000 {
 		compatible = "fsl,imx8qm-lpi2c";
 		reg = <0x0 0x56247000 0x0 0x1000>;
@@ -2938,6 +2952,20 @@
 		clocks = <&clk IMX8QM_LVDS1_LIS_IPG_CLK>;
 		clock-names = "ipg";
 		power-domains = <&pd_lvds1>;
+	};
+
+	i2c0_lvds1: i2c@57246000 {
+		compatible = "fsl,imx8qm-lpi2c";
+		reg = <0x0 0x57246000 0x0 0x1000>;
+		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-parent = <&irqsteer_lvds1>;
+		clocks = <&clk IMX8QM_LVDS1_I2C0_CLK>,
+			 <&clk IMX8QM_LVDS1_I2C0_IPG_CLK>;
+		clock-names = "per", "ipg";
+		assigned-clocks = <&clk IMX8QM_LVDS1_I2C0_CLK>;
+		assigned-clock-rates = <24000000>;
+		power-domains = <&pd_lvds1_i2c0>;
+		status = "disabled";
 	};
 
 	i2c1_lvds1: i2c@57247000 {

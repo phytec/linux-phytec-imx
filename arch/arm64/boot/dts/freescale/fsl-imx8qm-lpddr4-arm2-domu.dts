@@ -371,6 +371,7 @@
 };
 
 /delete-node/ &irqsteer_lvds0;
+/delete-node/ &i2c0_lvds0;
 /delete-node/ &i2c1_lvds0;
 /delete-node/ &irqsteer_csi0;
 /delete-node/ &i2c0_mipi_csi0;
