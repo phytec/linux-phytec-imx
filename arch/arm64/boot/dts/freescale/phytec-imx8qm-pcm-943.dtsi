@@ -147,6 +147,22 @@
 	status = "okay";
 };
 
+&hdmi {
+	compatible = "fsl,imx8qm-hdmi";
+	assigned-clocks = <&clk IMX8QM_HDMI_PXL_SEL>,
+			<&clk IMX8QM_HDMI_PXL_LINK_SEL>,
+			<&clk IMX8QM_HDMI_PXL_MUX_SEL>;
+	assigned-clock-parents = <&clk IMX8QM_HDMI_AV_PLL_CLK>,
+				<&clk IMX8QM_HDMI_AV_PLL_CLK>,
+				<&clk IMX8QM_HDMI_AV_PLL_CLK>;
+	fsl,cec;
+	status = "okay";
+};
+
+&irqsteer_hdmi {
+	status = "okay";
+};
+
 &ldb1_phy {
 	status = "okay";
 };
