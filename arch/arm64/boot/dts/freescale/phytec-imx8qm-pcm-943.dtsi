@@ -66,6 +66,17 @@
 			regulator-name = "epdev_on2";
 		};
 
+		reg_bt_en: bt_en {
+			compatible = "regulator-fixed";
+			regulator-name = "bt_en";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio5 19 GPIO_ACTIVE_HIGH>;
+			startup-delay-us = <100>;
+			enable-active-high;
+			regulator-always-on;
+		};
+
 		reg_can_en: regulator-can-gen {
 			compatible = "regulator-fixed";
 			regulator-name = "can-en";
@@ -89,6 +100,16 @@
 			regulator-max-microvolt = <3300000>;
 			gpio = <&gpio4 9 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
+		};
+
+		reg_wlan_en: wlan_en {
+			compatible = "regulator-fixed";
+			regulator-name = "wlan_en";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio5 20 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
 		};
 
 		lcd_3v3: lcd_vcc3v3 {
@@ -279,6 +300,15 @@
 	status = "okay";
 };
 
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2_wlan>, <&pinctrl_wlan>;
+	bus-width = <4>;
+	non-removable;
+	no-1-8-v;
+	status = "okay";
+};
+
 &usdhc3 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>, <&pinctrl_usdhc3_gpio>;
@@ -298,6 +328,15 @@
 &lpuart0 { /* console */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpuart0>;
+	status = "okay";
+};
+
+&lpuart1 { /* bluetooth */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpuart1_bt>;
+	assigned-clocks = <&clk IMX8QM_UART1_CLK>;
+	uart-has-rtscts;
+	fsl,dte-mode;
 	status = "okay";
 };
 
@@ -408,6 +447,15 @@
 			>;
 		};
 
+		pinctrl_lpuart1_bt: lpuart1grp_bt  {
+			fsl,pins = <
+				SC_P_UART1_RTS_B_DMA_UART1_RTS_B	0x06000020
+				SC_P_UART1_CTS_B_DMA_UART1_CTS_B	0x06000020
+				SC_P_UART1_RX_DMA_UART1_RX		0x06000020
+				SC_P_UART1_TX_DMA_UART1_TX		0x06000020
+			>;
+		};
+
 		pinctrl_lvds0_lpi2c0: lvds0lpi2c0grp {
 			fsl,pins = <
 				SC_P_LVDS0_I2C0_SCL_LVDS0_I2C0_SCL	0xc600004c
@@ -441,6 +489,24 @@
 		pinctrl_usbotg1: usbotg1 {
 			fsl,pins = <
 				SC_P_USB_SS3_TC0_CONN_USB_OTG1_PWR		0x00000021
+			>;
+		};
+
+		pinctrl_wlan: wlangrp {
+			fsl,pins = <
+				SC_P_USDHC1_DATA5_LSIO_GPIO5_IO20	0x00000021
+			>;
+		};
+
+		pinctrl_usdhc2_wlan: usdhc2wlangrp {
+			fsl,pins = <
+				SC_P_USDHC1_CLK_CONN_USDHC1_CLK		0x06000041
+				SC_P_USDHC1_CMD_CONN_USDHC1_CMD		0x00000021
+				SC_P_USDHC1_DATA0_CONN_USDHC1_DATA0	0x00000021
+				SC_P_USDHC1_DATA1_CONN_USDHC1_DATA1	0x00000021
+				SC_P_USDHC1_DATA2_CONN_USDHC1_DATA2	0x00000021
+				SC_P_USDHC1_DATA3_CONN_USDHC1_DATA3	0x00000021
+				SC_P_USDHC1_VSELECT_CONN_USDHC1_VSELECT 0x00000021
 			>;
 		};
 
