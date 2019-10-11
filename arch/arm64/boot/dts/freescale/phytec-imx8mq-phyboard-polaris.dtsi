@@ -41,7 +41,7 @@
 
 		led-green {
 			label = "green-heartbeat";
-			gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
 		};
 	};
@@ -295,7 +295,7 @@
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
 				MX8MQ_IOMUXC_I2C3_SCL_GPIO5_IO18	0x16
-				MX8MQ_IOMUXC_I2C3_SDA_GPIO5_IO19	0x16
+				MX8MQ_IOMUXC_SAI1_RXD6_GPIO4_IO8	0x16
 			>;
 		};
 

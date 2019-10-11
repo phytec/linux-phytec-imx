@@ -59,6 +59,7 @@
 	pinctrl-0 = <&pinctrl_fec1>;
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy0>;
+	phy-reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
 	fsl,magic-packet;
 	status = "okay";
 
@@ -178,15 +179,15 @@
 		};
 	};
 
-	i2c_eeprom: eeprom@52 {
+	i2c_eeprom: eeprom@50 {
 		compatible = "atmel,24c32";
-		reg = <0x52>;
+		reg = <0x50>;
 		pagesize = <32>;
 	};
 
-	i2c_eeprom_id: eeprom@5a {
+	i2c_eeprom_id: eeprom@58 {
 		compatible = "atmel,24c32";
-		reg = <0x5a>;
+		reg = <0x58>;
 		pagesize = <32>;
 	};
 };
@@ -236,15 +237,15 @@
 				MX8MQ_IOMUXC_ENET_TD2_ENET1_RGMII_TD2		0x1f
 				MX8MQ_IOMUXC_ENET_TD1_ENET1_RGMII_TD1		0x1f
 				MX8MQ_IOMUXC_ENET_TD0_ENET1_RGMII_TD0		0x1f
-				MX8MQ_IOMUXC_ENET_RD3_ENET1_RGMII_RD3		0x91
-				MX8MQ_IOMUXC_ENET_RD2_ENET1_RGMII_RD2		0x91
-				MX8MQ_IOMUXC_ENET_RD1_ENET1_RGMII_RD1		0x91
-				MX8MQ_IOMUXC_ENET_RD0_ENET1_RGMII_RD0		0x91
+				MX8MQ_IOMUXC_ENET_RD3_ENET1_RGMII_RD3		0x90
+				MX8MQ_IOMUXC_ENET_RD2_ENET1_RGMII_RD2		0x90
+				MX8MQ_IOMUXC_ENET_RD1_ENET1_RGMII_RD1		0x90
+				MX8MQ_IOMUXC_ENET_RD0_ENET1_RGMII_RD0		0x90
 				MX8MQ_IOMUXC_ENET_TXC_ENET1_RGMII_TXC		0x1f
-				MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC		0x91
-				MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
+				MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC		0x90
+				MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x90
 				MX8MQ_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
-				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
+				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6		0x18
 			>;
 		};
 
