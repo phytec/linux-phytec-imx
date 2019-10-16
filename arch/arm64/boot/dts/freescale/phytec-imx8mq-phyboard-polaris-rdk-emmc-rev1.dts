@@ -1,0 +1,41 @@
+/*
+ * Copyright (C) 2018 PHYTEC Messtechnik GmbH
+ * Author: Christian Hemp <c.hemp@phytec.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "phytec-imx8mq-phycore-som-rev1.dtsi"
+#include "phytec-imx8mq-phyboard-polaris-rev1.dtsi"
+#include "phytec-imx8mq-phyboard-polaris-sdcard.dtsi"
+#include "phytec-imx8mq-phyboard-polaris-peb-av-009.dtsi"
+#include "phytec-polaris-peb-eval-01.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Polaris Carrier-Board with eMMC";
+	compatible = "phytec,imx8mq-pbacd12-emmc", "phytec,imx8mq-pbacd12",
+		     "phytec,imx8mq-pcl066", "fsl,imx8mq";
+
+	chosen {
+		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
+		stdout-path = &uart1;
+	};
+};
+
+&usdhc1 {
+	status = "okay";
+};
+
+&usdhc2 {
+	status = "okay";
+};
