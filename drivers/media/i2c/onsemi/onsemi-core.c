@@ -3195,20 +3195,25 @@ static void _onsemi_calculate_div(struct onsemi_core const *onsemi,
 				  struct onsemi_pll_cfg *cfg)
 {
 	struct onsemi_limits const	*limits = onsemi->limits;
+	uint64_t			max_f;
 
 	switch (bus_info->bus_type) {
 	case V4L2_MBUS_PARALLEL:
 		cfg->vt_sys_div = 1;
 		cfg->vt_pix_div = 12 / 2;
 
+		max_f  = limits->pix_clk.max;
+		max_f *= cfg->vt_pix_div;
+
+		while (freq_vco / cfg->vt_sys_div > max_f)
+			cfg->vt_sys_div *= 2;
+
 		/* not used */
 		cfg->op_sys_div = 0;
 		cfg->op_pix_div = 0;
 		break;
 
-	case V4L2_MBUS_CSI2: {
-		uint64_t max_f;
-
+	case V4L2_MBUS_CSI2:
 		/* limit serial output clock */
 		max_f  = limits->f_serial.max;
 		if (bus_info->max_freq != 0)
@@ -3242,7 +3247,6 @@ static void _onsemi_calculate_div(struct onsemi_core const *onsemi,
 			cfg->op_sys_div, cfg->op_pix_div);
 
 		break;
-	}
 
 	default:
 		BUG();
