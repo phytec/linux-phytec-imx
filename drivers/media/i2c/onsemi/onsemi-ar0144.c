@@ -111,13 +111,13 @@ static int ar0144_probe(struct i2c_client *i2c, struct i2c_device_id const *did)
 	if (!sensor)
 		return -ENOMEM;
 
-	rc = onsemi_core_init(i2c, &sensor->core, cfg);
-	if (rc < 0)
-		goto out;
-
 	sensor->core.v4l_parm = &sensor->v4l_parm.core;
 	sensor->core.pll_cfg  = &sensor->pll_cfg;
 	sensor->core.pll_freq = &sensor->pll_freq;
+
+	rc = onsemi_core_init(i2c, &sensor->core, cfg);
+	if (rc < 0)
+		goto out;
 
 	if (onsemi_has_mipi(&sensor->core)) {
 		rc = ar0144_read_mipi_timings(sensor);
