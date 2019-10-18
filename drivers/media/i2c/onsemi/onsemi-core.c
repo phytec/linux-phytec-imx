@@ -683,8 +683,13 @@ static int onsemi_core_debugfs_init(struct onsemi_core *onsemi)
 	struct dentry	**d_top_ctx;
 	struct dentry	*d_top;
 	struct dentry	*d_limits;
+	struct dentry	*d_freq;
+	struct onsemi_pll_freq *freq = onsemi->pll_freq;
 	size_t		i;
 	int		rc;
+
+	if (WARN_ON(!freq))
+		return -EINVAL;
 
 	if (!IS_ENABLED(CONFIG_DEBUG_FS))
 		return 0;
@@ -711,6 +716,14 @@ static int onsemi_core_debugfs_init(struct onsemi_core *onsemi)
 		goto out;
 	}
 
+	d_freq = debugfs_create_dir("freq", d_top);
+	rc = PTR_ERR_OR_ZERO(d_freq);
+	if (rc < 0) {
+		dev_err(onsemi->dev, "failed to create 'freq' debugfs: %d\n",
+			rc);
+		goto out;
+	}
+
 	for (i = 0; i < ARRAY_SIZE(ONSEMI_LIMITS); ++i) {
 		uintptr_t	tmp = (uintptr_t)onsemi->limits;
 
@@ -720,8 +733,19 @@ static int onsemi_core_debugfs_init(struct onsemi_core *onsemi)
 				     (unsigned long *)tmp);
 	}
 
-	onsemi->debugfs_top = d_top;
+	debugfs_create_ulong("ext",       0444, d_freq, &freq->ext);
+	debugfs_create_ulong("vco",       0444, d_freq, &freq->vco);
+	debugfs_create_ulong("clk-pixel", 0444, d_freq, &freq->clk_pixel);
+	debugfs_create_ulong("clk-op",    0444, d_freq, &freq->clk_op);
+	debugfs_create_ulong("vt-pix",    0444, d_freq, &freq->vt_pix);
+	debugfs_create_ulong("vt-sys",    0444, d_freq, &freq->vt_sys);
+	debugfs_create_ulong("op-pix",    0444, d_freq, &freq->op_pix);
+	debugfs_create_ulong("op-sys",    0444, d_freq, &freq->op_sys);
+	debugfs_create_u64  ("link_freq", 0444, d_freq, &freq->link_freq);
+
+	onsemi->debugfs_top    = d_top;
 	onsemi->debugfs_limits = d_limits;
+	onsemi->debugfs_freq   = d_freq;
 
 	*d_top_ctx = d_top;
 	devres_add(onsemi->dev, d_top_ctx);

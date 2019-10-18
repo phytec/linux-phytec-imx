@@ -282,6 +282,7 @@ struct onsemi_core {
 
 	struct dentry			*debugfs_top;
 	struct dentry			*debugfs_limits;
+	struct dentry			*debugfs_freq;
 
 	struct onsemi_limits		*dyn_limits;
 
