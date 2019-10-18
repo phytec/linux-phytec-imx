@@ -32,6 +32,13 @@
 			>;
 		};
 
+		pinctrl_tpm: tpmgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x140
+				MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11	0x140
+			>;
+		};
+
 		pinctrl_usbotg1pwrgrp: usbotg1pwrgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x00
@@ -55,6 +62,27 @@
 	pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
 	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
 	status = "okay";
+
+	tpm: tpm_tis@0 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tpm>;
+		compatible = "tcg,tpm_tis-spi";
+		reg = <0>;
+		spi-max-frequency = <38000000>;
+#if 0 /* IRQ support is not properly implemented in the driver */
+		interrupt-parent = <&gpio2>;
+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+#endif
+	};
+};
+
+&gpio2 {
+	tpm_nreset {
+		gpio-hog;
+		gpios = <10 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "TPM_nRESET";
+	};
 };
 
 &usbotg1 {
