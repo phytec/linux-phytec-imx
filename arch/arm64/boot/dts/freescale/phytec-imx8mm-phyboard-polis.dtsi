@@ -39,6 +39,17 @@
 			>;
 		};
 
+		pinctrl_pcie: pciegrp {
+			fsl,pins = <
+				/* /PERST */
+				MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9	0x00
+				/* COEX1 */
+				MX8MM_IOMUXC_SAI1_TXD0_GPIO4_IO12	0x12
+				/* COEX2 */
+				MX8MM_IOMUXC_SAI1_TXD7_GPIO4_IO19	0x12
+			>;
+		};
+
 		pinctrl_tpm: tpmgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x140
@@ -107,6 +118,13 @@
 		output-high;
 		line-name = "TPM_nRESET";
 	};
+};
+
+&pcie0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie>;
+	reset-gpio = <&gpio4 9 GPIO_ACTIVE_LOW>;
+	status = "okay";
 };
 
 &uart1 {
