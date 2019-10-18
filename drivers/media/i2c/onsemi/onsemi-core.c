@@ -2424,8 +2424,8 @@ static int onsemi_s_frame_interval(struct v4l2_subdev *sd,
 				     &parm.parm.vblank,
 				     0xffff);
 	if (rc < 0) {
-		v4l2_warn(sd, "failed to find matching parameters for given interval\n");
-		goto out;
+		v4l2_warn(sd, "failed to find matching parameters for given interval; assuming limits\n");
+		rc = onsemi_frame_time_us(onsemi, &parm.parm, &parm.freq);
 	}
 
 	/* write back the calculated time */
