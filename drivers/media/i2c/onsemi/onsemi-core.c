@@ -614,11 +614,20 @@ void onsemi_power_put(struct onsemi_core *sensor)
 }
 EXPORT_SYMBOL_GPL(onsemi_power_put);
 
+#define attribute_typeof(_struct, _attr)	__typeof__(&((_struct *)0)->_attr)
+#define attribute_types_compatible(_type, _struct, _attr) \
+	(__builtin_types_compatible_p(attribute_typeof(_struct, _attr), _type *))
+
+#define offsetof_t(_type, _struct, _attr)				\
+	(BUILD_BUG_ON_ZERO(!attribute_types_compatible(_type, _struct, _attr)) + \
+	 offsetof(_struct, _attr))
+
 #define DECL_LIMIT(_reg, _attr)						\
 	{								\
 		.reg = _reg,						\
 		.name	= # _attr,					\
-		.ofs	= offsetof(struct onsemi_limits, _attr),	\
+		.ofs	= offsetof_t(unsigned long,			\
+				     struct onsemi_limits, _attr),	\
 	}
 
 static struct {
