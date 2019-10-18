@@ -63,7 +63,7 @@
 /* Register Mask */
 #define CHA_DSI_LANES			0x19
 #define CHA_24BPP			0xEA
-#define LVDS_CLK_RANGE			0x8f
+#define LVDS_CLK_RANGE			0x0E
 #define CHA_REVERS_LVDS			0x20
 #define VS_NEG_POLARITY			0x20
 #define HS_NEG_POLARITY			0x40
@@ -180,8 +180,8 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 	int clk_range, mipi_clk, lvds_clk, clk_div;
 	int bpp, lanes, i;
 	char lvds_clk_range;
-	int clk[5] = {37500, 62500, 87500, 112500, 137500};
-	int clk_value[5] = {0x81, 0x83, 0x85, 0x89, 0x8b};
+	int clk[6] = {37500, 62500, 87500, 112500, 137500, 154000};
+	int clk_value[6] = {0x0,0x2, 0x4, 0x6, 0x8, 0xA};
 
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_DE);
 	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
@@ -215,14 +215,18 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 	 */
 	clk_div =  (mipi_clk / lvds_clk) - 1;
 
+	lvds_clk_range = clk_value[5];
 	for (i = 5; i >= 0; i--) {
 		if (lvds_clk < clk[i])
 			lvds_clk_range = clk_value[i];
 		else
-			lvds_clk_range = clk_value[4];
+			break;
 	}
+
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
 				LVDS_CLK_RANGE,	lvds_clk_range);
+	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
+                                0x1, 0x1);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_DIVIDER,
 			clk_div << 3);
 
