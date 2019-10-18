@@ -300,7 +300,7 @@ static int pf8x00_regulator_set_voltage_time_sel(struct regulator_dev *rdev,
 }
 
 static short ilim_table[] = {
-	2100, 2600, 3000, 	/* 4500, */
+	2100, 2600, 3000, 4500,
 };
 
 static int encode_ilim(struct pf8x_chip *pf, int ilim)
