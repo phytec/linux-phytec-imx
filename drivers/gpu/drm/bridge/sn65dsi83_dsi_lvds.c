@@ -414,7 +414,7 @@ static int sn65dsi83_probe(struct i2c_client *client,
 
 	sn_bridge->i2c_regmap = devm_regmap_init_i2c(client,
 					&sn65dsi83_lvds_regmap_config);
-	if (IS_ERR(sn_bridge->i2c)) {
+	if (IS_ERR(sn_bridge->i2c_regmap)) {
 		ret = PTR_ERR(sn_bridge->i2c_regmap);
 		return ret;
 	}
