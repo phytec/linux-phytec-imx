@@ -63,6 +63,12 @@
 			>;
 		};
 
+		pinctrl_rtc: rtcgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x1C0
+			>;
+		};
+
 		pinctrl_uart3: uart3grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_UART3_RXD_UART3_DCE_RX     0x49
@@ -286,6 +292,18 @@
 		compatible = "atmel,24c32";
 		reg = <0x51>;
 		status = "okay";
+	};
+
+	rv3028: rv3028@52 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc>;
+		compatible = "microcrystal,rv3028";
+		reg = <0x52>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+		wakeup-source;
+		trickle-resistor-ohms = <1000>; /* maps to 3 kOhm setting */
+		enable-level-switching-mode;
 	};
 };
 
