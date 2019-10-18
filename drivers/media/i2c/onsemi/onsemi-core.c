@@ -3249,6 +3249,19 @@ static void _onsemi_calculate_div(struct onsemi_core const *onsemi,
 	}
 }
 
+static unsigned long _ul_mul_div(unsigned long a, unsigned long b, unsigned long c)
+{
+	uint64_t	res;
+
+	res  = a;
+	res *= b;
+	res  = div64_ul(res, c);
+
+	WARN_ON(res != (unsigned long)res);
+
+	return res;
+}
+
 int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 			 struct onsemi_businfo const *bus_info,
 			 unsigned int bpp,
@@ -3287,7 +3300,7 @@ int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 		return rc;
 
 	freq.ext = onsemi->ext_clk_freq;
-	freq.vco = freq.ext * cfg.pre_pll_mul / cfg.pre_pll_div;
+	freq.vco = _ul_mul_div(freq.ext, cfg.pre_pll_mul, cfg.pre_pll_div);
 
 	_onsemi_calculate_div(onsemi, bus_info, freq.vco, bpp, &cfg);
 
