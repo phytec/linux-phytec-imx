@@ -1474,8 +1474,7 @@ static void onsemi_params_write_mipi(struct onsemi_core *onsemi, int *err)
 		return;
 	}
 
-	onsemi_write(err, onsemi, 0x31ae,
-		     (info->bus_width << 8) | info->bus_width);
+	onsemi_write(err, onsemi, 0x31ae, (2 << 8) | info->bus_width);
 	onsemi_update_bits(err, onsemi, 0x301a,
 			   ONSEMI_FLD_RESET_REGISTER_SMIA_DIS |
 			   ONSEMI_FLD_RESET_REGISTER_PARALLEL_EN |
