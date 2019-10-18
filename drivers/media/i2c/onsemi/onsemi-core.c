@@ -1316,8 +1316,11 @@ static void onsemi_get_frame_size(struct onsemi_core const *onsemi,
 	v_size  = clamp_t(unsigned int, v_size,
 			  limits->vlen.min, limits->vlen.max);
 
-	*h_size_out = h_size;
-	*v_size_out = v_size;
+	if (h_size_out)
+		*h_size_out = h_size;
+
+	if (v_size_out)
+		*v_size_out = v_size;
 }
 
 static unsigned long onsemi_frame_time_us(struct onsemi_core const *onsemi,
