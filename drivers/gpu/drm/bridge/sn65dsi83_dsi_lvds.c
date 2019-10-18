@@ -277,8 +277,9 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 			mode->htotal-mode->hsync_end);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VERTICAL_BACK_PORCH,
 			mode->vtotal-mode->vsync_end);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_EN);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_PLL_EN, PLL_EN);
+	mdelay(10);
+	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_EN);
 }
 
 static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
