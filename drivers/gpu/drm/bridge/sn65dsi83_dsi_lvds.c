@@ -392,7 +392,6 @@ static int sn65dsi83_probe(struct i2c_client *client,
 	struct device_node *endpoint, *panel_node;
 	int ret = 0;
 
-
 	sn_bridge = devm_kzalloc(dev, sizeof(*sn_bridge), GFP_KERNEL);
 	if (!sn_bridge)
 		return -ENOMEM;
@@ -418,7 +417,10 @@ static int sn65dsi83_probe(struct i2c_client *client,
 		}
 	}
 
-	sn65dsi83_parse_dt(dev->of_node, sn_bridge);
+	ret = sn65dsi83_parse_dt(dev->of_node, sn_bridge);
+	if (ret)
+		return -EINVAL;
+
 	sn_bridge->i2c = client;
 	i2c_set_clientdata(client, sn_bridge);
 	sn_bridge->bridge.funcs = &sn65dsi83_bridge_funcs;
