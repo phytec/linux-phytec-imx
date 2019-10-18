@@ -3122,6 +3122,118 @@ static int onsemi_calculate_vco(unsigned int *pll_div,
 	return 0;
 }
 
+/**
+ *  Calculates a f_vco so that the maximum bus frequency can be reached
+ *
+ *
+ */
+static unsigned long _onsemi_estimate_vco(struct onsemi_core const *onsemi,
+					  struct onsemi_businfo const *bus_info,
+					  unsigned int bpp)
+{
+	struct onsemi_limits const	*limits = onsemi->limits;
+	unsigned long			bus_freq;
+	unsigned long			vco_freq;
+
+	bus_freq = bus_info->max_freq;
+
+	/* estimate F_vco so that requested bus frequency can be matched */
+	switch (bus_info->bus_type) {
+	case V4L2_MBUS_PARALLEL: {
+		unsigned long	max_bus = limits->pix_clk.max;
+
+		if (bus_freq == 0 || bus_freq > max_bus)
+			bus_freq = max_bus;
+
+		vco_freq = bus_freq * 12;
+		break;
+	}
+
+	case V4L2_MBUS_CSI2: {
+		unsigned long	max_vco = limits->pix_clk.max * bpp;
+		unsigned int	bus_width = bus_info->bus_width;
+
+		if (bus_freq == 0 || bus_freq >= max_vco / bus_width)
+			vco_freq = max_vco;
+		else
+			vco_freq = bus_freq * bus_width;
+		break;
+	}
+
+	default:
+		WARN_ON(1);
+		return 0;
+	}
+
+	/* adjust F_vco so that it is in a valid range and target frequency
+	 * can be reached */
+	while (vco_freq > limits->pll_vco.max)
+		vco_freq /= 2;
+
+	return vco_freq;
+}
+
+static void _onsemi_calculate_div(struct onsemi_core const *onsemi,
+				  struct onsemi_businfo const *bus_info,
+				  unsigned long freq_vco,
+				  unsigned int bpp,
+				  struct onsemi_pll_cfg *cfg)
+{
+	struct onsemi_limits const	*limits = onsemi->limits;
+
+	switch (bus_info->bus_type) {
+	case V4L2_MBUS_PARALLEL:
+		cfg->vt_sys_div = 1;
+		cfg->vt_pix_div = 12 / 2;
+
+		/* not used */
+		cfg->op_sys_div = 0;
+		cfg->op_pix_div = 0;
+		break;
+
+	case V4L2_MBUS_CSI2: {
+		uint64_t max_f;
+
+		/* limit serial output clock */
+		max_f  = limits->f_serial.max;
+		if (bus_info->max_freq != 0)
+			max_f = min_t(uint64_t, max_f, bus_info->max_freq);
+		max_f *= bus_info->bus_width;
+
+		cfg->op_sys_div = 1;
+		while (freq_vco / cfg->op_sys_div > max_f)
+			cfg->op_sys_div *= 2;
+
+		dev_dbg(onsemi->dev, "  vco=%lu, max_op=%llu -> div=%u\n",
+			freq_vco, max_f, cfg->op_sys_div);
+
+		/* limit pixel clock */
+		max_f  = limits->pix_clk.max;
+		max_f *= bpp / 2;
+
+		cfg->vt_sys_div = cfg->op_sys_div;
+		while (freq_vco / cfg->vt_sys_div > max_f) {
+			cfg->op_sys_div *= 2;
+			cfg->vt_sys_div *= 2;
+		}
+
+		/* f_pix and f_op have a fixed 2:1 ratio */
+		cfg->vt_pix_div = bpp / 2;
+		cfg->op_pix_div = bpp;
+
+		dev_dbg(onsemi->dev, "  vco=%lu, max_vt=%llu -> vt_div=%u*%u, op_div=%u*%u\n",
+			freq_vco, max_f,
+			cfg->vt_sys_div, cfg->vt_pix_div,
+			cfg->op_sys_div, cfg->op_pix_div);
+
+		break;
+	}
+
+	default:
+		BUG();
+	}
+}
+
 int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 			 struct onsemi_businfo const *bus_info,
 			 unsigned int bpp,
@@ -3137,7 +3249,6 @@ int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 		.op_speed	= 1,
 	};
 	unsigned long			vco_freq;
-	unsigned long			bus_freq;
 
 	if (WARN_ON(!bus_info))
 		return -EPIPE;
@@ -3153,39 +3264,7 @@ int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 		bus_info->bus_type, bus_info->max_freq, bus_info->bus_width,
 		bpp);
 
-	bus_freq = bus_info->max_freq;
-
-	/* estimate F_vco so that requested bus frequency can be matched */
-	switch (bus_info->bus_type) {
-	case V4L2_MBUS_PARALLEL: {
-		unsigned long	max_bus = onsemi->limits->pix_clk.max;
-
-		if (bus_freq == 0 || bus_freq > max_bus)
-			bus_freq = max_bus;
-
-		vco_freq = bus_freq * 12;
-		break;
-	}
-
-	case V4L2_MBUS_CSI2: {
-		unsigned long	max_vco = onsemi->limits->pix_clk.max * bpp;
-
-		if (bus_freq == 0 || bus_freq >= max_vco / bus_info->bus_width)
-			vco_freq = max_vco;
-		else
-			vco_freq = bus_freq * bus_info->bus_width;
-		break;
-	}
-
-	default:
-		WARN_ON(1);
-		return -EINVAL;
-	}
-
-	/* adjust F_vco so that it is in a valid range and target frequency
-	 * can be reached */
-	while (vco_freq > onsemi->limits->pll_vco.max)
-		vco_freq /= 2;
+	vco_freq = _onsemi_estimate_vco(onsemi, bus_info, bpp);
 
 	rc = onsemi_calculate_vco(&cfg.pre_pll_div, &cfg.pre_pll_mul,
 				  limits, onsemi->ext_clk_freq, vco_freq);
@@ -3195,45 +3274,22 @@ int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 	freq.ext = onsemi->ext_clk_freq;
 	freq.vco = freq.ext * cfg.pre_pll_mul / cfg.pre_pll_div;
 
-	switch (bus_info->bus_type) {
-	case V4L2_MBUS_PARALLEL:
-		cfg.vt_sys_div = 1;
-		cfg.op_sys_div = 1;
-		break;
-
-	case V4L2_MBUS_CSI2:
-		cfg.op_sys_div = 1;
-		while (freq.vco / cfg.op_sys_div >
-		       limits->f_serial.max * bus_info->bus_width)
-			cfg.op_sys_div *= 2;
-
-		cfg.vt_sys_div = cfg.op_sys_div;
-		while (freq.vco / cfg.vt_sys_div >
-		       onsemi->limits->pix_clk.max * bpp / bus_info->bus_width) {
-			cfg.op_sys_div *= 2;
-			cfg.vt_sys_div *= 2;
-		}
-
-		break;
-
-	default:
-		BUG();
-	}
+	_onsemi_calculate_div(onsemi, bus_info, freq.vco, bpp, &cfg);
 
 	switch (bus_info->bus_type) {
 	case V4L2_MBUS_CSI2:
-		cfg.vt_pix_div = bpp / bus_info->bus_width;
-		cfg.op_pix_div = bpp;
 		use_op_clk     = true;
 		/* TODO: where is this '/ 2' is coming from?  It has been
 		 * added because csi2_dphy_init() in the imx6 csi driver
 		 * expects this scaling. */
 		freq.link_freq = freq.vco / cfg.op_sys_div / 2;
+
+		if (bus_info->bus_width > 2)
+			freq.link_freq *= bus_info->bus_width / 2;
+
 		break;
 
 	case V4L2_MBUS_PARALLEL:
-		cfg.vt_pix_div = 12 / 2;
-		cfg.op_pix_div = 12;	/* not used */
 		use_op_clk = false;
 		freq.link_freq = freq.vco / cfg.vt_sys_div / cfg.vt_pix_div;
 		break;
