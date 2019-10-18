@@ -1413,6 +1413,7 @@ static void onsemi_params_group_hold(struct onsemi_core *onsemi, bool ena, int *
 static void onsemi_params_write_frame(struct onsemi_core *onsemi, int *err)
 {
 	struct onsemi_v4l_parm const	*parm = onsemi->v4l_parm;
+	struct onsemi_businfo const	*bus_info = onsemi->active_bus;
 	unsigned int			h_size;
 	unsigned int			v_size;
 
@@ -1421,17 +1422,22 @@ static void onsemi_params_write_frame(struct onsemi_core *onsemi, int *err)
 
 	onsemi_get_frame_size(onsemi, NULL, &h_size, &v_size);
 
-	if (onsemi->ops->hclk_mul_2)
-		h_size *= 2;
+	if (onsemi->ops->hclk_mul_2 && bus_info) {
+		/* HACK: this smells ugly and is based upon experiments with
+		 * the register wizard */
+		if (bus_info->bus_type == V4L2_MBUS_CSI2 &&
+		    bus_info->bus_width < 4)
+			h_size *= 2;
+	}
 
 	onsemi_write(err, onsemi, 0x300a, v_size); /* frame_length_line */
 	onsemi_write(err, onsemi, 0x300c, h_size); /* line_length_pck */
 
 	if (onsemi->ops->has_smia_cfg) {
-		onsemi_write(err, onsemi, 0x034c, /* x_output_size */
-			     parm->frame.width / parm->x_scale);
-		onsemi_write(err, onsemi, 0x034e, /* y_output_size */
-			     parm->frame.height / parm->y_scale);
+		/* x_output_size */
+		onsemi_write(err, onsemi, 0x034c, parm->frame.width);
+		/* y_output_size */
+		onsemi_write(err, onsemi, 0x034e, parm->frame.height);
 	}
 }
 
