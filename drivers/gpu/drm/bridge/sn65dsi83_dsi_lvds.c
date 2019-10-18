@@ -64,7 +64,7 @@
 #define CHA_DSI_LANES			0x19
 #define CHA_24BPP			0xEA
 #define LVDS_CLK_RANGE			0x8f
-#define CHA_REVERS_LVDS			0x3e
+#define CHA_REVERS_LVDS			0x20
 
 /* Register Value */
 #define SOFT_RESET_EN			0x01
