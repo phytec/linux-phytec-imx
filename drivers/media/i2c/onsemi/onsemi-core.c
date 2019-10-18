@@ -1308,7 +1308,7 @@ static void onsemi_get_frame_size(struct onsemi_core const *onsemi,
 
 	h_size  = parm->crop.width;
 	h_size += parm->hblank;
-	h_size  = clamp_t(unsigned int, h_size,
+	h_size  = clamp_t(unsigned int, (h_size + 1) / 2 * 2,
 			  limits->hlen.min, limits->hlen.max);
 
 	v_size  = parm->crop.height;
