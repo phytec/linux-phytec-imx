@@ -1026,7 +1026,7 @@ static const struct panel_desc edt_etm0700g0bdh6 = {
 };
 
 static const struct drm_display_mode edt_etml1010g0dka_mode = {
-	.clock = 120000,
+	.clock = 70000,
 	.hdisplay = 1280,
 	.hsync_start = 1280 + 100,
 	.hsync_end = 1280 + 100 + 19,
@@ -1036,7 +1036,7 @@ static const struct drm_display_mode edt_etml1010g0dka_mode = {
 	.vsync_end = 800 + 4 + 4,
 	.vtotal = 800 + 4 + 4 + 15,
 	.vrefresh = 60,
-	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+	.flags = DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC,
 };
 
 static const struct panel_desc edt_etml1010g0dka = {
@@ -1048,7 +1048,7 @@ static const struct panel_desc edt_etml1010g0dka = {
 		.height = 135,
 	},
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
-	.bus_flags = DRM_BUS_FLAG_DE_LOW,
+	.bus_flags = DRM_BUS_FLAG_DE_HIGH,
 };
 
 static const struct drm_display_mode foxlink_fl500wvr00_a0t_mode = {
