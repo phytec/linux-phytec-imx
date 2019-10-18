@@ -464,7 +464,6 @@ static struct i2c_driver sn65dsi83_driver = {
 	.probe = sn65dsi83_probe,
 	.remove = sn65dsi83_remove,
 };
-module_i2c_driver(sn65dsi83_driver);
 
 static int __init sn65dsi83_init(void)
 {
