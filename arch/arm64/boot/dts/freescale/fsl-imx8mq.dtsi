@@ -474,7 +474,15 @@
 			<&clk IMX8MQ_CLK_CSI1_ROOT>,
 			<&clk IMX8MQ_CLK_DUMMY>;
 		clock-names = "disp-axi", "csi_mclk", "disp_dcic";
+		fsl,mipi-mode;
+		dma-coherent;
 		status = "disabled";
+
+		port {
+			csi1_ep: endpoint {
+				remote-endpoint = <&csi1_mipi_ep>;
+			};
+		};
 	};
 
 	csi2_bridge: csi2_bridge@30b80000 {
@@ -485,7 +493,15 @@
 			<&clk IMX8MQ_CLK_CSI2_ROOT>,
 			<&clk IMX8MQ_CLK_DUMMY>;
 		clock-names = "disp-axi", "csi_mclk", "disp_dcic";
+		fsl,mipi-mode;
+		dma-coherent;
 		status = "disabled";
+
+		port {
+			csi2_ep: endpoint {
+				remote-endpoint = <&csi2_mipi_ep>;
+			};
+		};
 	};
 
 	mipi_csi_1: mipi_csi1@30a70000 {
@@ -505,6 +521,15 @@
 		csis-phy-reset = <&src 0x4c 7>;
 		phy-gpr = <&gpr 0x88>;
 		status = "disabled";
+
+		port {
+			mipi1_sensor_ep: endpoint1 {
+			};
+
+			csi1_mipi_ep: endpoint2 {
+				remote-endpoint = <&csi1_ep>;
+			};
+		};
 	};
 
 	mipi_csi_2: mipi_csi2@30b60000 {
@@ -524,6 +549,15 @@
 		csis-phy-reset = <&src 0x50 7>;
 		phy-gpr = <&gpr 0xa4>;
 		status = "disabled";
+
+		port {
+			mipi2_sensor_ep: endpoint1 {
+			};
+
+			csi2_mipi_ep: endpoint2 {
+				remote-endpoint = <&csi2_ep>;
+			};
+		};
 	};
 
 	dcss: dcss@0x32e00000 {
