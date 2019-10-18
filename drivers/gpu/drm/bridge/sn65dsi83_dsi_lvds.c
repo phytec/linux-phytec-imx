@@ -101,6 +101,7 @@ struct sn65dsi83 {
 	struct gpio_desc *gpio_enable;
 	struct device_node *host_node;
 	struct mipi_dsi_device *dsi;
+	struct drm_display_mode mode;
 	u32 num_dsi_lanes;
 };
 
@@ -177,7 +178,15 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 				struct drm_display_mode *adj_mode)
 {
 	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
+	drm_mode_copy(&sn_bridge->mode, mode);
+}
+
+
+static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
+{
+	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
 	struct mipi_dsi_device *dsi = sn_bridge->dsi;
+	struct drm_display_mode *mode = &sn_bridge->mode;
 	int clk_range, mipi_clk, lvds_clk, clk_div;
 	int bpp, lanes, i;
 	char lvds_clk_range;
@@ -355,6 +364,7 @@ static const struct drm_bridge_funcs sn65dsi83_bridge_funcs = {
 	.disable = sn65dsi83_disable,
 	.mode_set = sn65dsi83_mode_set,
 	.attach = sn65dsi83_bridge_attach,
+	.pre_enable = sn65dsi83_pre_enable,
 };
 
 static const struct regmap_range sn65dsi83_lvds_volatile_ranges[] = {
