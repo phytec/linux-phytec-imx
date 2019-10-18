@@ -21,6 +21,7 @@
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/of_graph.h>
+#include <linux/gpio/consumer.h>
 
 #include <video/mipi_display.h>
 #include <video/videomode.h>
@@ -97,7 +98,7 @@ struct sn65dsi83 {
 	struct drm_bridge bridge;
 	struct drm_panel *panel;
 	bool enabled;
-
+	struct gpio_desc *gpio_enable;
 	struct device_node *host_node;
 	struct mipi_dsi_device *dsi;
 	u32 num_dsi_lanes;
@@ -183,7 +184,11 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 	int clk[6] = {37500, 62500, 87500, 112500, 137500, 154000};
 	int clk_value[6] = {0x0,0x2, 0x4, 0x6, 0x8, 0xA};
 
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_DE);
+	gpiod_set_value_cansleep(sn_bridge->gpio_enable, 0);
+	msleep(10);
+	gpiod_set_value_cansleep(sn_bridge->gpio_enable, 1);
+	msleep(10);
+
 	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
 
 	if (bpp == 24)
@@ -280,6 +285,8 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_PLL_EN, PLL_EN);
 	mdelay(10);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_EN);
+
+	return;
 }
 
 static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
@@ -379,6 +386,7 @@ void sn65dsi83_detach_dsi(struct sn65dsi83 *sn_bridge)
 int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
 {
 	struct device_node *endpoint0, *endpoint1;
+	struct device *dev = &sn_bridge->i2c->dev;
 
 	endpoint0 = of_graph_get_next_endpoint(np, NULL);
 	if (!endpoint0)
@@ -392,6 +400,12 @@ int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
 	if (!sn_bridge->host_node) {
 		of_node_put(endpoint1);
 		return -ENODEV;
+	}
+
+	sn_bridge->gpio_enable = devm_gpiod_get(dev, "enable", GPIOD_OUT_LOW);
+	if (IS_ERR(sn_bridge->gpio_enable)) {
+		printk(KERN_ERR "failed to parse enable gpio");
+		return PTR_ERR(sn_bridge->gpio_enable);
 	}
 
 	of_node_put(endpoint1);
@@ -433,11 +447,11 @@ static int sn65dsi83_probe(struct i2c_client *client,
 		}
 	}
 
+	sn_bridge->i2c = client;
 	ret = sn65dsi83_parse_dt(dev->of_node, sn_bridge);
 	if (ret)
 		return -EINVAL;
 
-	sn_bridge->i2c = client;
 	i2c_set_clientdata(client, sn_bridge);
 	sn_bridge->bridge.funcs = &sn65dsi83_bridge_funcs;
 	sn_bridge->bridge.of_node = dev->of_node;
