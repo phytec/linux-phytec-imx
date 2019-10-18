@@ -32,6 +32,13 @@
 			>;
 		};
 
+		pinctrl_i2c2: i2c2grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_I2C2_SCL_I2C2_SCL		0x400001c3
+				MX8MM_IOMUXC_I2C2_SDA_I2C2_SDA		0x400001c3
+			>;
+		};
+
 		pinctrl_tpm: tpmgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x140
@@ -52,6 +59,13 @@
 			>;
 		};
 	};
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
 };
 
 &ecspi2 {
