@@ -51,6 +51,7 @@
 
 /* Android auto use RPMSG to handle I2C */
 /delete-node/ &xen_i2c1;
+/delete-node/ &i2c0_lvds1;
 /delete-node/ &i2c1_lvds1;
 /delete-node/ &camera;
 /delete-node/ &dpu2_intsteer;
