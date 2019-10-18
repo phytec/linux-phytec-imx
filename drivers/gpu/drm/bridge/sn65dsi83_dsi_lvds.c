@@ -61,8 +61,8 @@
 #define LVDS_REG_TEST_PATTERN			0x3c
 
 /* Register Mask */
-#define CHA_DSI_LANES			0x19
-#define CHA_24BPP			0xEA
+#define CHA_DSI_LANES			0x18
+#define CHA_24BPP			0x08
 #define LVDS_CLK_RANGE			0x0E
 #define CHA_REVERS_LVDS			0x20
 #define VS_NEG_POLARITY			0x20
