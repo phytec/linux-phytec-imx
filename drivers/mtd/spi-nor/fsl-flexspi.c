@@ -445,6 +445,8 @@
 #define SEQID_RD_EVCR		12
 #define SEQID_WD_EVCR		13
 #define SEQID_RD_SFDP		14
+#define SEQID_RD_FSR		16
+#define SEQID_CL_FSR		17
 
 #define FLEXSPI_MIN_IOMAP	SZ_4M
 
@@ -703,6 +705,20 @@ static void fsl_flexspi_init_lut(struct fsl_flexspi *flex)
 	       base + FLEXSPI_LUT(lut_base));
 	writel(LUT0(DUMMY, PAD1, 8) | LUT1(FSL_READ, PAD1, 16),
 	       base + FLEXSPI_LUT(lut_base + 1));
+
+	if (flex->devtype_data->sequences > SEQID_CL_FSR) {
+		/* Read flag status register */
+		lut_base = SEQID_RD_FSR * 4;
+		writel(LUT0(CMD, PAD1, SPINOR_OP_RDFSR)
+			| LUT1(FSL_READ, PAD1, 0x1),
+		       base + FLEXSPI_LUT(lut_base));
+
+		/* Clear flag status register */
+		lut_base = SEQID_CL_FSR * 4;
+		writel(LUT0(CMD, PAD1, SPINOR_OP_CLFSR),
+		       base + FLEXSPI_LUT(lut_base));
+	}
+
 	fsl_flexspi_lock_lut(flex);
 }
 
@@ -750,6 +766,12 @@ static int fsl_flexspi_get_seqid(struct fsl_flexspi *flex, u8 cmd)
 		return SEQID_WD_EVCR;
 	case SPINOR_OP_RDSFDP:
 		return SEQID_RD_SFDP;
+	case SPINOR_OP_RDFSR:
+		ret = SEQID_RD_FSR;
+		break;
+	case SPINOR_OP_CLFSR:
+		ret = SEQID_CL_FSR;
+		break;
 	}
 	if (ret >= flex->devtype_data->sequences)
 		ret = -EINVAL;
