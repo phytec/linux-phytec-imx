@@ -203,16 +203,12 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 		return;
 	}
 
+	lvds_clk = mode->clock;
 	/* calculate current mipi_clk with the pixelclock entry from
 	 * panel-simple.c, bpp and the number of dsi lanes
 	 */
-	mipi_clk = (((mode->clock * bpp) / (8 * (sn_bridge->num_dsi_lanes + 1)))
-			* bpp) / (2 * sn_bridge->num_dsi_lanes);
+	mipi_clk = ((mode->clock * bpp) / (sn_bridge->num_dsi_lanes * 2));
 
-	/* Calculate the lvds clock to configure the clk_range
-	 * at the sn65dsi83 device
-	 */
-	lvds_clk = (mipi_clk * 2 * sn_bridge->num_dsi_lanes) / bpp;
 	clk_range = mipi_clk / CLK_RANGE_STEP;
 
 	/* calculate the needed clock divider to set device
