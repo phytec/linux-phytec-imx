@@ -238,11 +238,11 @@
 #define FLEXSPI_FLSHXCR2_AWRSEQN_SHIFT	13
 #define FLEXSPI_FLSHXCR2_AWRSEQN_MASK	(0x7 << FLEXSPI_FLSHXCR2_AWRSEQN_SHIFT)
 #define FLEXSPI_FLSHXCR2_AWRSEQI_SHIFT	8
-#define FLEXSPI_FLSHXCR2_AWRSEQI_MASK	(0xF << FLEXSPI_FLSHXCR2_AWRSEQI_SHIFT)
+#define FLEXSPI_FLSHXCR2_AWRSEQI_MASK	(0x1F << FLEXSPI_FLSHXCR2_AWRSEQI_SHIFT)
 #define FLEXSPI_FLSHXCR2_ARDSEQN_SHIFT	5
 #define FLEXSPI_FLSHXCR2_ARDSEQN_MASK	(0x7 << FLEXSPI_FLSHXCR2_ARDSEQN_SHIFT)
 #define FLEXSPI_FLSHXCR2_ARDSEQI_SHIFT	0
-#define FLEXSPI_FLSHXCR2_ARDSEQI_MASK	(0xF << FLEXSPI_FLSHXCR2_ARDSEQI_SHIFT)
+#define FLEXSPI_FLSHXCR2_ARDSEQI_MASK	(0x1F << FLEXSPI_FLSHXCR2_ARDSEQI_SHIFT)
 
 #define FLEXSPI_IPCR0			0xA0
 
@@ -252,7 +252,7 @@
 #define FLEXSPI_IPCR1_SEQNUM_SHIFT	24
 #define FLEXSPI_IPCR1_SEQNUM_MASK	(0xF << FLEXSPI_IPCR1_SEQNUM_SHIFT)
 #define FLEXSPI_IPCR1_SEQID_SHIFT	16
-#define FLEXSPI_IPCR1_SEQID_MASK	(0xF << FLEXSPI_IPCR1_SEQID_SHIFT)
+#define FLEXSPI_IPCR1_SEQID_MASK	(0x1F << FLEXSPI_IPCR1_SEQID_SHIFT)
 #define FLEXSPI_IPCR1_IDATSZ_SHIFT	0
 #define FLEXSPI_IPCR1_IDATSZ_MASK	(0xFFFF << FLEXSPI_IPCR1_IDATSZ_SHIFT)
 
@@ -461,6 +461,7 @@ struct fsl_flexspi_devtype_data {
 	int ahb_buf_size;
 	int driver_data;
 	int dllvalue;
+	int sequences;
 };
 
 static struct fsl_flexspi_devtype_data imx8qm_data = {
@@ -470,6 +471,7 @@ static struct fsl_flexspi_devtype_data imx8qm_data = {
 	.ahb_buf_size = 2048,
 	.driver_data = FLEXSPI_QUIRK_CONFIG_DLL,
 	.dllvalue = 80, /* unit is 0.1 ns, this is 8ns */
+	.sequences = 32,
 };
 
 static struct fsl_flexspi_devtype_data imx8qxp_data = {
@@ -479,6 +481,7 @@ static struct fsl_flexspi_devtype_data imx8qxp_data = {
 	.ahb_buf_size = 2048,
 	.driver_data = FLEXSPI_QUIRK_CONFIG_DLL,
 	.dllvalue = 80, /* unit is 0.1 ns, this is 8ns */
+	.sequences = 32,
 };
 
 static struct fsl_flexspi_devtype_data imx8mm_data = {
@@ -488,6 +491,7 @@ static struct fsl_flexspi_devtype_data imx8mm_data = {
 	.ahb_buf_size = 2048,
 	.driver_data = FLEXSPI_QUIRK_QUAD_ONLY | FLEXSPI_QUIRK_FREQ_LIMIT,
 	.dllvalue = 0,
+	.sequences = 32,
 };
 
 #define FSL_FLEXSPI_MAX_CHIP	4
@@ -569,7 +573,7 @@ static void fsl_flexspi_init_lut(struct fsl_flexspi *flex)
 	fsl_flexspi_unlock_lut(flex);
 
 	/* Clear all the LUT table */
-	for (i = 0; i < FLEXSPI_LUT_NUM; i++)
+	for (i = 0; i < flex->devtype_data->sequences * 4; i++)
 		writel(0, base + FLEXSPI_LUT_BASE + i * 4);
 
 	/* Quad Read and DDR Quad Read*/
@@ -705,6 +709,7 @@ static void fsl_flexspi_init_lut(struct fsl_flexspi *flex)
 /* Get the SEQID for the command */
 static int fsl_flexspi_get_seqid(struct fsl_flexspi *flex, u8 cmd)
 {
+	int ret = -EINVAL;
 
 	switch (cmd) {
 	case SPINOR_OP_READ_1_1_4_DTR:
@@ -745,11 +750,12 @@ static int fsl_flexspi_get_seqid(struct fsl_flexspi *flex, u8 cmd)
 		return SEQID_WD_EVCR;
 	case SPINOR_OP_RDSFDP:
 		return SEQID_RD_SFDP;
-	default:
-		dev_err(flex->dev, "Unsupported cmd 0x%.2x\n", cmd);
-		break;
 	}
-	return -EINVAL;
+	if (ret >= flex->devtype_data->sequences)
+		ret = -EINVAL;
+	if (ret < 0)
+		dev_err(flex->dev, "Unsupported cmd 0x%.2x\n", cmd);
+	return ret;
 }
 
 static int
