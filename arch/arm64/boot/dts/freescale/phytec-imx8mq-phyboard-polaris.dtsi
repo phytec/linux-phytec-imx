@@ -156,6 +156,28 @@
 		spdif-controller = <&spdif2>;
 		spdif-in;
 	};
+
+	vm016_0_clk: vm016-0-clk {
+		#clock-cells = <0>;
+
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+	};
+
+	vm016_1_clk: vm016-1-clk {
+		#clock-cells = <0>;
+
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+	};
+};
+
+&csi1_bridge {
+	status = "okay";
+};
+
+&csi2_bridge {
+	status = "okay";
 };
 
 &clk {
@@ -189,6 +211,140 @@
 			DVDD-supply = <&reg_vcc1v8>;
 	};
 
+};
+
+&i2c4 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_i2c4>;
+	pinctrl-1 = <&pinctrl_i2c4_gpios>;
+
+	sda-gpios = <&gpio5 21 0>;
+	scl-gpios = <&gpio5 20 0>;
+	status = "okay";
+
+	vm016_0: vm016@10 {
+		reg = <0x10>;
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		#thermal-sensor-cells = <0>;
+
+		compatible = "onsemi,ar0144";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_cam1_ctrl>;
+
+		clock-names = "ext";
+		clocks = <&vm016_0_clk>;
+
+		port@0 {
+			reg = <0>;
+
+			vm016_0_ep0: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+			};
+		};
+
+		timings {
+			mipi-0 = <
+				/*          hs_prep      hs_zero    hs_trail     clk_trail */
+				1500000000 ((1 << 12) | ( 6 << 8) | ( 6 << 4) | (5 << 0))
+			>;
+
+			mipi-1 = <
+				/*          clk_prep     hs_exit    clk_zero */
+				1500000000 ((1 << 12) | ( 4 << 6) | (14 << 0))
+			>;
+
+			mipi-2 = <
+				/*          bgap        clk_pre   clk_post */
+				1500000000 ((2 << 12) | ( 1 << 6) | ( 9 << 0))
+			>;
+
+			mipi-3 = <
+				/*          tm3           lpx        wake_up */
+				1500000000 ((0 << 13) | ( 2 << 7) | ( 5 << 0))
+			>;
+
+			mipi-4 = <
+				/*          heavy_lp      tm4       init */
+				1500000000 ((0 << 14) | ( 0 << 7) | ( 4 << 0))
+			>;
+		};
+	};
+
+	vm016_1: vm016@18 {
+		reg = <0x18>;
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		#thermal-sensor-cells = <0>;
+
+		compatible = "onsemi,ar0144";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_cam2_ctrl>;
+
+		clock-names = "ext";
+		clocks = <&vm016_1_clk>;
+
+		port@0 {
+			reg = <0>;
+
+			vm016_1_ep0: endpoint {
+				remote-endpoint = <&mipi2_sensor_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+			};
+		};
+
+		timings {
+			mipi-0 = <
+				/*          hs_prep      hs_zero    hs_trail     clk_trail */
+				1500000000 ((1 << 12) | ( 6 << 8) | ( 6 << 4) | (5 << 0))
+			>;
+
+			mipi-1 = <
+				/*          clk_prep     hs_exit    clk_zero */
+				1500000000 ((1 << 12) | ( 4 << 6) | (14 << 0))
+			>;
+
+			mipi-2 = <
+				/*          bgap        clk_pre   clk_post */
+				1500000000 ((2 << 12) | ( 1 << 6) | ( 9 << 0))
+			>;
+
+			mipi-3 = <
+				/*          tm3           lpx        wake_up */
+				1500000000 ((0 << 13) | ( 2 << 7) | ( 5 << 0))
+			>;
+
+			mipi-4 = <
+				/*          heavy_lp      tm4       init */
+				1500000000 ((0 << 14) | ( 0 << 7) | ( 4 << 0))
+			>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	assigned-clock-rates = <532000000>, <100000000>, <266000000>;
+	status = "okay";
+};
+
+&mipi_csi_2 {
+	assigned-clock-rates = <532000000>, <100000000>, <266000000>;
+	status = "okay";
+};
+
+&mipi1_sensor_ep {
+	data-lanes = <1 2>;
+	remote-endpoint = <&vm016_0_ep0>;
+};
+
+&mipi2_sensor_ep {
+	data-lanes = <1 2>;
+	remote-endpoint = <&vm016_1_ep0>;
 };
 
 &pcie1 {
@@ -278,6 +434,24 @@
 
 &iomuxc {
 	imx8mq-polaris {
+		pinctrl_cam1_ctrl: cam1-ctrl {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x46
+				MX8MQ_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x46
+				MX8MQ_IOMUXC_SAI1_RXFS_GPIO4_IO0	0x46
+				MX8MQ_IOMUXC_SAI1_RXC_GPIO4_IO1		0x46
+			>;
+		};
+
+		pinctrl_cam2_ctrl: cam2-ctrl {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x46
+				MX8MQ_IOMUXC_SAI2_RXC_GPIO4_IO22	0x46
+				MX8MQ_IOMUXC_SAI1_TXFS_GPIO4_IO10	0x46
+				MX8MQ_IOMUXC_SAI1_TXC_GPIO4_IO11	0x46
+			>;
+		};
+
 		pinctrl_usb0_vbusen: usb0vengrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x16
@@ -291,6 +465,19 @@
 			>;
 		};
 
+		pinctrl_i2c4: i2c4grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_I2C4_SCL_I2C4_SCL		0x4000007f
+				MX8MQ_IOMUXC_I2C4_SDA_I2C4_SDA		0x4000007f
+			>;
+		};
+
+		pinctrl_i2c4_gpios: i2c4-gpiogrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_I2C4_SCL_GPIO5_IO20	0x4000007f
+				MX8MQ_IOMUXC_I2C4_SDA_GPIO5_IO21	0x4000007f
+			>;
+		};
 		pinctrl_leds: leds1grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
@@ -334,12 +521,4 @@
 			>;
 		};
 	};
-};
-
-&mipi_csi_1 {
-	assigned-clock-rates = <532000000>, <100000000>, <266000000>;
-};
-
-&mipi_csi_2 {
-	assigned-clock-rates = <532000000>, <100000000>, <266000000>;
 };
