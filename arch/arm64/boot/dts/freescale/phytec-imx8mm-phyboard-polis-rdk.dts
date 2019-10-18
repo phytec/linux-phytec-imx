@@ -7,3 +7,4 @@
 /dts-v1/;
 
 #include "phytec-imx8mm-phycore-som.dtsi"
+#include "phytec-imx8mm-phyboard-polis.dtsi"

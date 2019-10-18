@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2019 Daniel Glöckner <dg@emlix.com>
+ */
+
+/ {
+	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usbotg1pwrgrp>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg1_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+};
+
+&iomuxc {
+	imx8mm-phyboard-polis {
+		pinctrl_usbotg1pwrgrp: usbotg1pwrgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x00
+			>;
+		};
+
+		pinctrl_usbotg1grp: usbotg1grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO10_USB1_OTG_ID	0x80
+				MX8MM_IOMUXC_GPIO1_IO13_USB1_OTG_OC	0x80
+			>;
+		};
+	};
+};
+
+&usbotg1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usbotg1grp>;
+	vbus-supply = <&reg_usb_otg1_vbus>;
+	dr_mode = "otg";
+	picophy,pre-emp-curr-control = <3>;
+	picophy,dc-vol-level-adjust = <7>;
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	picophy,pre-emp-curr-control = <3>;
+	picophy,dc-vol-level-adjust = <7>;
+	status = "okay";
+};
