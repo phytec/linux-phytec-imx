@@ -3357,6 +3357,11 @@ int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 		freq.op_sys = freq.vco / cfg.op_sys_div;
 		freq.op_pix = freq.op_sys / cfg.op_pix_div;
 		freq.clk_op = freq.op_pix / cfg.op_speed;
+	} else {
+		/* used in debug messages only */
+		freq.op_sys = 0;
+		freq.op_pix = 0;
+		freq.clk_op = 0;
 	}
 
 	dev_dbg(onsemi->dev,
