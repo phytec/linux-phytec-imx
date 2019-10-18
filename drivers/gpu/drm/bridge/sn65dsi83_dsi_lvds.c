@@ -293,7 +293,7 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 
 	drm_connector_helper_add(&sn_bridge->connector,
 				&sn65dsi83_helper_funcs);
-	drm_mode_connector_attach_encoder(&sn_bridge->connector,
+	drm_connector_attach_encoder(&sn_bridge->connector,
 						bridge->encoder);
 
 	ret = drm_panel_attach(sn_bridge->panel, &sn_bridge->connector);
