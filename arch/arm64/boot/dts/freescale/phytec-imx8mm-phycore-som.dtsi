@@ -281,6 +281,12 @@
 			};
 		};
 	};
+
+	eeprom: m24c32@51 {
+		compatible = "atmel,24c32";
+		reg = <0x51>;
+		status = "okay";
+	};
 };
 
 &fec1 {
