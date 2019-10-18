@@ -423,11 +423,7 @@ static int sn65dsi83_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, sn_bridge);
 	sn_bridge->bridge.funcs = &sn65dsi83_bridge_funcs;
 	sn_bridge->bridge.of_node = dev->of_node;
-	ret = drm_bridge_add(&sn_bridge->bridge);
-	if (ret) {
-		DRM_ERROR("failed to add bridge\n");
-		return ret;
-	}
+	drm_bridge_add(&sn_bridge->bridge);
 
 	return 0;
 }
