@@ -71,8 +71,8 @@ struct onsemi_limits {
 	struct onsemi_range		x;
 	struct onsemi_range		y;
 
-	unsigned int			hblank_min;
-	unsigned int			vblank_min;
+	unsigned long			hblank_min;
+	unsigned long			vblank_min;
 
 	struct onsemi_range		hlen;
 	struct onsemi_range		vlen;
