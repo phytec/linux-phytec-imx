@@ -4,6 +4,30 @@
  */
 
 / {
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		led-red {
+			label = "red-emmc";
+			gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mmc0";
+		};
+
+		led-blue {
+			label = "blue-mmc";
+			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mmc1";
+		};
+
+		led-green {
+			label = "green-heartbeat";
+			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
 	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_usbotg1pwrgrp>;
@@ -245,6 +269,14 @@
 			fsl,pins = <
 				MX8MM_IOMUXC_I2C2_SCL_I2C2_SCL		0x400001c3
 				MX8MM_IOMUXC_I2C2_SDA_I2C2_SDA		0x400001c3
+			>;
+		};
+
+		pinctrl_leds: leds1grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO00_GPIO1_IO0	0x16
+				MX8MM_IOMUXC_GPIO1_IO14_GPIO1_IO14	0x16
+				MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x16
 			>;
 		};
 
