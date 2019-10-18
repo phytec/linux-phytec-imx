@@ -3157,19 +3157,25 @@ int onsemi_calculate_pll(struct onsemi_core const *onsemi,
 
 	/* estimate F_vco so that requested bus frequency can be matched */
 	switch (bus_info->bus_type) {
-	case V4L2_MBUS_PARALLEL:
-		if (bus_freq == 0)
-			bus_freq = onsemi->limits->pix_clk.max;
+	case V4L2_MBUS_PARALLEL: {
+		unsigned long	max_bus = onsemi->limits->pix_clk.max;
+
+		if (bus_freq == 0 || bus_freq > max_bus)
+			bus_freq = max_bus;
 
 		vco_freq = bus_freq * 12;
 		break;
+	}
 
-	case V4L2_MBUS_CSI2:
-		if (bus_freq == 0)
-			vco_freq = onsemi->limits->pix_clk.max * bpp;
+	case V4L2_MBUS_CSI2: {
+		unsigned long	max_vco = onsemi->limits->pix_clk.max * bpp;
+
+		if (bus_freq == 0 || bus_freq >= max_vco / bus_info->bus_width)
+			vco_freq = max_vco;
 		else
 			vco_freq = bus_freq * bus_info->bus_width;
 		break;
+	}
 
 	default:
 		WARN_ON(1);
