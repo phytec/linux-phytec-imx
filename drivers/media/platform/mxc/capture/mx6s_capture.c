@@ -1629,6 +1629,46 @@ static int mx6s_vidioc_s_crop(struct file *file, void *priv,
 	return 0;
 }
 
+static int mx6s_vidioc_g_selection(struct file *file, void *fh,
+				   struct v4l2_selection *s)
+{
+	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	struct v4l2_subdev_selection	sel = {
+		.which	= V4L2_SUBDEV_FORMAT_ACTIVE,
+		.pad	= 0,
+		.target	= s->target,
+		.flags	= s->flags,
+	};
+	int				rc;
+
+	rc = v4l2_subdev_call(sd, pad, get_selection, NULL, &sel);
+	if (rc < 0)
+		goto out;
+
+	s->r     = sel.r;
+	s->flags = sel.flags;
+
+out:
+	return rc;
+}
+
+static int mx6s_vidioc_s_selection(struct file *file, void *fh,
+				   struct v4l2_selection *s)
+{
+	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	struct v4l2_subdev_selection	sel = {
+		.which	= V4L2_SUBDEV_FORMAT_ACTIVE,
+		.pad	= 0,
+		.target	= s->target,
+		.flags	= s->flags,
+		.r	= s->r,
+	};
+
+	return v4l2_subdev_call(sd, pad, set_selection, NULL, &sel);
+}
+
 static int mx6s_vidioc_g_parm(struct file *file, void *priv,
 			     struct v4l2_streamparm *a)
 {
@@ -1723,6 +1763,8 @@ static const struct v4l2_ioctl_ops mx6s_csi_ioctl_ops = {
 	.vidioc_cropcap       = mx6s_vidioc_cropcap,
 	.vidioc_s_crop        = mx6s_vidioc_s_crop,
 	.vidioc_g_crop        = mx6s_vidioc_g_crop,
+	.vidioc_g_selection   = mx6s_vidioc_g_selection,
+	.vidioc_s_selection   = mx6s_vidioc_s_selection,
 	.vidioc_reqbufs       = mx6s_vidioc_reqbufs,
 	.vidioc_querybuf      = mx6s_vidioc_querybuf,
 	.vidioc_qbuf          = mx6s_vidioc_qbuf,
