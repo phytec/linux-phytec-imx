@@ -78,7 +78,7 @@
 #define VS_POS_POL			0x00
 #define HS_POS_POL			0x00
 #define LOW_MASK			0xff
-#define HIGH_MASK			0x08
+#define HIGH_SHIFT			0x08
 #define CHA_SYNC_DELAY_LOW		0x28
 #define CHA_SYNC_DELAY_HIGH		0x00
 #define CHA_LVDS_TERM			0x00
@@ -270,23 +270,23 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_LOW,
 			mode->hdisplay & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_HIGH,
-			mode->hdisplay >> HIGH_MASK);
+			mode->hdisplay >> HIGH_SHIFT);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SYNC_DELAY_LOW,
 			CHA_SYNC_DELAY_LOW);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SYNC_DELAY_HIGH,
 			CHA_SYNC_DELAY_HIGH);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_HSYNC_PULSE_WIDTH_LOW,
-			(mode->hsync_end-mode->hsync_start) & LOW_MASK);
+			(mode->hsync_end - mode->hsync_start) & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_HSYNC_PULSE_WIDTH_HIGH,
-			(mode->hsync_end-mode->hsync_start) >> HIGH_MASK);
+			(mode->hsync_end - mode->hsync_start) >> HIGH_SHIFT);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VSYNC_PULSE_WIDTH_LOW,
-			(mode->vsync_end-mode->vsync_start) & LOW_MASK);
+			(mode->vsync_end - mode->vsync_start) & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VSYNC_PULSE_WIDTH_HIGH,
-			(mode->vsync_end-mode->vsync_start) >> HIGH_MASK);
+			(mode->vsync_end - mode->vsync_start) >> HIGH_SHIFT);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_HORIZONTAL_BACK_PORCH,
-			mode->htotal-mode->hsync_end);
+			mode->htotal - mode->hsync_end);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VERTICAL_BACK_PORCH,
-			mode->vtotal-mode->vsync_end);
+			mode->vtotal - mode->vsync_end);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_PLL_EN, PLL_EN);
 	mdelay(10);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_EN);
