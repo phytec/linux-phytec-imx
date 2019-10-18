@@ -268,9 +268,9 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
 				CHA_REVERS_LVDS, CHA_LVDS_TERM);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_LOW,
-			mode->htotal & LOW_MASK);
+			mode->hdisplay & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_HIGH,
-			mode->htotal >> HIGH_MASK);
+			mode->hdisplay >> HIGH_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SYNC_DELAY_LOW,
 			CHA_SYNC_DELAY_LOW);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SYNC_DELAY_HIGH,
