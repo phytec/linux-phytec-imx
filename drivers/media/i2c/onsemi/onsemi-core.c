@@ -2541,6 +2541,21 @@ static int onsemi_g_ctrl(struct v4l2_ctrl *ctrl)
 		goto out;
 
 	switch (ctrl->id) {
+	case V4L2_CID_X_HBLANK_EFFECTIVE: {
+		unsigned int			h_size;
+		struct onsemi_v4l_parm const	*parm = onsemi->v4l_parm;
+
+		if (!parm) {
+			rc = -EPIPE;
+			goto out;
+		}
+
+		onsemi_get_frame_size(onsemi, parm, &h_size, NULL);
+		ctrl->val = h_size - parm->crop.width;
+		rc = 0;
+		break;
+	}
+
 	default:
 		dev_dbg(onsemi->dev, "unhandled control %08x (%s)\n", ctrl->id,
 			v4l2_ctrl_get_name(ctrl->id));
@@ -2573,6 +2588,17 @@ static struct v4l2_ctrl_config const	onsemi_core_ctrls[] = {
 		.ops		= &onsemi_core_ctrl_ops,
 		.id		= V4L2_CID_HBLANK,
 		.type		= V4L2_CTRL_TYPE_INTEGER,
+		.min		= 0,
+		.max		= 65535,
+		.step		= 1,
+		.def		= 1,
+	}, {
+		.ops		= &onsemi_core_ctrl_ops,
+		.id		= V4L2_CID_X_HBLANK_EFFECTIVE,
+		.name		= "hblank (effective)",
+		.type		= V4L2_CTRL_TYPE_INTEGER,
+		.flags		= (V4L2_CTRL_FLAG_READ_ONLY |
+				   V4L2_CTRL_FLAG_VOLATILE),
 		.min		= 0,
 		.max		= 65535,
 		.step		= 1,

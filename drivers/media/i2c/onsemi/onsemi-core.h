@@ -51,6 +51,7 @@ enum {
 	V4L2_CID_X_BLACK_LEVEL_AUTO,
 
 	V4L2_CID_X_FLASH_DELAY,
+	V4L2_CID_X_HBLANK_EFFECTIVE,
 };
 
 enum onsemi_pwr_state {
