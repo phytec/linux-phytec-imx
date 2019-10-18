@@ -65,6 +65,8 @@
 #define CHA_24BPP			0xEA
 #define LVDS_CLK_RANGE			0x8f
 #define CHA_REVERS_LVDS			0x20
+#define VS_NEG_POLARITY			0x20
+#define HS_NEG_POLARITY			0x40
 
 /* Register Value */
 #define SOFT_RESET_EN			0x01
@@ -72,6 +74,8 @@
 #define PLL_EN				0x01
 #define CHA_24BPP_MODE24		0x08
 #define CHA_24BPP_MODE18		0x00
+#define VS_POS_POL			0x00
+#define HS_POS_POL			0x00
 #define LOW_MASK			0xff
 #define HIGH_MASK			0x08
 #define CHA_SYNC_DELAY_LOW		0x28
@@ -236,6 +240,13 @@ static void sn65dsi83_mode_set(struct drm_bridge *bridge,
 		lanes = NUM_DSI_LANES1;
 		break;
 	}
+
+	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
+		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
+					VS_NEG_POLARITY, VS_POS_POL);
+	if (mode->flags & DRM_MODE_FLAG_PHSYNC)
+		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
+					HS_NEG_POLARITY, HS_POS_POL);
 
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_DSI_LANES,
 				CHA_DSI_LANES, lanes);
