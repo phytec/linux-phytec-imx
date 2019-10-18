@@ -17,6 +17,7 @@
 
 #include "phytec-imx8mq-phycore-som.dtsi"
 #include "phytec-imx8mq-phyboard-polaris.dtsi"
+#include "phytec-imx8mq-phyboard-polaris-peb-av-009.dtsi"
 
 / {
 	model = "PHYTEC phyBOARD-Polaris Carrier-Board with eMMC";
