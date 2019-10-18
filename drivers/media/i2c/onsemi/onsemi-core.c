@@ -759,6 +759,12 @@ int onsemi_core_init(struct i2c_client *i2c,
 		goto out;
 	}
 
+	if (WARN_ON(!onsemi->v4l_parm || !onsemi->pll_cfg || !onsemi->pll_freq)) {
+		dev_err(&i2c->dev, "missing/bad device attributes\n");
+		rc = -EINVAL;
+		goto out;
+	}
+
 #if 0
 	if (WARN_ON(!cfg->ops->get_v4l_parm)) {
 		dev_err(&i2c->dev, "bad device ops\n");
@@ -775,6 +781,9 @@ int onsemi_core_init(struct i2c_client *i2c,
 		.ops		= cfg->ops,
 		.limits		= cfg->limits,
 		.lock		= __MUTEX_INITIALIZER(onsemi->lock),
+		.v4l_parm	= onsemi->v4l_parm,
+		.pll_cfg	= onsemi->pll_cfg,
+		.pll_freq	= onsemi->pll_freq,
 	};
 
 	if (!onsemi->limits) {
