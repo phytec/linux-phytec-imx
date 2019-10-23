@@ -18,6 +18,11 @@
 #include <dt-bindings/net/ti-dp83867.h>
 
 / {
+
+	aliases {
+		rtc0 = &i2c_rtc;
+	};
+
 	reg_gpio_dvfs: regulator-gpio {
 		compatible = "regulator-gpio";
 		pinctrl-names = "default";
@@ -190,6 +195,18 @@
 		reg = <0x58>;
 		pagesize = <32>;
 	};
+
+	i2c_rtc: rtc@52 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc>;
+		compatible = "microcrystal,rv3028";
+		reg = <0x52>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+		wakeup-source;
+		trickle-resistor-ohms = <1000>;
+		enable-level-switching-mode;
+	};
 };
 
 &tmu {
@@ -253,6 +270,12 @@
 			fsl,pins = <
 				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL		0x4000007f
 				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA		0x4000007f
+			>;
+		};
+
+		pinctrl_rtc: rtcgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5	0x18
 			>;
 		};
 
