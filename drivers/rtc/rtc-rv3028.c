@@ -726,6 +726,9 @@ static int rv3028_probe(struct i2c_client *client)
 	if (ret)
 		return ret;
 
+	if (client->irq > 0)
+		device_init_wakeup(&client->dev, true);
+
 	rv3028->rtc->max_user_freq = 1;
 
 	return 0;
