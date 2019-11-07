@@ -61,6 +61,11 @@
 	status = "okay";
 };
 
+/* GPU */
+&gpu {
+	status = "okay";
+};
+
 /* I2C1 */
 &i2c1 {
 	clock-frequency = <400000>;
