@@ -1,0 +1,337 @@
+/*
+ * Copyright (C) 2018 PHYTEC Messtechnik GmbH
+ * Author: Christian Hemp <c.hemp@phytec.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/ {
+	fan: gpio_fan {
+		compatible = "gpio-fan";
+		gpios =  <&gpio4 8 GPIO_ACTIVE_HIGH>;
+		gpio-fan,speed-map = <0     0
+				      13000 1>;
+		#cooling-cells = <2>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		led-red {
+			label = "red-emmc";
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mmc0";
+		};
+
+		led-blue {
+			label = "blue-mmc";
+			gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mmc1";
+		};
+
+		led-green {
+			label = "green-heartbeat";
+			gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
+	reg_usb0_vbus: usb0-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb0-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb0_vbusen>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+
+	reg_vcc1v8: vcc1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc1v8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+	};
+
+	reg_vcc3v3: vcc3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	thermal-zones {
+		/* fan thermal */
+		fan-thermal {
+			polling-delay-passive = <250>;
+			polling-delay = <2000>;
+			thermal-sensors = <&tmu 1>;
+			trips {
+				fan_fan0: trip0 {
+				temperature = <70000>;
+				hysteresis = <5000>;
+				type = "active";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&fan_fan0>;
+					cooling-device =
+						<&fan
+						 THERMAL_NO_LIMIT
+						 THERMAL_NO_LIMIT>;
+				};
+			};
+		};
+	};
+
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "TLV320AIC3007";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&dailink_master>;
+		simple-audio-card,frame-master = <&dailink_master>;
+		simple-audio-card,widgets =
+				"Microphone", "Mic Jack",
+				"Line", "Line In",
+				"Line", "Line Out",
+				"Speaker", "Speaker",
+				"Headphone", "Headphone Jack";
+		simple-audio-card,routing =
+				"Line Out", "LLOUT",
+				"Line Out", "RLOUT",
+				"Speaker", "SPOP",
+				"Speaker", "SPOM",
+				"Headphone Jack", "HPLOUT",
+				"Headphone Jack", "HPROUT",
+				"MIC3L", "Mic Jack",
+				"MIC3R", "Mic Jack",
+				"Mic Jack", "Mic Bias",
+				"LINE1L", "Line In",
+				"LINE1R", "Line In";
+		status = "okay";
+
+		dailink_master: simple-audio-card,cpu {
+				sound-dai = <&sai2>;
+		};
+		simple-audio-card,codec {
+				sound-dai = <&tlv320aic3007>;
+		};
+	};
+
+	sound-hdmi {
+		compatible = "fsl,imx8mq-evk-cdnhdmi",
+				"fsl,imx-audio-cdnhdmi";
+		model = "imx-audio-hdmi";
+		audio-cpu = <&sai4>;
+		protocol = <1>;
+		hdmi-out;
+		constraint-rate = <44100>,
+				<88200>,
+				<176400>,
+				<32000>,
+				<48000>,
+				<96000>,
+				<192000>;
+	};
+
+	sound-hdmi-arc {
+		compatible = "fsl,imx-audio-spdif";
+		model = "imx-hdmi-arc";
+		spdif-controller = <&spdif2>;
+		spdif-in;
+	};
+};
+
+&clk {
+	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>;
+	assigned-clock-rates = <786432000>, <722534400>;
+};
+
+&dcss {
+	disp-dev = "hdmi_disp";
+	status = "okay";
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&i2c2 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
+
+	tlv320aic3007: tlv320aic3007@18 {
+			compatible = "ti,tlv320aic3007";
+			#sound-dai-cells = <0>;
+			reg = <0x18>;
+			clocks = <&clk IMX8MQ_SYS2_PLL_50M>;
+			AVDD-supply = <&reg_vcc3v3>;
+			IOVDD-supply = <&reg_vcc3v3>;
+			DRVDD-supply = <&reg_vcc3v3>;
+			DVDD-supply = <&reg_vcc1v8>;
+	};
+
+};
+
+&pcie1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie1>;
+	clkreq-gpio = <&gpio4 2 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio4 3 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&sai2 {
+	pinctrl-names = "default";
+	#sound-dai-cells = <0>;
+	pinctrl-0 = <&pinctrl_sai2>;
+	assigned-clocks = <&clk IMX8MQ_CLK_SAI2>;
+	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <49152000>;
+	clocks = <&clk IMX8MQ_CLK_SAI2_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_SAI2_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
+		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
+	status = "okay";
+};
+
+&sai4 {
+	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
+	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <24576000>;
+	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
+		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
+	status = "okay";
+};
+
+&spdif2 {
+	assigned-clocks = <&clk IMX8MQ_CLK_SPDIF2>;
+	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <24576000>;
+	status = "okay";
+};
+
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
+	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
+	status = "okay";
+};
+
+&uart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	uart-has-rtscts;
+	status = "okay";
+};
+
+&usb3_phy0 {
+	vbus-supply = <&reg_usb0_vbus>;
+	status = "okay";
+};
+
+&usb3_0 {
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usb3_phy1 {
+	status = "okay";
+};
+
+&usb3_1 {
+	status = "okay";
+};
+
+&usb_dwc3_1 {
+	status = "okay";
+	dr_mode = "host";
+};
+
+&iomuxc {
+	imx8mq-polaris {
+		pinctrl_usb0_vbusen: usb0vengrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x16
+			>;
+		};
+
+		pinctrl_i2c2: i2c2grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL		0x4000007f
+				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA		0x4000007f
+			>;
+		};
+
+		pinctrl_leds: leds1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
+				MX8MQ_IOMUXC_I2C3_SCL_GPIO5_IO18	0x16
+				MX8MQ_IOMUXC_I2C3_SDA_GPIO5_IO19	0x16
+			>;
+		};
+
+		pinctrl_pcie1: pcie1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI1_RXD0_GPIO4_IO2	0x16
+				MX8MQ_IOMUXC_SAI1_RXD1_GPIO4_IO3	0x16
+			>;
+		};
+
+		pinctrl_sai2: sai2grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI2_MCLK_SAI2_MCLK	0xd6
+				MX8MQ_IOMUXC_SAI2_TXFS_SAI2_TX_SYNC	0xd6
+				MX8MQ_IOMUXC_SAI2_TXC_SAI2_TX_BCLK	0xd6
+				MX8MQ_IOMUXC_SAI2_TXD0_SAI2_TX_DATA0	0xd6
+				MX8MQ_IOMUXC_SAI2_RXFS_SAI2_RX_SYNC	0xd6
+				MX8MQ_IOMUXC_SAI2_RXC_SAI2_RX_BCLK	0xd6
+				MX8MQ_IOMUXC_SAI2_RXD0_SAI2_RX_DATA0	0xd6
+			>;
+		};
+
+		pinctrl_uart1: uart1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX	0x49
+				MX8MQ_IOMUXC_UART1_TXD_UART1_DCE_TX	0x49
+			>;
+		};
+
+		pinctrl_uart4: uart4grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX		0x49
+				MX8MQ_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX		0x49
+				MX8MQ_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x49
+				MX8MQ_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x49
+			>;
+		};
+	};
+};

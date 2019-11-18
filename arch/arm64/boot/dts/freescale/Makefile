@@ -117,7 +117,9 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 fsl-imx8mq-evk-dp.dtb \
 				 fsl-imx8mq-evk-edp.dtb \
 				 phytec-imx8mq-phyboard-polaris-rdk-emmc.dtb \
-				 phytec-imx8mq-phyboard-polaris-rdk-emmc-sterling.dtb
+				 phytec-imx8mq-phyboard-polaris-rdk-emmc-sterling.dtb \
+				 phytec-imx8mq-phyboard-polaris-rdk-emmc-rev1.dtb \
+				 phytec-imx8mq-phyboard-polaris-rdk-emmc-sterling-rev1.dtb
 dtb-$(CONFIG_ARCH_FSL_IMX8MM) += fsl-imx8mm-evk.dtb \
 				 fsl-imx8mm-evk-drm.dtb \
 				 fsl-imx8mm-evk-ak4497.dtb \
