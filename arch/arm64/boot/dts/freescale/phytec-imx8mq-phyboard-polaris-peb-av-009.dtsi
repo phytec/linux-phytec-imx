@@ -24,7 +24,7 @@
 		pwms = <&pwm4 0 500000>;
 		enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
 		brightness-levels= <0 4 8 16 32 64 128 255>;
-		status = "disabled";
+		status = "okay";
 	};
 
 	panel: panel {
@@ -41,7 +41,7 @@
 };
 
 &pwm4 {
-	status = "disabled";
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
 };
@@ -51,7 +51,7 @@
 		compatible = "ti,sn65dsi83";
 		reg = <0x2c>;
 		lanes_in = <4>;
-		status = "disabled";
+		status = "okay";
 
 		ports {
 			#address-cells = <1>;
@@ -77,7 +77,7 @@
 };
 
 &lcdif {
-	status = "disabled";
+	status = "okay";
 	max-res = <1920>, <1080>;
 
 	port {
@@ -89,11 +89,11 @@
 };
 
 &mipi_dsi_phy {
-	status = "disabled";
+	status = "okay";
 };
 
 &mipi_dsi {
-	status = "disabled";
+	status = "okay";
 	as_bridge;
 	sync-pol = <1>;
 	pwr-delay = <10>;
@@ -106,7 +106,7 @@
 };
 
 &mipi_dsi_bridge {
-	status = "disabled";
+	status = "okay";
 
 	port@1 {
 		dsi_out: endpoint {
