@@ -42,12 +42,6 @@
 	dc-supply = <&reg_gpio_dvfs>;
 };
 
-&resmem {
-	linux,cma {
-		size = <0 0x10000000>;
-	};
-};
-
 &fec1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec1>;
