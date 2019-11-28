@@ -34,15 +34,6 @@
 		enable-active-high;
 		regulator-always-on;
 	};
-
-	reg_wselect: w_select {
-		compatible = "regulator-fixed";
-		regulator-name = "w_select";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio1 3 GPIO_ACTIVE_LOW>;
-		regulator-always-on;
-	};
 };
 
 /* bluetooth */
@@ -91,7 +82,6 @@
 		pinctrl_wlan: wlangrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10	0x41
-				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3	0xc0
 			>;
 		};
 	};

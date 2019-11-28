@@ -72,6 +72,16 @@
 		regulator-name = "vcc3v3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
+	};
+
+	reg_wselect: w_select {
+		compatible = "regulator-fixed";
+		regulator-name = "w_select";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		pinctrl-names = "default";
+		pinctrl-0  = <&pinctrl_regwselect>;
+		gpio = <&gpio1 3 GPIO_ACTIVE_LOW>;
 		regulator-always-on;
 	};
 
@@ -525,6 +535,12 @@
 				MX8MQ_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX		0x49
 				MX8MQ_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x49
 				MX8MQ_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x49
+			>;
+		};
+
+		pinctrl_regwselect: regwselectgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3       0x41
 			>;
 		};
 	};
