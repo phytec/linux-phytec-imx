@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2019 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
+ *
+ * DEPRECATED: THIS DTS SUPPORTS THE FIRST HW REVISION (1518.0) OF THE
+ * phyCORE-i.MX8MM AND FIRST HW REVISION OF (1532.0) THE phyBOARD-Polis BASE BOARD.
+ * THIS SUPPORT WILL BE REMOVED IN THE NEXT SOFTWARE RELEASE.
+ */
+
+/dts-v1/;
+
+#include "phytec-imx8mm-phycore-som.dtsi"
+#include "phytec-imx8mm-phyboard-polis-alpha1.dtsi"
+#include "phytec-imx8mm-phyboard-polis-peb-av-009.dtsi"
