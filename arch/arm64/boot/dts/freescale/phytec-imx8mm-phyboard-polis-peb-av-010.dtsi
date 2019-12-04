@@ -11,7 +11,6 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_lcd>;
 		default-brightness-level = <6>;
-		//power-supply = <&reg_vcc3v3>;
 		pwms = <&pwm4 0 500000>;
 		enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
 		brightness-levels= <0 4 8 16 32 64 128 255>;
@@ -21,6 +20,7 @@
 	panel: panel {
 		compatible = "edt,etml1010g0dka";
 		backlight = <&backlight>;
+		status = "okay";
 
 		port {
 			panel_in: endpoint {
@@ -35,10 +35,6 @@
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
-};
-
-&i2c_sn65dsi83 {
-	status = "okay";
 };
 
 &sn65dsi83_port0 {
@@ -63,8 +59,11 @@
 	as_bridge;
 	sync-pol = <1>;
 	pwr-delay = <10>;
+};
 
+&mipi_dsi_ports {
 	port@1 {
+		reg = <1>;
                 dsi_out: endpoint {
                         remote-endpoint = <&bridge_in>;
                 };
