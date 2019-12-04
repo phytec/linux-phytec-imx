@@ -8,4 +8,8 @@
 
 #include "phytec-imx8mm-phycore-som.dtsi"
 #include "phytec-imx8mm-phyboard-polis.dtsi"
-#include "phytec-imx8mm-phyboard-polis-peb-av-009.dtsi"
+#include "phytec-imx8mm-phyboard-polis-peb-av-010.dtsi"
+
+&i2c1_sn65dsi83 {
+	status = "okay";
+};
