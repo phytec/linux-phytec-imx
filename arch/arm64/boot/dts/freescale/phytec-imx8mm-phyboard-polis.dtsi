@@ -167,7 +167,6 @@
 	uart-has-rtscts;
 };
 
-#if 0
 /* Sterling-LWB Bluetooth & WLAN */
 &uart2 {
 	pinctrl-names = "default";
@@ -188,7 +187,6 @@
 		host-wakeup-gpios = <&gpio2 9 GPIO_ACTIVE_HIGH>;
 	};
 };
-#endif
 
 &usdhc1 {
 	#address-cells = <1>;
