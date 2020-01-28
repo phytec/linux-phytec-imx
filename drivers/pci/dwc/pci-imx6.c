@@ -820,7 +820,7 @@ static int imx8_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 					orig |= IMX8QM_STTS0_LANE1_TX_PLL_LOCK;
 				tmp &= orig;
 				if (tmp == orig) {
-					val = IMX8QM_CSR_PHYX2_OFFSET
+					val = IMX8QM_LPCG_PHYX2_OFFSET
 						+ imx_pcie->ctrl_id * SZ_64K;
 					regmap_update_bits(imx_pcie->iomuxc_gpr,
 						val, IMX8QM_LPCG_PHY_PCG0,
