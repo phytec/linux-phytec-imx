@@ -281,21 +281,23 @@ static int pf8x00_regulator_set_voltage_time_sel(struct regulator_dev *rdev,
 	/* find out if we have a fast or slow ramp */
 	ret = regmap_read(pf->regmap, rdev->desc->enable_reg +
 			SW_CONFIG2 - SW_MODE1, &fast);
+	if (ret)
+		return ret;
+
 	fast &= 0x20;
-	if (ret < 0)
-		fast = 0;
 	ramp_index = fast ? 2 : 0;
 	if (new_v < old_v)
 		ramp_index++;
 
 	/* read out internal clk freq to determinant ramp rate */
 	ret = regmap_read(pf->regmap, PF8X00_FREQ_CTRL, &clk_index);
+	if (ret)
+		return ret;
+
 	clk_index &= 0xf;
-	if (ret < 0)
-		clk_index = 0;
 	/* filter out invalid clock settings */
 	if (((clk_index & 7) > 4) || (clk_index == 8))
-		clk_index = 0;
+		return -EINVAL;
 
 	ramp_rate = ramp_table[clk_index].up_down_slow_fast[ramp_index];
 
