@@ -607,10 +607,13 @@ static int pf8x_identify(struct pf8x_chip *pf)
 	ret = regmap_read(pf->regmap, PF8X00_REVID, &value);
 	if (ret)
 		value = 0;
+
 	dev_info(pf->dev,
-		 "%s: Full layer: %x, Metal layer: %x\n",
-		 (pf->chip_id == PF8100) ? "PF8100" : "PF8200",
-		 (value & 0xf0) >> 4, value & 0x0f);
+		"%s: Full layer: %x, Metal layer: %x\n",
+		((pf->chip_id == PF8100) ? "PF8100" :
+		((pf->chip_id == PF8200) ? "PF8200" :
+		((pf->chip_id == PF8121A) ? "PF8121A" : "UNKNOWN"))),
+		(value & 0xf0) >> 4, value & 0x0f);
 
 	return 0;
 }
@@ -660,9 +663,10 @@ static int pf8x00_regulator_probe(struct i2c_client *client,
 	if (ret)
 		return ret;
 
-	dev_info(&client->dev, "pf8%c00 found.\n",
-		(pf->chip_id == PF8100) ? '1' :
-		((pf->chip_id == PF8200) ? '2' : '?'));
+	dev_info(&client->dev, "pf8%s found.\n",
+		(pf->chip_id == PF8100) ? "100" :
+		((pf->chip_id == PF8200) ? "200" :
+		((pf->chip_id == PF8121A) ? "121A" : "???")));
 
 	memcpy(pf->regulator_descs, pf8x00_regulators,
 		sizeof(pf->regulator_descs));
