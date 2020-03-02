@@ -8,3 +8,8 @@
 
 #include "imx8mm-phycore-som.dtsi"
 #include "imx8mm-phyboard-polis.dtsi"
+#include "imx8mm-phyboard-polis-peb-av-010.dtsi"
+
+&i2c1_sn65dsi83 {
+	status = "okay";
+};
