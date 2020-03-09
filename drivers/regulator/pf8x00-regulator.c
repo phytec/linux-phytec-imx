@@ -634,19 +634,17 @@ static int pf8x00_regulator_probe(struct i2c_client *client,
 				    const struct i2c_device_id *id)
 {
 	struct pf8x_chip *pf;
-#if 0
-	struct pf8x_regulator_platform_data *pdata =
-	    dev_get_platdata(&client->dev);
-#endif
+	u32 num_regulators;
+	struct pf8x_regulator *rdesc;
+	struct regulator_desc *desc;
 	struct regulator_config config = { };
 	int i, ret;
-	u32 num_regulators;
-	unsigned hw_en;
-	unsigned vselect_en;
-	unsigned char quad_phase;
-	unsigned char dual_phase;
-	unsigned val;
-	unsigned ctrl3;
+	int phase, ilim;
+	unsigned int reg;
+	unsigned int mask = 0;
+	unsigned int val = 0;
+	unsigned int quad_phase, dual_phase;
+
 
 	pf = devm_kzalloc(&client->dev, sizeof(*pf),
 			GFP_KERNEL);
@@ -668,11 +666,6 @@ static int pf8x00_regulator_probe(struct i2c_client *client,
 	if (ret)
 		return ret;
 
-	dev_info(&client->dev, "pf8%s found.\n",
-		(pf->chip_id == PF8100) ? "100" :
-		((pf->chip_id == PF8200) ? "200" :
-		((pf->chip_id == PF8121A) ? "121A" : "???")));
-
 	memcpy(pf->regulator_descs, pf8x00_regulators,
 		sizeof(pf->regulator_descs));
 
@@ -682,94 +675,97 @@ static int pf8x00_regulator_probe(struct i2c_client *client,
 
 	num_regulators = ARRAY_SIZE(pf->regulator_descs);
 	for (i = 0; i < num_regulators; i++) {
-		struct regulator_init_data *init_data;
-		struct regulator_desc *desc;
-
 		desc = &pf->regulator_descs[i].desc;
-#if 0
-		if (pdata)
-			init_data = pdata->init_data[i];
-		else
-#endif
-			init_data = match_init_data(i);
 
-		config.dev = &client->dev;
-		config.init_data = init_data;
+		config.dev = pf->dev;
+		config.init_data = match_init_data(i);
 		config.driver_data = pf;
 		config.of_node = match_of_node(i);
 		config.ena_gpio = -EINVAL;
 
 		pf->regulators[i] =
-			devm_regulator_register(&client->dev, desc, &config);
+			devm_regulator_register(pf->dev, desc, &config);
+
 		if (IS_ERR(pf->regulators[i])) {
-			dev_err(&client->dev, "register regulator%s failed\n",
+			dev_err(pf->dev, "register regulator%s failed\n",
 				desc->name);
 			return PTR_ERR(pf->regulators[i]);
 		}
-		if ((i >= REG_SW1) && (i <= REG_SW7)) {
-			unsigned phase = pf->regulator_descs[i].phase;
-			unsigned ilim = pf->regulator_descs[i].ilim;
-			unsigned mask = 0;
-			unsigned val = 0;
-			unsigned reg = PF8X00_SW(i) + SW_CONFIG2;
 
-			if (phase <= 7) {
+		if ((i >= REG_SW1) && (i <= REG_SW7)) {
+			phase = pf->regulator_descs[i].phase;
+			if (phase >= 0) {
 				mask |= 7;
 				val |= phase;
-			}
-			if (ilim <= 3) {
+			};
+
+			ilim = pf->regulator_descs[i].ilim;
+			if (ilim >= 0) {
 				mask |= 3 << 3;
 				val |= ilim << 3;
 			}
+
 			if (mask) {
+				reg = PF8X00_SW(i) + SW_CONFIG2;
+
 				pr_debug("%s:reg=0x%x, mask=0x%x, val=0x%x\n",
-					__func__, reg, mask, val);
+					 __func__, reg, mask, val);
 				ret = regmap_update_bits(pf->regmap, reg, mask,
 						val);
+				if (ret)
+					return ret;
 			}
 		}
 	}
-	hw_en = pf->regulator_descs[REG_LDO2].hw_en;
-	vselect_en = pf->regulator_descs[REG_LDO2].vselect_en;
-	val = vselect_en ? 8 : 0;
-	if (hw_en)
-		val |= 0x10;
-	ret = regmap_update_bits(pf->regmap,
-			PF8X00_LDO(REG_LDO2) + LDO_CONFIG2,
-				 0x18, val);
 
+	/* Configure LDO2 */
+	val = 0;
+	rdesc = &pf->regulator_descs[REG_LDO2];
+	if (rdesc->vselect_en)
+		val |= 0x8;
+	if (rdesc->hw_en)
+		val |= 0x10;
+	ret = regmap_update_bits(pf->regmap, PF8X00_LDO(REG_LDO2) + LDO_CONFIG2,
+					 0x18, val);
+	if (ret)
+		return ret;
+
+	/* Check if phase setting from dt fits with the OPT values */
 	ret = regmap_write(pf->regmap, PF8X00_PAGE_SELECT, 1);
-	if (!ret)
-		ret = regmap_read(pf->regmap, PF8X00_OTP_CTRL3, &ctrl3);
-	if (!ret) {
-		quad_phase = pf->regulator_descs[REG_SW1].quad_phase;
-		dual_phase = pf->regulator_descs[REG_SW1].dual_phase;
-		if (quad_phase) {
-			if ((ctrl3 & 3) != 2)
-				dev_warn(pf->dev, "sw1 quad_phase not set in otp_ctrl3 %x\n", ctrl3);
-		} else if (dual_phase) {
-			if ((ctrl3 & 3) != 1)
-				dev_warn(pf->dev, "sw1 dual_phase not set in otp_ctrl3 %x\n", ctrl3);
-		} else if (ctrl3 & 3) {
-			dev_warn(pf->dev, "sw1 single_phase not set in otp_ctrl3 %x\n", ctrl3);
-		}
-		if (!quad_phase) {
-			dual_phase = pf->regulator_descs[REG_SW4].dual_phase;
-			if (dual_phase) {
-				if ((ctrl3 & 0x0c) != 4)
-					dev_warn(pf->dev, "sw4 dual_phase not set in otp_ctrl3 %x\n", ctrl3);
-			} else if (ctrl3 & 0x0c) {
-				dev_warn(pf->dev, "sw4 single_phase not set in otp_ctrl3 %x\n", ctrl3);
-			}
-		}
-		dual_phase = pf->regulator_descs[REG_SW5].dual_phase;
-		if (dual_phase) {
-			if ((ctrl3 & 0x30) != 0x10)
-				dev_warn(pf->dev, "sw5 dual_phase not set in otp_ctrl3 %x\n", ctrl3);
-		} else if (ctrl3 & 0x30) {
-			dev_warn(pf->dev, "sw5 single_phase not set in otp_ctrl3 %x\n", ctrl3);
-		}
-	}
+	if (ret)
+		return ret;
+	ret = regmap_read(pf->regmap, PF8X00_OTP_CTRL3, &reg);
+	if (ret)
+		return ret;
+
+	quad_phase = pf->regulator_descs[REG_SW1].quad_phase;
+	dual_phase = pf->regulator_descs[REG_SW1].dual_phase;
+	if (quad_phase && ((reg & 3) != 2))
+		dev_warn(pf->dev, "sw1 quad_phase not set in otp_ctrl3 %x\n",
+				reg);
+	else if (dual_phase && ((reg & 3) != 1))
+		dev_warn(pf->dev, "sw1 dual_phase not set in otp_ctrl3 %x\n",
+				reg);
+	else if (reg & 3)
+		dev_warn(pf->dev, "sw1 single_phase not set in otp_ctrl3 %x\n",
+				reg);
+
+	dual_phase = pf->regulator_descs[REG_SW4].dual_phase;
+	if (dual_phase && (reg & 0x0c) != 4)
+		dev_warn(pf->dev, "sw4 dual_phase not set in otp_ctrl3 %x\n",
+				reg);
+	else if (reg & 0x0c)
+		dev_warn(pf->dev, "sw4 single_phase not set in otp_ctrl3 %x\n",
+				reg);
+
+	dual_phase = pf->regulator_descs[REG_SW5].dual_phase;
+	if (dual_phase && (reg & 0x30) != 0x10)
+		dev_warn(pf->dev, "sw5 dual_phase not set in otp_ctrl3 %x\n",
+				reg);
+	else if (reg & 0x30)
+		dev_warn(pf->dev, "sw5 single_phase not set in otp_ctrl3 %x\n",
+				reg);
+
 	return 0;
 }
 
