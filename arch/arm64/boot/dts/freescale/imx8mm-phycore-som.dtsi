@@ -149,7 +149,6 @@
 			};
 
 			reg_sw3: sw3 {
-				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1800000>;
 				regulator-min-microvolt = <400000>;
@@ -234,6 +233,10 @@
 };
 
 /* VPU */
+&vpumix_pd {
+	power-supply = <&reg_sw3>;
+};
+
 &vpu_g1 {
 	status = "okay";
 };
