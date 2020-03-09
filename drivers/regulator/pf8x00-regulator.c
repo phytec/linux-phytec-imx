@@ -264,6 +264,7 @@ struct dvs_ramp ramp_table[] = {
 [11] = {{ 7031,		4688,		14063,		 9375 }},
 [12] = {{ 7422,		4948,		14844,		 9896 }},
 };
+
 static int pf8x00_regulator_set_voltage_time_sel(struct regulator_dev *rdev,
 		unsigned int old_sel, unsigned int new_sel)
 {
@@ -523,7 +524,6 @@ static const struct pf8x_regulator pf8x00_regulators[] = {
 	STRUCT_VSNVS_REG(REG_VSNVS, vsnvs, PF8X00_VSNVS_CONFIG1, pf8x00_vsnvs_voltages),
 };
 
-#ifdef CONFIG_OF
 static struct of_regulator_match pf8x00_matches[] = {
 	{ .name = "ldo1",	},
 	{ .name = "ldo2",	},
@@ -577,22 +577,6 @@ static inline struct device_node *match_of_node(int index)
 {
 	return pf8x00_matches[index].of_node;
 }
-#else
-static int pf8x_parse_regulators_dt(struct pf8x_chip *pf)
-{
-	return 0;
-}
-
-static inline struct regulator_init_data *match_init_data(int index)
-{
-	return NULL;
-}
-
-static inline struct device_node *match_of_node(int index)
-{
-	return NULL;
-}
-#endif
 
 static int pf8x_identify(struct pf8x_chip *pf)
 {
@@ -771,9 +755,6 @@ static int pf8x00_regulator_probe(struct i2c_client *client,
 
 static int pf8x_suspend(struct device *dev)
 {
-#if 0
-	struct pf8x_chip *pf = i2c_get_clientdata(to_i2c_client(dev));
-#endif
 	return 0;
 }
 
