@@ -5,6 +5,10 @@ Required properties:
 - reg: i2c address of the bridge
 - lanes_in: Number of input lanes
 
+Optional properties:
+- lvds_vod_swing: Configure output voltage 0x00-0x3 (0x1 default).
+			See datasheet for resulting voltages.
+
 - port@0: panel node
 - port@1: encoder node
 Example:
