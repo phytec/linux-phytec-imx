@@ -25,6 +25,9 @@
 #include <drm/drm_crtc_helper.h>
 #include <drm/drm_mipi_dsi.h>
 
+/* ID Register */
+#define ID0_REGISTER			0x00	/* ID 0 Register */
+
 /* Reset and Clock Registers */
 #define LVDS_REG_SW_RST			0x09	/* SOFT_RESET */
 #define LVDS_REG_CLK_RANGE		0x0A	/* LVDS output clock range */
@@ -53,12 +56,12 @@
 #define LVDS_REG_TEST_PATTERN			0x3c
 
 /* Register Mask */
-#define CHA_DSI_LANES			0x18
-#define CHA_24BPP			0x08
-#define LVDS_CLK_RANGE			0x0E
-#define CHA_REVERS_LVDS			0x20
-#define VS_NEG_POLARITY			0x20
-#define HS_NEG_POLARITY			0x40
+#define CHA_DSI_LANES_MASK		0x18
+#define CHA_24BPP_MASK			0x08
+#define LVDS_CLK_RANGE_MASK		0x0E
+#define CHA_REVERS_LVDS_MASK		0x20
+#define VS_NEG_POLARITY_MASK		0x20
+#define HS_NEG_POLARITY_MASK		0x40
 
 /* Register Value */
 #define SOFT_RESET_EN			0x01
@@ -80,6 +83,11 @@
 #define NUM_DSI_LANES3			0x08
 #define NUM_DSI_LANES2			0x10
 #define NUM_DSI_LANES1			0x18
+
+/* ID Register Values */
+static u8 id_reg_val[] = {0x35, 0x38, 0x49, 0x53, 0x44, 0x20,
+					0x20, 0x20, 0x01};
+#define NUM_ID_REGS			ARRAY_SIZE(id_reg_val)
 
 struct sn65dsi83 {
 	struct i2c_client *i2c;
@@ -194,10 +202,10 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 
 	if (bpp == 24)
 		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					CHA_24BPP, CHA_24BPP_MODE24);
+					CHA_24BPP_MASK, CHA_24BPP_MODE24);
 	else
 		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					CHA_24BPP, CHA_24BPP_MODE18);
+					CHA_24BPP_MASK, CHA_24BPP_MODE18);
 
 	if (!mode) {
 		DRM_ERROR("failed to get displaymode\n");
@@ -226,7 +234,7 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	}
 
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
-				LVDS_CLK_RANGE,	lvds_clk_range);
+				LVDS_CLK_RANGE_MASK, lvds_clk_range);
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
 				0x1, 0x1);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_DIVIDER,
@@ -249,16 +257,16 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 
 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
 		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					VS_NEG_POLARITY, VS_POS_POL);
+					VS_NEG_POLARITY_MASK, VS_POS_POL);
 	if (mode->flags & DRM_MODE_FLAG_PHSYNC)
 		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					HS_NEG_POLARITY, HS_POS_POL);
+					HS_NEG_POLARITY_MASK, HS_POS_POL);
 
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_DSI_LANES,
-				CHA_DSI_LANES, lanes);
+				CHA_DSI_LANES_MASK, lanes);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_RANGE, clk_range);
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
-				CHA_REVERS_LVDS, CHA_LVDS_TERM);
+				CHA_REVERS_LVDS_MASK, CHA_LVDS_TERM);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_LOW,
 			mode->hdisplay & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_HIGH,
@@ -404,6 +412,7 @@ int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
 		return PTR_ERR(sn_bridge->gpio_enable);
 	}
 
+
 	of_node_put(endpoint1);
 	of_node_put(sn_bridge->host_node);
 
@@ -416,7 +425,8 @@ static int sn65dsi83_probe(struct i2c_client *client,
 	struct device *dev = &client->dev;
 	struct sn65dsi83 *sn_bridge;
 	struct device_node *endpoint, *panel_node;
-	int ret = 0;
+	u8 id_reg[NUM_ID_REGS];
+	int ret = 0, i;
 
 	sn_bridge = devm_kzalloc(dev, sizeof(*sn_bridge), GFP_KERNEL);
 	if (!sn_bridge)
@@ -443,6 +453,20 @@ static int sn65dsi83_probe(struct i2c_client *client,
 		}
 	}
 
+	ret = regmap_raw_read(sn_bridge->i2c_regmap, ID0_REGISTER, &id_reg,
+			NUM_ID_REGS);
+	if (ret) {
+		dev_err(dev, "can not read device ID: %d\n", ret);
+		return ret;
+	}
+
+	for (i = 0; i < NUM_ID_REGS; i++) {
+		if (id_reg[i] != id_reg_val[i]) {
+			dev_err(dev, "Invalid device ID.");
+			return -ENODEV;
+		}
+	}
+
 	sn_bridge->i2c = client;
 	ret = sn65dsi83_parse_dt(dev->of_node, sn_bridge);
 	if (ret)
@@ -452,6 +476,8 @@ static int sn65dsi83_probe(struct i2c_client *client,
 	sn_bridge->bridge.funcs = &sn65dsi83_bridge_funcs;
 	sn_bridge->bridge.of_node = dev->of_node;
 	drm_bridge_add(&sn_bridge->bridge);
+
+	dev_info(dev, "Successfully probed sn65dsi83.");
 
 	return 0;
 }
