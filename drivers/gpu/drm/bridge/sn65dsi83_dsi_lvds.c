@@ -40,6 +40,7 @@
 
 /* LVDS Registers */
 #define LVDS_REG_24BPP				0x18
+#define LVDS_REG_VOLTAGE			0x19
 #define LVDS_REG_REVERSE_LVDS			0x1a
 
 /* Video Registers */
@@ -59,6 +60,7 @@
 #define CHA_DSI_LANES_MASK		0x18
 #define CHA_24BPP_MASK			0x08
 #define LVDS_CLK_RANGE_MASK		0x0E
+#define LVDS_VOD_SWING_MASK		0x0C
 #define CHA_REVERS_LVDS_MASK		0x20
 #define VS_NEG_POLARITY_MASK		0x20
 #define HS_NEG_POLARITY_MASK		0x40
@@ -102,6 +104,7 @@ struct sn65dsi83 {
 	struct mipi_dsi_device *dsi;
 	struct drm_display_mode mode;
 	u32 num_dsi_lanes;
+	u32 lvds_vod_swing;
 };
 
 static inline struct sn65dsi83 *
@@ -197,6 +200,10 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	usleep_range(10 * 1000, 11 * 1000);
 	gpiod_set_value_cansleep(sn_bridge->gpio_enable, 1);
 	usleep_range(10 * 1000, 11 * 1000);
+
+	/* Configure LVDS output voltage */
+	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_VOLTAGE,
+				LVDS_VOD_SWING_MASK, sn_bridge->lvds_vod_swing);
 
 	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
 
@@ -391,6 +398,7 @@ int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
 {
 	struct device_node *endpoint0, *endpoint1;
 	struct device *dev = &sn_bridge->i2c->dev;
+	int ret;
 
 	endpoint0 = of_graph_get_next_endpoint(np, NULL);
 	if (!endpoint0)
@@ -412,6 +420,11 @@ int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
 		return PTR_ERR(sn_bridge->gpio_enable);
 	}
 
+	ret = of_property_read_u32(dev->of_node, "lvds_vod_swing",
+				&sn_bridge->lvds_vod_swing);
+	/* If not set, use default */
+	if (ret)
+		sn_bridge->lvds_vod_swing = 0x01;
 
 	of_node_put(endpoint1);
 	of_node_put(sn_bridge->host_node);
