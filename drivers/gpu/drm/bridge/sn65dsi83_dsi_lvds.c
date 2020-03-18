@@ -373,7 +373,12 @@ static const struct drm_bridge_funcs sn65dsi83_bridge_funcs = {
 };
 
 static const struct regmap_range sn65dsi83_lvds_volatile_ranges[] = {
-	{ .range_min = 0, .range_max = 0xff},
+	{ .range_min = 0x00, .range_max = 0x0B},
+	{ .range_min = 0x0D, .range_max = 0x0D},
+	{ .range_min = 0x10, .range_max = 0x12},
+	{ .range_min = 0x18, .range_max = 0x1B},
+	{ .range_min = 0x20, .range_max = 0x3C},
+	{ .range_min = 0xE0, .range_max = 0xE5},
 };
 
 static const struct regmap_access_table sn65dsi83_lvds_volatile_table = {
@@ -386,6 +391,7 @@ static const struct regmap_config sn65dsi83_lvds_regmap_config = {
 	.val_bits = 8,
 	.volatile_table = &sn65dsi83_lvds_volatile_table,
 	.cache_type = REGCACHE_NONE,
+	.max_register = 0xE5,
 };
 
 void sn65dsi83_detach_dsi(struct sn65dsi83 *sn_bridge)
