@@ -5,6 +5,16 @@
  */
 
 / {
+	gpio_fan {
+		compatible = "gpio-fan";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_fan>;
+		gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>;
+		gpio-fan,speed-map = <0     0
+				      13000 1>;
+		#cooling-cells = <2>;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -201,6 +211,12 @@
 	pinctrl_ecspi2_cs: ecspi2csgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x00
+		>;
+	};
+
+	pinctrl_fan: fan0grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI1_RXD6_GPIO4_IO8        0x16
 		>;
 	};
 
