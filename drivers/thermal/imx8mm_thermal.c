@@ -16,6 +16,7 @@
 #include <linux/thermal.h>
 
 #include "thermal_core.h"
+#include "thermal_hwmon.h"
 
 #define TER		0x0	/* TMU enable */
 #define TSR		0x4	/* TMU status */
@@ -198,7 +199,15 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 	val |= TER_EN;
 	writel_relaxed(val, tmu->tmu_base + TER);
 
+	tmu->tzd->tzp->no_hwmon = false;
+	ret = thermal_add_hwmon_sysfs(tmu->tzd);
+	if (ret)
+		goto clk_err;
+
 	return 0;
+
+clk_err:
+	clk_disable_unprepare(tmu->clk);
 err:
 	iounmap(tmu->tmu_base);
 	return ret;
