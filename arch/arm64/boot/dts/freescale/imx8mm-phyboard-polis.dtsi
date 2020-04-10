@@ -22,7 +22,7 @@
 
 		led-red {
 			label = "red-emmc";
-			gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "mmc0";
 		};
 
@@ -192,7 +192,7 @@
 
 	pinctrl_leds: leds1grp {
 		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO00_GPIO1_IO0	0x16
+			MX8MM_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
 			MX8MM_IOMUXC_GPIO1_IO14_GPIO1_IO14	0x16
 			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x16
 		>;
