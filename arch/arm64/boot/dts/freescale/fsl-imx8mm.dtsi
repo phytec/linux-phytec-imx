@@ -379,6 +379,7 @@
 		clocks = <&clk IMX8MM_CLK_TMU_ROOT>;
 		interrupt = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
 		#thermal-sensor-cells = <0>;
+		fsl,tempmon-data = <&ocotp>;
 	};
 
 	thermal-zones {

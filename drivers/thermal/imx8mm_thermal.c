@@ -10,9 +10,11 @@
 #include <linux/err.h>
 #include <linux/io.h>
 #include <linux/module.h>
+#include <linux/mfd/syscon.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/platform_device.h>
+#include <linux/regmap.h>
 #include <linux/thermal.h>
 
 #include "thermal_core.h"
@@ -116,6 +118,49 @@ static const struct of_device_id imx8mm_tmu_table[] = {
 	{ },
 };
 
+#define IMX8MM_OCOTP_TESTER3     0x0440
+
+static int imx_init_temp_grade(struct platform_device *pdev)
+{
+	struct imx8mm_tmu *tmu = platform_get_drvdata(pdev);
+	struct regmap *map;
+	int ret, temp_max;
+	u32 val;
+
+	map = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
+					      "fsl,tempmon-data");
+	if (IS_ERR(map)) {
+		ret = PTR_ERR(map);
+		dev_err(&pdev->dev, "failed to get sensor regmap: %d\n", ret);
+		return ret;
+	}
+
+	ret = regmap_read(map, IMX8MM_OCOTP_TESTER3, &val);
+
+	if (ret) {
+		dev_err(&pdev->dev, "failed to read sensor data: %d\n", ret);
+		return ret;
+	}
+
+	switch ((val >> 6) & 0x3) {
+	case 0: /* Commercial (0 to 95 °C) */
+		temp_max = 95000;
+		break;
+	case 2: /* Industrial (-40 °C to 105 °C) */
+		temp_max = 105000;
+		break;
+	}
+
+	/*
+	 * Set the critical trip point at 5 °C under max
+	 * Set the passive trip point at 10 °C under max (changeable via sysfs)
+	 */
+	tmu->temp_critical = temp_max - (1000 * 5);
+	tmu->temp_passive = temp_max - (1000 * 10);
+
+	return ret;
+}
+
 static int imx8mm_tmu_probe(struct platform_device *pdev)
 {
 	int ret;
@@ -179,11 +224,23 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 		goto err;
 	}
 
-	trips = of_thermal_get_trip_points(tmu->tzd);
+	ret = imx_init_temp_grade(pdev);
+	if (ret) {
+		dev_info(&pdev->dev, "failed to init from fsl,tempmon-data use temp from devicetree\n");
+		trips = of_thermal_get_trip_points(tmu->tzd);
 
-	/* get the thermal trip temp */
-	tmu->temp_passive = trips[0].temperature;
-	tmu->temp_critical = trips[1].temperature;
+		/* get the thermal trip temp */
+		tmu->temp_passive = trips[0].temperature;
+		tmu->temp_critical = trips[1].temperature;
+	} else {
+		/* set the thermal trip temp */
+		tmu->tzd->ops->set_trip_temp(tmu->tzd, IMX_TRIP_PASSIVE,
+					tmu->temp_passive);
+		tmu->tzd->ops->set_trip_temp(tmu->tzd, IMX_TRIP_CRITICAL,
+					tmu->temp_critical);
+
+	}
+
 
 	/* enable the tmu clock */
 	ret = clk_prepare_enable(tmu->clk);
