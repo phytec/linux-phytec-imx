@@ -7,7 +7,7 @@
 /dts-v1/;
 
 #include "imx8mm-phycore-som-rev1a.dtsi"
-#include "imx8mm-phyboard-polis.dtsi"
+#include "imx8mm-phyboard-polis-rev1a.dtsi"
 #include "imx8mm-phyboard-polis-peb-av-010.dtsi"
 #include "imx8mm-phyboard-polis-peb-eval-01.dtsi"
 
