@@ -20,6 +20,13 @@
 	chosen {
 		stdout-path = &uart3;
 	};
+
+	rtcclkout: rv3028-clkout {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <32768>;
+		status = "disabled";
+	};
 };
 
 &A53_0 {
@@ -218,6 +225,9 @@
 		wakeup-source;
 		trickle-resistor-ohms = <1000>; /* maps to 3 kOhm setting */
 		enable-level-switching-mode;
+
+		clocks = <&rtcclkout>;
+		clock-output-names = "rv3028-clkout";
 	};
 };
 
