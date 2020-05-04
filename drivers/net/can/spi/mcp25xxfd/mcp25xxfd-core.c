@@ -899,6 +899,7 @@ static int mcp25xxfd_chip_ecc_init(struct mcp25xxfd_priv *priv)
 	int err;
 
 	ecc->ecc_stat = 0;
+	ecc->cnt = 0;
 
 	if (priv->devtype_data.quirks & MCP25XXFD_QUIRK_ECC)
 		val = MCP25XXFD_REG_ECCCON_ECCEN;
@@ -1128,7 +1129,7 @@ static int mcp25xxfd_get_berr_counter(const struct net_device *ndev,
 	return 0;
 }
 
-static int mcp25xxfd_check_tef_tail(const struct mcp25xxfd_priv *priv)
+static int mcp25xxfd_check_tef_tail(struct mcp25xxfd_priv *priv)
 {
 	u8 tef_tail_chip, tef_tail;
 	int err;
@@ -1139,6 +1140,8 @@ static int mcp25xxfd_check_tef_tail(const struct mcp25xxfd_priv *priv)
 	err = mcp25xxfd_tef_tail_get_from_chip(priv, &tef_tail_chip);
 	if (err)
 		return err;
+
+	mcp25xxfd_log_hw_tef_tail(priv, tef_tail_chip);
 
 	tef_tail = mcp25xxfd_get_tef_tail(priv);
 	if (tef_tail_chip != tef_tail) {
@@ -1152,7 +1155,7 @@ static int mcp25xxfd_check_tef_tail(const struct mcp25xxfd_priv *priv)
 }
 
 static int
-mcp25xxfd_check_rx_tail(const struct mcp25xxfd_priv *priv,
+mcp25xxfd_check_rx_tail(struct mcp25xxfd_priv *priv,
 			const struct mcp25xxfd_rx_ring *ring)
 {
 	u8 rx_tail_chip, rx_tail;
@@ -1164,6 +1167,8 @@ mcp25xxfd_check_rx_tail(const struct mcp25xxfd_priv *priv,
 	err = mcp25xxfd_rx_tail_get_from_chip(priv, ring, &rx_tail_chip);
 	if (err)
 		return err;
+
+	mcp25xxfd_log_hw_rx_tail(priv, rx_tail_chip);
 
 	rx_tail = mcp25xxfd_get_rx_tail(ring);
 	if (rx_tail_chip != rx_tail) {
@@ -1227,6 +1232,8 @@ mcp25xxfd_handle_tefif_one(struct mcp25xxfd_priv *priv,
 	if (seq_masked != tef_tail_masked)
 		return mcp25xxfd_handle_tefif_recover(priv, seq);
 
+	mcp25xxfd_log(priv, hw_tef_obj->id);
+
 	stats->tx_bytes +=
 		can_rx_offload_get_echo_skb(&priv->offload,
 					    mcp25xxfd_get_tef_tail(priv),
@@ -1266,6 +1273,8 @@ static int mcp25xxfd_tef_ring_update(struct mcp25xxfd_priv *priv)
 
 	/* ... but it cannot exceed the TX head. */
 	priv->tef.head = min(new_head, tx_ring->head);
+
+	mcp25xxfd_log_hw_tx_ci(priv, chip_tx_tail);
 
 	return mcp25xxfd_check_tef_tail(priv);
 }
@@ -1330,6 +1339,7 @@ static int mcp25xxfd_handle_tefif(struct mcp25xxfd_priv *priv)
 	}
 
  out_netif_wake_queue:
+	mcp25xxfd_log_wake(priv, hw_tef_obj->id);
 	mcp25xxfd_ecc_tefif_successful(priv);
 	netif_wake_queue(priv->ndev);
 
@@ -1337,7 +1347,7 @@ static int mcp25xxfd_handle_tefif(struct mcp25xxfd_priv *priv)
 }
 
 static int
-mcp25xxfd_rx_ring_update(const struct mcp25xxfd_priv *priv,
+mcp25xxfd_rx_ring_update(struct mcp25xxfd_priv *priv,
 			 struct mcp25xxfd_rx_ring *ring)
 {
 	u32 new_head;
@@ -1356,6 +1366,8 @@ mcp25xxfd_rx_ring_update(const struct mcp25xxfd_priv *priv,
 		new_head += ring->obj_num;
 
 	ring->head = new_head;
+
+	mcp25xxfd_log_hw_rx_head(priv, chip_rx_head);
 
 	return mcp25xxfd_check_rx_tail(priv, ring);
 }
@@ -1439,7 +1451,7 @@ mcp25xxfd_handle_rxif_one(struct mcp25xxfd_priv *priv,
 }
 
 static inline int
-mcp25xxfd_rx_obj_read(const struct mcp25xxfd_priv *priv,
+mcp25xxfd_rx_obj_read(struct mcp25xxfd_priv *priv,
 		      const struct mcp25xxfd_rx_ring *ring,
 		      struct mcp25xxfd_hw_rx_obj_canfd *hw_rx_obj,
 		      const u8 offset, const u8 len)
@@ -1450,6 +1462,8 @@ mcp25xxfd_rx_obj_read(const struct mcp25xxfd_priv *priv,
 			       mcp25xxfd_get_rx_obj_addr(ring, offset),
 			       hw_rx_obj,
 			       len * ring->obj_size / sizeof(u32));
+
+	mcp25xxfd_log_rx_obj_read(priv, offset, len);
 
 	return err;
 }
@@ -1541,6 +1555,7 @@ static int mcp25xxfd_handle_rxovif(struct mcp25xxfd_priv *priv)
 
 		/* If SERRIF is active, there was a RX MAB overflow. */
 		if (priv->regs_status.intf & MCP25XXFD_REG_INT_SERRIF) {
+			mcp25xxfd_log_rxmab(priv);
 			netdev_info(priv->ndev,
 				    "RX-%d: MAB overflow detected.\n",
 				    ring->nr);
@@ -1826,6 +1841,8 @@ static int mcp25xxfd_handle_serrif(struct mcp25xxfd_priv *priv)
 	    priv->regs_status.intf & MCP25XXFD_REG_INT_ECCIF ||
 	    ecc->cnt) {
 		const char *msg;
+
+		mcp25xxfd_log_txmab(priv);
 
 		if (priv->regs_status.intf & MCP25XXFD_REG_INT_ECCIF ||
 		    ecc->cnt)
@@ -2157,6 +2174,8 @@ static irqreturn_t mcp25xxfd_irq(int irq, void *dev_id)
  out_fail:
 	netdev_err(priv->ndev, "IRQ handler returned %d (intf=0x%08x).\n",
 		   err, priv->regs_status.intf);
+	mcp25xxfd_dump(priv);
+	mcp25xxfd_log_dump(priv);
 	mcp25xxfd_chip_interrupts_disable(priv);
 
 	return handled;
@@ -2274,11 +2293,14 @@ static netdev_tx_t mcp25xxfd_start_xmit(struct sk_buff *skb,
 	struct mcp25xxfd_priv *priv = netdev_priv(ndev);
 	struct mcp25xxfd_tx_ring *tx_ring = priv->tx;
 	struct mcp25xxfd_tx_obj *tx_obj;
+	const canid_t can_id = ((struct canfd_frame *)skb->data)->can_id;
 	u8 tx_head;
 	int err;
 
 	if (can_dropped_invalid_skb(ndev, skb))
 		return NETDEV_TX_OK;
+
+	mcp25xxfd_log(priv, can_id);
 
 	if (tx_ring->head - tx_ring->tail >= tx_ring->obj_num) {
 		netdev_dbg(priv->ndev,
@@ -2286,6 +2308,7 @@ static netdev_tx_t mcp25xxfd_start_xmit(struct sk_buff *skb,
 			   tx_ring->head, tx_ring->tail,
 			   tx_ring->head - tx_ring->tail);
 
+		mcp25xxfd_log_busy(priv, can_id);
 		netif_stop_queue(ndev);
 
 		return NETDEV_TX_BUSY;
@@ -2297,8 +2320,10 @@ static netdev_tx_t mcp25xxfd_start_xmit(struct sk_buff *skb,
 	/* Stop queue if we occupy the complete TX FIFO */
 	tx_head = mcp25xxfd_get_tx_head(tx_ring);
 	tx_ring->head++;
-	if (tx_ring->head - tx_ring->tail >= tx_ring->obj_num)
+	if (tx_ring->head - tx_ring->tail >= tx_ring->obj_num) {
+		mcp25xxfd_log_stop(priv, can_id);
 		netif_stop_queue(ndev);
+	}
 
 	can_put_echo_skb(skb, ndev, tx_head);
 
@@ -2310,6 +2335,8 @@ static netdev_tx_t mcp25xxfd_start_xmit(struct sk_buff *skb,
 
  out_err:
 	netdev_err(priv->ndev, "ERROR in %s: %d\n", __func__, err);
+	mcp25xxfd_dump(priv);
+	mcp25xxfd_log_dump(priv);
 
 	return NETDEV_TX_OK;
 }
@@ -2743,6 +2770,7 @@ static int mcp25xxfd_probe(struct spi_device *spi)
 	priv->clk = clk;
 	priv->reg_vdd = reg_vdd;
 	priv->reg_xceiver = reg_xceiver;
+	atomic_set(&priv->cnt, 0);
 
 	match = device_get_match_data(&spi->dev);
 	if (match)

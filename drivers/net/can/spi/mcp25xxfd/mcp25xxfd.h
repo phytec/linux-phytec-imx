@@ -19,6 +19,32 @@
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
 
+#include "mcp25xxfd-log.h"
+
+static inline void __dump(const void *d, unsigned int len)
+{
+	const u8 *data = d;
+	unsigned int i;
+
+	for (i = 0; i < len; i++) {
+		if ((i % 8) == 0) {
+			if (i == 0)
+				pr_info("%16s = %02x", "data", data[i]);
+			else
+				pr_info("                   %02x", data[i]);
+		} else if ((i % 4) == 0) {
+			pr_cont("  %02x", data[i]);
+		} else if ((i % 8) == 7) {
+			pr_cont(" %02x\n", data[i]);
+		} else {
+			pr_cont(" %02x", data[i]);
+		}
+	}
+
+	if (i % 8)
+		pr_cont("\n");
+}
+
 /* MPC25xx registers */
 
 /* CAN FD Controller Module SFR */
@@ -415,6 +441,67 @@
 /* Use Half Duplex SPI transfers */
 #define MCP25XXFD_QUIRK_HALF_DUPLEX BIT(5)
 
+struct mcp25xxfd_dump_regs_fifo {
+	u32 con;
+	u32 sta;
+	u32 ua;
+};
+
+struct mcp25xxfd_dump_regs {
+	u32 con;
+	u32 nbtcfg;
+	u32 dbtcfg;
+	u32 tdc;
+	u32 tbc;
+	u32 tscon;
+	u32 vec;
+	u32 intf;
+	u32 rxif;
+	u32 txif;
+	u32 rxovif;
+	u32 txatif;
+	u32 txreq;
+	u32 trec;
+	u32 bdiag0;
+	u32 bdiag1;
+	union {
+		struct {
+			u32 tefcon;
+			u32 tefsta;
+			u32 tefua;
+		};
+		struct mcp25xxfd_dump_regs_fifo tef;
+	};
+	u32 reserved0;
+	union {
+		struct {
+			struct mcp25xxfd_dump_regs_fifo txq;
+			struct mcp25xxfd_dump_regs_fifo tx_fifo;
+			struct mcp25xxfd_dump_regs_fifo rx_fifo;
+		};
+		struct mcp25xxfd_dump_regs_fifo fifo[32];
+	};
+};
+
+struct mcp25xxfd_dump_ram {
+	u8 ram[MCP25XXFD_RAM_SIZE];
+};
+
+struct mcp25xxfd_dump_regs_mcp25xxfd {
+	u32 osc;
+	u32 iocon;
+	u32 crc;
+	u32 ecccon;
+	u32 eccstat;
+	u32 devid;		/* MCP2518FD only */
+};
+
+struct mcp25xxfd_dump {
+	struct mcp25xxfd_dump_regs regs;
+	struct mcp25xxfd_dump_ram ram;
+	struct mcp25xxfd_dump_regs_mcp25xxfd regs_mcp25xxfd;
+};
+
 struct mcp25xxfd_hw_tef_obj {
 	u32 id;
 	u32 flags;
@@ -593,6 +680,12 @@ struct mcp25xxfd_priv {
 	struct regulator *reg_xceiver;
 
 	struct mcp25xxfd_devtype_data devtype_data;
+
+	struct mcp25xxfd_dump dump;
+	atomic_t cnt;
+#ifdef CONFIG_CAN_MCP25XXFD_LOG
+	struct mcp25xxfd_log log[256];
+#endif
 };
 
 #define MCP25XXFD_IS(_model) \
@@ -819,6 +912,7 @@ mcp25xxfd_get_rx_linear_len(const struct mcp25xxfd_rx_ring *ring)
 	     (n) < (priv)->rx_ring_num; \
 	     (n)++, (ring) = *((priv)->rx + (n)))
 
+void mcp25xxfd_dump(struct mcp25xxfd_priv *priv);
 int mcp25xxfd_regmap_init(struct mcp25xxfd_priv *priv);
 u16 mcp25xxfd_crc16_compute2(const void *cmd, size_t cmd_size,
 			     const void *data, size_t data_size);
