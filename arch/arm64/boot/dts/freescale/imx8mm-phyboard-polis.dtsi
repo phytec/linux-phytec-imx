@@ -50,6 +50,17 @@
 		enable-active-high;
 	};
 
+	reg_can_en: regulator-can-en {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_can_en>;
+		regulator-name = "reg_can_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		startup-delay-us = <20>;
+	};
+
 	clocks {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -76,6 +87,28 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
+};
+
+/* CAN mcp2517fd */
+&ecspi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi1 &pinctrl_ecspi1_cs>;
+	cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	can0: can@0 {
+		compatible = "microchip,mcp25xxfd";
+		reg = <0>;
+		spi-max-frequency = <10000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_can_int>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
+		clocks = <&can_osc_20m>;
+		xceiver-supply = <&reg_can_en>;
+	};
 };
 
 /* PCIe */
@@ -176,6 +209,32 @@
 
 &iomuxc {
 	pinctrl-names = "default";
+
+	pinctrl_can_en: can-engrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x00
+		>;
+	};
+
+	pinctrl_can_int: can-intgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x00
+		>;
+	};
+
+	pinctrl_ecspi1: ecspi1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI1_SCLK_ECSPI1_SCLK	0x82
+			MX8MM_IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI	0x82
+			MX8MM_IOMUXC_ECSPI1_MISO_ECSPI1_MISO	0x82
+		>;
+	};
+
+	pinctrl_ecspi1_cs: ecspi1csgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI1_SS0_GPIO5_IO9	0x00
+		>;
+	};
 
 	pinctrl_fan: fan0grp {
 		fsl,pins = <
