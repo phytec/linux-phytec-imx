@@ -263,6 +263,10 @@ struct ftrace_likely_data {
 #define __noclone
 #endif
 
+#ifndef __copy
+#define __copy(symbol)
+#endif
+
 /* Helpers for emitting diagnostics in pragmas. */
 #ifndef __diag
 #define __diag(string)
