@@ -77,7 +77,7 @@
 #define HIGH_SHIFT			0x08
 #define CHA_SYNC_DELAY_LOW		0x28
 #define CHA_SYNC_DELAY_HIGH		0x00
-#define CHA_LVDS_TERM			0x00
+#define CHA_REVERSE_LVDS		0x00
 
 #define CLK_RANGE_STEP			0x1388
 
@@ -273,7 +273,7 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 				CHA_DSI_LANES_MASK, lanes);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_RANGE, clk_range);
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
-				CHA_REVERS_LVDS_MASK, CHA_LVDS_TERM);
+				CHA_REVERS_LVDS_MASK, CHA_REVERSE_LVDS);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_LOW,
 			mode->hdisplay & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_HIGH,
