@@ -62,6 +62,7 @@
 #define LVDS_CLK_RANGE_MASK		0x0E
 #define LVDS_VOD_SWING_MASK		0x0C
 #define CHA_REVERS_LVDS_MASK		0x20
+#define CHA_LVDS_TERM_MASK		0x02
 #define VS_NEG_POLARITY_MASK		0x20
 #define HS_NEG_POLARITY_MASK		0x40
 
@@ -78,6 +79,7 @@
 #define CHA_SYNC_DELAY_LOW		0x28
 #define CHA_SYNC_DELAY_HIGH		0x00
 #define CHA_REVERSE_LVDS		0x00
+#define CHA_LVDS_TERM_100		0x00
 
 #define CLK_RANGE_STEP			0x1388
 
@@ -274,6 +276,8 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_RANGE, clk_range);
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
 				CHA_REVERS_LVDS_MASK, CHA_REVERSE_LVDS);
+	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
+				CHA_LVDS_TERM_MASK, CHA_LVDS_TERM_100);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_LOW,
 			mode->hdisplay & LOW_MASK);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_HIGH,
