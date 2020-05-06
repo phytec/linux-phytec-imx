@@ -95,6 +95,7 @@
 		enable-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
 		reg = <0x2d>;
 		lanes_in = <4>;
+		lvds_vod_swing = <0x3>;
 		status = "disabled";
 
 		ports {
