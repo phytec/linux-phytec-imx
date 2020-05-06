@@ -65,9 +65,12 @@
 #define CHA_LVDS_TERM_MASK		0x02
 #define VS_NEG_POLARITY_MASK		0x20
 #define HS_NEG_POLARITY_MASK		0x40
+#define LOW_MASK			0xff
 
 /* Register Shift */
 #define LVDS_VOD_SWING_SHIFT		0x02
+#define LVDS_REG_DSI_CLK_DIVIDER_SHIFT	0x03
+#define HIGH_SHIFT			0x08
 
 /* Register Value */
 #define SOFT_RESET_EN			0x01
@@ -77,8 +80,6 @@
 #define CHA_24BPP_MODE18		0x00
 #define VS_POS_POL			0x00
 #define HS_POS_POL			0x00
-#define LOW_MASK			0xff
-#define HIGH_SHIFT			0x08
 #define CHA_SYNC_DELAY_LOW		0x28
 #define CHA_SYNC_DELAY_HIGH		0x00
 #define CHA_REVERSE_LVDS		0x00
@@ -251,7 +252,7 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
 				0x1, 0x1);
 	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_DIVIDER,
-			clk_div << 3);
+			clk_div << LVDS_REG_DSI_CLK_DIVIDER_SHIFT);
 
 	switch (dsi->lanes) {
 	case 4:
