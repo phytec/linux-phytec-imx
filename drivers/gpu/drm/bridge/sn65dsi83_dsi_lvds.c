@@ -66,6 +66,9 @@
 #define VS_NEG_POLARITY_MASK		0x20
 #define HS_NEG_POLARITY_MASK		0x40
 
+/* Register Shift */
+#define LVDS_VOD_SWING_SHIFT		0x02
+
 /* Register Value */
 #define SOFT_RESET_EN			0x01
 #define SOFT_RESET_DE			0x00
@@ -205,7 +208,8 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 
 	/* Configure LVDS output voltage */
 	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_VOLTAGE,
-				LVDS_VOD_SWING_MASK, sn_bridge->lvds_vod_swing);
+			LVDS_VOD_SWING_MASK,
+			sn_bridge->lvds_vod_swing << LVDS_VOD_SWING_SHIFT);
 
 	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
 
