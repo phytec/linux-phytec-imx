@@ -26,71 +26,70 @@
 #include <drm/drm_mipi_dsi.h>
 
 /* ID Register */
-#define ID0_REGISTER			0x00	/* ID 0 Register */
+#define ID0_REGISTER				0x00 /* ID 0 Register */
 
 /* Reset and Clock Registers */
-#define LVDS_REG_SW_RST			0x09	/* SOFT_RESET */
-#define LVDS_REG_CLK_RANGE		0x0A	/* LVDS output clock range */
-#define LVDS_REG_DSI_CLK_DIVIDER	0x0B	/* divider for mipi-clk */
-#define LVDS_REG_PLL_EN			0x0D	/* PLL enable */
+#define REG_SOFT_RESET				0x09 /* REG_SOFT_RESET */
+#define REG_HS_CLK_SRC				0x0A /* LVDS output clock */
+#define REG_REFCLK_MULTIPLIER			0x0B /* divider for mipi-clk */
+#define REG_PLL_EN				0x0D /* PLL enable */
 
 /* DSI Registers */
-#define LVDS_REG_DSI_LANES		0x10	/* number of DSI lanes */
-#define LVDS_REG_DSI_CLK_RANGE		0x12	/* DSI clock frequency range */
+#define REG_SOT_ERR_TOL_DIS			0x10
+#define REG_CHA_DSI_CLK_RANGE			0x12 /* DSI clock settings */
 
 /* LVDS Registers */
-#define LVDS_REG_24BPP				0x18
-#define LVDS_REG_VOLTAGE			0x19
-#define LVDS_REG_REVERSE_LVDS			0x1a
+#define REG_CHA_24BPP_FORMAT1			0x18
+#define REG_CHA_LVDS_VOD_SWING			0x19
+#define REG_CHA_LVDS_TERM			0x1A
 
 /* Video Registers */
-#define LVDS_REG_ACTIVE_LINE_LENGTH_LOW		0x20
-#define LVDS_REG_ACTIVE_LINE_LENGTH_HIGH	0x21
-#define LVDS_REG_SYNC_DELAY_LOW			0x28
-#define LVDS_REG_SYNC_DELAY_HIGH		0x29
-#define LVDS_REG_HSYNC_PULSE_WIDTH_LOW		0x2c
-#define LVDS_REG_HSYNC_PULSE_WIDTH_HIGH		0x2d
-#define LVDS_REG_VSYNC_PULSE_WIDTH_LOW		0x30
-#define LVDS_REG_VSYNC_PULSE_WIDTH_HIGH		0x31
-#define LVDS_REG_HORIZONTAL_BACK_PORCH		0x34
-#define LVDS_REG_VERTICAL_BACK_PORCH		0x36
-#define LVDS_REG_TEST_PATTERN			0x3c
+#define REG_CHA_ACTIVE_LINE_LENGTH_LOW		0x20
+#define REG_CHA_ACTIVE_LINE_LENGTH_HIGH		0x21
+#define REG_CHA_SYNC_DELAY_LOW			0x28
+#define REG_CHA_SYNC_DELAY_HIGH			0x29
+#define REG_CHA_HSYNC_PULSE_WIDTH_LOW		0x2C
+#define REG_CHA_HSYNC_PULSE_WIDTH_HIGH		0x2D
+#define REG_CHA_VSYNC_PULSE_WIDTH_LOW		0x30
+#define REG_CHA_VSYNC_PULSE_WIDTH_HIGH		0x31
+#define REG_CHA_HORIZONTAL_BACK_PORCH		0x34
+#define REG_CHA_VERTICAL_BACK_PORCH		0x36
+#define REG_CHA_TEST_PATTERN			0x3C
 
 /* Register Mask */
-#define CHA_DSI_LANES_MASK		0x18
-#define CHA_24BPP_MASK			0x08
-#define LVDS_CLK_RANGE_MASK		0x0E
-#define LVDS_VOD_SWING_MASK		0x0C
-#define CHA_REVERS_LVDS_MASK		0x20
-#define CHA_LVDS_TERM_MASK		0x02
-#define VS_NEG_POLARITY_MASK		0x20
-#define HS_NEG_POLARITY_MASK		0x40
-#define LOW_MASK			0xff
+#define MASK_CHA_DSI_LANES			0x18
+#define MASK_CHA_24BPP				0x08
+#define MASK_LVDS_CLK_RANGE			0x0E
+#define MASK_LVDS_VOD_SWING			0x0C
+#define MASK_CHA_REVERS_LVDS			0x20
+#define MASK_CHA_LVDS_TERM			0x02
+#define MASK_VS_NEG_POLARITY			0x20
+#define MASK_HS_NEG_POLARITY			0x40
+#define MASK_LOW				0xFF
 
 /* Register Shift */
-#define LVDS_VOD_SWING_SHIFT		0x02
-#define LVDS_REG_DSI_CLK_DIVIDER_SHIFT	0x03
-#define HIGH_SHIFT			0x08
+#define SHIFT_LVDS_VOD_SWING			0x02
+#define SHIFT_REFCLK_MULTIPLIER			0x03
+#define SHIFT_HIGH				0x08
 
 /* Register Value */
-#define SOFT_RESET_EN			0x01
-#define SOFT_RESET_DE			0x00
-#define PLL_EN				0x01
-#define CHA_24BPP_MODE24		0x08
-#define CHA_24BPP_MODE18		0x00
-#define VS_POS_POL			0x00
-#define HS_POS_POL			0x00
-#define CHA_SYNC_DELAY_LOW		0x28
-#define CHA_SYNC_DELAY_HIGH		0x00
-#define CHA_REVERSE_LVDS		0x00
-#define CHA_LVDS_TERM_100		0x00
+#define SOFT_RESET_EN				0x01
+#define PLL_EN					0x01
+#define CHA_24BPP_MODE24			0x08
+#define CHA_24BPP_MODE18			0x00
+#define VS_POS_POL				0x00
+#define HS_POS_POL				0x00
+#define CHA_SYNC_DELAY_LOW			0x28
+#define CHA_SYNC_DELAY_HIGH			0x00
+#define CHA_REVERSE_LVDS			0x00
+#define CHA_LVDS_TERM_100			0x00
 
-#define CLK_RANGE_STEP			0x1388
+#define CLK_RANGE_STEP				0x1388
 
-#define NUM_DSI_LANES4			0x00
-#define NUM_DSI_LANES3			0x08
-#define NUM_DSI_LANES2			0x10
-#define NUM_DSI_LANES1			0x18
+#define NUM_DSI_LANES4				0x00
+#define NUM_DSI_LANES3				0x08
+#define NUM_DSI_LANES2				0x10
+#define NUM_DSI_LANES1				0x18
 
 /* ID Register Values */
 static u8 id_reg_val[] = {0x35, 0x38, 0x49, 0x53, 0x44, 0x20,
@@ -208,18 +207,18 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	usleep_range(10 * 1000, 11 * 1000);
 
 	/* Configure LVDS output voltage */
-	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_VOLTAGE,
-			LVDS_VOD_SWING_MASK,
-			sn_bridge->lvds_vod_swing << LVDS_VOD_SWING_SHIFT);
+	regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_LVDS_VOD_SWING,
+			MASK_LVDS_VOD_SWING,
+			sn_bridge->lvds_vod_swing << SHIFT_LVDS_VOD_SWING);
 
 	bpp = mipi_dsi_pixel_format_to_bpp(dsi->format);
 
 	if (bpp == 24)
-		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					CHA_24BPP_MASK, CHA_24BPP_MODE24);
+		regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_24BPP_FORMAT1,
+					MASK_CHA_24BPP, CHA_24BPP_MODE24);
 	else
-		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					CHA_24BPP_MASK, CHA_24BPP_MODE18);
+		regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_24BPP_FORMAT1,
+					MASK_CHA_24BPP, CHA_24BPP_MODE18);
 
 	if (!mode) {
 		DRM_ERROR("failed to get displaymode\n");
@@ -247,12 +246,12 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 			break;
 	}
 
-	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
-				LVDS_CLK_RANGE_MASK, lvds_clk_range);
-	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_CLK_RANGE,
+	regmap_update_bits(sn_bridge->i2c_regmap, REG_HS_CLK_SRC,
+				MASK_LVDS_CLK_RANGE, lvds_clk_range);
+	regmap_update_bits(sn_bridge->i2c_regmap, REG_HS_CLK_SRC,
 				0x1, 0x1);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_DIVIDER,
-			clk_div << LVDS_REG_DSI_CLK_DIVIDER_SHIFT);
+	regmap_write(sn_bridge->i2c_regmap, REG_REFCLK_MULTIPLIER,
+			clk_div << SHIFT_REFCLK_MULTIPLIER);
 
 	switch (dsi->lanes) {
 	case 4:
@@ -270,42 +269,42 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 	}
 
 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
-		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					VS_NEG_POLARITY_MASK, VS_POS_POL);
+		regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_24BPP_FORMAT1,
+					MASK_VS_NEG_POLARITY, VS_POS_POL);
 	if (mode->flags & DRM_MODE_FLAG_PHSYNC)
-		regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_24BPP,
-					HS_NEG_POLARITY_MASK, HS_POS_POL);
+		regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_24BPP_FORMAT1,
+					MASK_HS_NEG_POLARITY, HS_POS_POL);
 
-	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_DSI_LANES,
-				CHA_DSI_LANES_MASK, lanes);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_DSI_CLK_RANGE, clk_range);
-	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
-				CHA_REVERS_LVDS_MASK, CHA_REVERSE_LVDS);
-	regmap_update_bits(sn_bridge->i2c_regmap, LVDS_REG_REVERSE_LVDS,
-				CHA_LVDS_TERM_MASK, CHA_LVDS_TERM_100);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_LOW,
-			mode->hdisplay & LOW_MASK);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_ACTIVE_LINE_LENGTH_HIGH,
-			mode->hdisplay >> HIGH_SHIFT);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SYNC_DELAY_LOW,
+	regmap_update_bits(sn_bridge->i2c_regmap, REG_SOT_ERR_TOL_DIS,
+				MASK_CHA_DSI_LANES, lanes);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_DSI_CLK_RANGE, clk_range);
+	regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_LVDS_TERM,
+				MASK_CHA_REVERS_LVDS, CHA_REVERSE_LVDS);
+	regmap_update_bits(sn_bridge->i2c_regmap, REG_CHA_LVDS_TERM,
+				MASK_CHA_LVDS_TERM, CHA_LVDS_TERM_100);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_ACTIVE_LINE_LENGTH_LOW,
+			mode->hdisplay & MASK_LOW);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_ACTIVE_LINE_LENGTH_HIGH,
+			mode->hdisplay >> SHIFT_HIGH);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_SYNC_DELAY_LOW,
 			CHA_SYNC_DELAY_LOW);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SYNC_DELAY_HIGH,
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_SYNC_DELAY_HIGH,
 			CHA_SYNC_DELAY_HIGH);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_HSYNC_PULSE_WIDTH_LOW,
-			(mode->hsync_end - mode->hsync_start) & LOW_MASK);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_HSYNC_PULSE_WIDTH_HIGH,
-			(mode->hsync_end - mode->hsync_start) >> HIGH_SHIFT);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VSYNC_PULSE_WIDTH_LOW,
-			(mode->vsync_end - mode->vsync_start) & LOW_MASK);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VSYNC_PULSE_WIDTH_HIGH,
-			(mode->vsync_end - mode->vsync_start) >> HIGH_SHIFT);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_HORIZONTAL_BACK_PORCH,
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_HSYNC_PULSE_WIDTH_LOW,
+			(mode->hsync_end - mode->hsync_start) & MASK_LOW);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_HSYNC_PULSE_WIDTH_HIGH,
+			(mode->hsync_end - mode->hsync_start) >> SHIFT_HIGH);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_VSYNC_PULSE_WIDTH_LOW,
+			(mode->vsync_end - mode->vsync_start) & MASK_LOW);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_VSYNC_PULSE_WIDTH_HIGH,
+			(mode->vsync_end - mode->vsync_start) >> SHIFT_HIGH);
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_HORIZONTAL_BACK_PORCH,
 			mode->htotal - mode->hsync_end);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_VERTICAL_BACK_PORCH,
+	regmap_write(sn_bridge->i2c_regmap, REG_CHA_VERTICAL_BACK_PORCH,
 			mode->vtotal - mode->vsync_end);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_PLL_EN, PLL_EN);
+	regmap_write(sn_bridge->i2c_regmap, REG_PLL_EN, PLL_EN);
 	mdelay(10);
-	regmap_write(sn_bridge->i2c_regmap, LVDS_REG_SW_RST, SOFT_RESET_EN);
+	regmap_write(sn_bridge->i2c_regmap, REG_SOFT_RESET, SOFT_RESET_EN);
 }
 
 static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
