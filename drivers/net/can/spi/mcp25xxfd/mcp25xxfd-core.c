@@ -311,8 +311,8 @@ mcp25xxfd_tx_ring_init_tx_obj(const struct mcp25xxfd_priv *priv,
 	xfer->tx_buf = &tx_obj->buf;
 	xfer->len = 0;	/* actual len is assigned on the fly */
 	xfer->cs_change = 1;
-	xfer->cs_change_delay = 0;
-	xfer->cs_change_delay_unit = SPI_DELAY_UNIT_NSECS;
+	xfer->cs_change_delay.value = 0;
+	xfer->cs_change_delay.unit = SPI_DELAY_UNIT_NSECS;
 
 	/* FIFO trigger */
 	xfer = &tx_obj->xfer[1];
