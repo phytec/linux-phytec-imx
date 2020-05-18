@@ -1741,6 +1741,8 @@ static int mcp25xxfd_handle_cerrif(struct mcp25xxfd_priv *priv)
 		struct can_berr_counter bec;
 
 		err = mcp25xxfd_get_berr_counter(priv->ndev, &bec);
+		if (err)
+			return err;
 		cf->data[6] = bec.txerr;
 		cf->data[7] = bec.rxerr;
 	}
