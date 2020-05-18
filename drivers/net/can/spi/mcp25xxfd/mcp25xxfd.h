@@ -514,33 +514,33 @@ struct mcp25xxfd_hw_tef_obj {
 struct mcp25xxfd_hw_tx_obj_raw {
 	__le32 id;
 	__le32 flags;
-	u8 data[FIELD_SIZEOF(struct canfd_frame, data)];
+	u8 data[sizeof_field(struct canfd_frame, data)];
 };
 
 struct mcp25xxfd_hw_tx_obj_can {
 	u32 id;
 	u32 flags;
-	u8 data[FIELD_SIZEOF(struct can_frame, data)];
+	u8 data[sizeof_field(struct can_frame, data)];
 };
 
 struct mcp25xxfd_hw_tx_obj_canfd {
 	u32 id;
 	u32 flags;
-	u8 data[FIELD_SIZEOF(struct canfd_frame, data)];
+	u8 data[sizeof_field(struct canfd_frame, data)];
 };
 
 struct mcp25xxfd_hw_rx_obj_can {
 	u32 id;
 	u32 flags;
 	u32 ts;
-	u8 data[FIELD_SIZEOF(struct can_frame, data)];
+	u8 data[sizeof_field(struct can_frame, data)];
 };
 
 struct mcp25xxfd_hw_rx_obj_canfd {
 	u32 id;
 	u32 flags;
 	u32 ts;
-	u8 data[FIELD_SIZEOF(struct canfd_frame, data)];
+	u8 data[sizeof_field(struct canfd_frame, data)];
 };
 
 struct mcp25xxfd_tef_ring {

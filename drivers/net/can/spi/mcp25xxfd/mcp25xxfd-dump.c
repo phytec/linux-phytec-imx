@@ -439,7 +439,7 @@ static u16 mcp25xxfd_dump_get_tef_obj_addr(const struct mcp25xxfd_priv *priv, u8
 static u8 mcp25xxfd_dump_get_tx_obj_size(const struct mcp25xxfd_priv *priv, const struct mcp25xxfd_dump_regs *regs)
 {
 	return sizeof(struct mcp25xxfd_hw_tx_obj_can) -
-		FIELD_SIZEOF(struct mcp25xxfd_hw_tx_obj_can, data) +
+		sizeof_field(struct mcp25xxfd_hw_tx_obj_can, data) +
 		mcp25xxfd_dump_get_fifo_size(priv, regs, regs->tx_fifo.con);
 }
 
@@ -476,7 +476,7 @@ static u8 mcp25xxfd_dump_get_tx_tail(const struct mcp25xxfd_priv *priv, const st
 static u8 mcp25xxfd_dump_get_rx_obj_size(const struct mcp25xxfd_priv *priv, const struct mcp25xxfd_dump_regs *regs)
 {
 	return sizeof(struct mcp25xxfd_hw_rx_obj_can) -
-		FIELD_SIZEOF(struct mcp25xxfd_hw_rx_obj_can, data) +
+		sizeof_field(struct mcp25xxfd_hw_rx_obj_can, data) +
 		mcp25xxfd_dump_get_fifo_size(priv, regs, regs->rx_fifo.con);
 }
 

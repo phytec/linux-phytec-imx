@@ -382,8 +382,8 @@ static const struct regmap_bus mcp25xxfd_bus_nocrc = {
 	.read = mcp25xxfd_regmap_nocrc_read,
 	.reg_format_endian_default = REGMAP_ENDIAN_BIG,
 	.val_format_endian_default = REGMAP_ENDIAN_LITTLE,
-	.max_raw_read = FIELD_SIZEOF(struct mcp25xxfd_map_buf_nocrc, data),
-	.max_raw_write = FIELD_SIZEOF(struct mcp25xxfd_map_buf_nocrc, data),
+	.max_raw_read = sizeof_field(struct mcp25xxfd_map_buf_nocrc, data),
+	.max_raw_write = sizeof_field(struct mcp25xxfd_map_buf_nocrc, data),
 };
 
 static const struct regmap_config mcp25xxfd_regmap_crc = {
@@ -404,8 +404,8 @@ static const struct regmap_bus mcp25xxfd_bus_crc = {
 	.read = mcp25xxfd_regmap_crc_read,
 	.reg_format_endian_default = REGMAP_ENDIAN_NATIVE,
 	.val_format_endian_default = REGMAP_ENDIAN_LITTLE,
-	.max_raw_read = FIELD_SIZEOF(struct mcp25xxfd_map_buf_crc, data),
-	.max_raw_write = FIELD_SIZEOF(struct mcp25xxfd_map_buf_crc, data),
+	.max_raw_read = sizeof_field(struct mcp25xxfd_map_buf_crc, data),
+	.max_raw_write = sizeof_field(struct mcp25xxfd_map_buf_crc, data),
 };
 
 static inline bool
