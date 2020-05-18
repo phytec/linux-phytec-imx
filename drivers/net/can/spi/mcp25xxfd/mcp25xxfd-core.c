@@ -1115,7 +1115,7 @@ static int mcp25xxfd_get_berr_counter(const struct net_device *ndev,
 	u32 trec;
 	int err;
 
-	/* Avoid waking up the controller when the interface is down. */
+	/* Avoid waking up the controller if the interface is down. */
 	if (!(ndev->flags & IFF_UP))
 		return 0;
 
@@ -1775,7 +1775,7 @@ mcp25xxfd_handle_modif(const struct mcp25xxfd_priv *priv, bool *set_normal_mode)
 	 * MAB underflow, the controller will transition to Restricted
 	 * Operation Mode or Listen Only Mode (depending on SERR2LOM).
 	 *
-	 * However this is not always the case. When SERR2LOM is
+	 * However this is not always the case. If SERR2LOM is
 	 * configured for Restricted Operation Mode (SERR2LOM not set)
 	 * the MCP2517FD will sometimes transition to Listen Only Mode
 	 * first. When polling this bit we see that it will transition
