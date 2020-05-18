@@ -2602,6 +2602,8 @@ static int mcp25xxfd_register(struct mcp25xxfd_priv *priv)
 	mcp25xxfd_register_quirks(priv);
 
 	err = mcp25xxfd_chip_softreset(priv);
+	if (err == -ENODEV)
+		goto out_runtime_disable;
 	if (err)
 		goto out_chip_set_mode_sleep;
 
@@ -2637,6 +2639,7 @@ static int mcp25xxfd_register(struct mcp25xxfd_priv *priv)
 	unregister_candev(ndev);
  out_chip_set_mode_sleep:
 	mcp25xxfd_chip_set_mode(priv, MCP25XXFD_REG_CON_MODE_SLEEP);
+ out_runtime_disable:
 	pm_runtime_disable(ndev->dev.parent);
  out_runtime_put_noidle:
 	pm_runtime_put_noidle(ndev->dev.parent);
