@@ -1699,11 +1699,6 @@ static int mcp25xxfd_handle_cerrif(struct mcp25xxfd_priv *priv)
 	u32 trec, timestamp;
 	int err;
 
-	/* The skb allocation might fail, but can_change_state()
-	 * handles cf == NULL.
-	 */
-	skb = mcp25xxfd_alloc_can_err_skb(priv, &cf, &timestamp);
-
 	err = regmap_read(priv->map_reg, MCP25XXFD_REG_TREC, &trec);
 	if (err)
 		return err;
@@ -1728,6 +1723,10 @@ static int mcp25xxfd_handle_cerrif(struct mcp25xxfd_priv *priv)
 	if (new_state == priv->can.state)
 		return 0;
 
+	/* The skb allocation might fail, but can_change_state()
+	 * handles cf == NULL.
+	 */
+	skb = mcp25xxfd_alloc_can_err_skb(priv, &cf, &timestamp);
 	can_change_state(priv->ndev, cf, tx_state, rx_state);
 
 	if (new_state == CAN_STATE_BUS_OFF) {
