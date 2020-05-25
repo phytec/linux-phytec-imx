@@ -2271,20 +2271,16 @@ static int onsemi_get_selection(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static int onsemi_g_frame_interval(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_frame_interval *interval)
+static int _onsemi_g_frame_interval(struct onsemi_core *onsemi,
+				    struct v4l2_fract *res,
+				    struct onsemi_businfo const	*info)
 {
-	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
-	struct onsemi_businfo const	*info;
 	struct onsemi_pll_freq		freq;
-	int				rc;
 	unsigned long			tm;
+	int				rc;
 
-	info = onsemi_get_businfo(onsemi, interval->pad);
 	if (!info)
-		return -EINVAL;
-
-	mutex_lock(&onsemi->lock);
+		return -EPIPE;
 
 	rc = onsemi_calculate_pll(onsemi, info, onsemi->v4l_parm->bpp,
 				  NULL, &freq);
@@ -2295,7 +2291,7 @@ static int onsemi_g_frame_interval(struct v4l2_subdev *sd,
 
 	/* TODO: add extra exposure times */
 
-	interval->interval = (struct v4l2_fract) {
+	*res = (struct v4l2_fract) {
 		.numerator	= tm,
 		.denominator	= 1000000,
 	};
@@ -2303,6 +2299,22 @@ static int onsemi_g_frame_interval(struct v4l2_subdev *sd,
 	rc = 0;
 
 out:
+	return rc;
+}
+
+static int onsemi_g_frame_interval(struct v4l2_subdev *sd,
+				   struct v4l2_subdev_frame_interval *interval)
+{
+	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
+	struct onsemi_businfo const	*info;
+	int				rc;
+
+	info = onsemi_get_businfo(onsemi, interval->pad);
+	if (!info)
+		return -EINVAL;
+
+	mutex_lock(&onsemi->lock);
+	rc = _onsemi_g_frame_interval(onsemi, &interval->interval, info);
 	mutex_unlock(&onsemi->lock);
 
 	return rc;
@@ -2416,41 +2428,32 @@ static int _onsemi_interval_search(struct onsemi_interval_search_parm const *par
 	return -ERANGE;
 }
 
-static int onsemi_s_frame_interval(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_frame_interval *interval)
+static int _onsemi_s_frame_interval(struct onsemi_core *onsemi,
+				    struct v4l2_fract *ival,
+				    struct onsemi_businfo const	*info)
 {
-	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
-	struct onsemi_businfo const	*info;
-	struct v4l2_ctrl		*vblank_ctrl;
-	signed long			rc;
-
+	struct v4l2_ctrl			*vblank_ctrl;
 	struct onsemi_interval_search_parm	parm = {
 		.onsemi		= onsemi,
-		.interval	= &interval->interval,
+		.interval	= ival,
 	};
+	int					rc;
+
+	if (!info)
+		return -EPIPE;
+
+	/* TODO: although it would be possible to change frame interval while
+	 * streaming, it is not supported atm */
+	if (onsemi_is_streaming(onsemi))
+		return -EBUSY;
 
 	/* used to reflect changes in the v4l2 ctrl */
 	vblank_ctrl = v4l2_ctrl_find(&onsemi->ctrls, V4L2_CID_VBLANK);
 
-	mutex_lock(&onsemi->lock);
-
-	/* TODO: although it would be possible to change frame interval while
-	 * streaming, it is not supported atm */
-	if (onsemi_is_streaming(onsemi)) {
-		rc = -EBUSY;
-		goto out;
-	}
-
-	info = onsemi_get_businfo(onsemi, interval->pad);
-	if (!info) {
-		rc = -EINVAL;
-		goto out;
-	}
-
 	rc = onsemi_calculate_pll(onsemi, info, onsemi->v4l_parm->bpp,
 				  NULL, &parm.freq);
 	if (rc < 0)
-		goto out;
+		return rc;
 
 	parm.parm = *onsemi->v4l_parm;
 
@@ -2463,12 +2466,14 @@ static int onsemi_s_frame_interval(struct v4l2_subdev *sd,
 				     &parm.parm.vblank,
 				     0xffff);
 	if (rc < 0) {
-		v4l2_warn(sd, "failed to find matching parameters for given interval; assuming limits\n");
+		v4l2_warn(&onsemi->subdev,
+			  "failed to find matching parameters for given interval %u/%u; assuming limits\n",
+			  ival->numerator, ival->denominator);
 		rc = onsemi_frame_time_us(onsemi, &parm.parm, &parm.freq);
 	}
 
 	/* write back the calculated time */
-	interval->interval = (struct v4l2_fract) {
+	*ival = (struct v4l2_fract) {
 		.numerator	= rc,
 		.denominator	= 1000000,
 	};
@@ -2478,9 +2483,22 @@ static int onsemi_s_frame_interval(struct v4l2_subdev *sd,
 	if (vblank_ctrl)
 		vblank_ctrl->cur.val = onsemi->v4l_parm->vblank;
 
-	rc = 0;
+	return 0;
+}
 
-out:
+static int onsemi_s_frame_interval(struct v4l2_subdev *sd,
+				   struct v4l2_subdev_frame_interval *interval)
+{
+	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
+	struct onsemi_businfo const	*info;
+	signed long			rc;
+
+	info = onsemi_get_businfo(onsemi, interval->pad);
+	if (!info)
+		return -EINVAL;
+
+	mutex_lock(&onsemi->lock);
+	rc = _onsemi_s_frame_interval(onsemi, &interval->interval, info);
 	mutex_unlock(&onsemi->lock);
 
 	return rc;
