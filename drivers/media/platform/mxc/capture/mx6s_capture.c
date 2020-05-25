@@ -1366,7 +1366,6 @@ out:
 static int mx6s_csi_open(struct file *file)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
-	struct v4l2_fh *fh = NULL;
 	int ret = 0;
 
 	if (mutex_lock_interruptible(&csi_dev->lock))
@@ -1376,9 +1375,7 @@ static int mx6s_csi_open(struct file *file)
 	if (ret < 0)
 		goto out;
 
-	fh = file->private_data;
-
-	if (v4l2_fh_is_singular(fh)) {
+	if (v4l2_fh_is_singular_file(file)) {
 		ret = _mx6s_csi_open_init(csi_dev);
 		if (ret < 0) {
 			v4l2_fh_release(file);
@@ -1397,13 +1394,12 @@ out:
 static int mx6s_csi_close(struct file *file)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
-	struct v4l2_fh *fh = file->private_data;
 	struct v4l2_subdev *sd = csi_dev->sd;
 	bool do_release;
 
 	mutex_lock(&csi_dev->lock);
 
-	do_release = v4l2_fh_is_singular(fh);
+	do_release = v4l2_fh_is_singular_file(file);
 
 	if (do_release) {
 		v4l2_subdev_call(sd, video, s_stream, 0);
