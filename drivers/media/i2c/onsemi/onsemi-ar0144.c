@@ -191,12 +191,12 @@ static int ar0144_fill_limits(struct onsemi_core *onsemi,
 
 	limits->pre_pll_div = (struct onsemi_range) {
 		.min	= 1,
-		.max	= 64,
+		.max	= 63,
 	};
 
 	limits->pre_pll_mul = (struct onsemi_range) {
 		.min	= 32,
-		.max	= 384,
+		.max	= 255,
 	};
 
 	limits->ext_clk = (struct onsemi_range) {
