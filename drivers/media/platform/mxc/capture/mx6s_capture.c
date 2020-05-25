@@ -1395,20 +1395,20 @@ static int mx6s_csi_close(struct file *file)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
 	struct v4l2_subdev *sd = csi_dev->sd;
+	int rc;
 	bool do_release;
 
 	mutex_lock(&csi_dev->lock);
 
 	do_release = v4l2_fh_is_singular_file(file);
 
+	rc = _vb2_fop_release(file, NULL);
+
 	if (do_release) {
 		v4l2_subdev_call(sd, video, s_stream, 0);
 		vb2_queue_release(&csi_dev->vb2_vidq);
 		mx6s_csi_deinit(csi_dev);
 		v4l2_subdev_call(sd, core, s_power, 0);
-
-		v4l2_fh_release(file);
-
 		release_bus_freq(BUS_FREQ_HIGH);
 	}
 
@@ -1417,7 +1417,7 @@ static int mx6s_csi_close(struct file *file)
 	if (do_release)
 		pm_runtime_put_sync_suspend(csi_dev->dev);
 
-	return 0;
+	return rc;
 }
 
 static ssize_t mx6s_csi_read(struct file *file, char __user *buf,
