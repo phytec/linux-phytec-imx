@@ -2641,6 +2641,38 @@ static int onsemi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *p)
 	return rc;
 }
 
+static int onsemi_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *p)
+{
+	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
+	int				rc;
+
+	mutex_lock(&onsemi->lock);
+
+	switch (p->type) {
+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+		if (p->parm.capture.capability & V4L2_CAP_TIMEPERFRAME) {
+			rc = _onsemi_s_frame_interval(
+				onsemi, &p->parm.capture.timeperframe,
+				onsemi->active_bus);
+
+			if (rc < 0)
+				break;
+		}
+
+		rc = 0;
+
+		break;
+
+	default:
+		rc = -EINVAL;
+		break;
+	};
+
+	mutex_unlock(&onsemi->lock);
+
+	return rc;
+}
+
 struct v4l2_ctrl_ops const		onsemi_core_ctrl_ops = {
 	.s_ctrl			= onsemi_s_ctrl,
 	.g_volatile_ctrl	= onsemi_g_ctrl,
@@ -2754,6 +2786,7 @@ static struct v4l2_subdev_core_ops const	onsemi_subdev_core_ops = {
 
 static struct v4l2_subdev_video_ops const	onsemi_subdev_video_ops = {
 	.g_parm			= onsemi_g_parm,
+	.s_parm			= onsemi_s_parm,
 	.g_mbus_config		= onsemi_g_mbus_config,
 	.s_stream		= onsemi_s_stream,
 	.g_frame_interval	= onsemi_g_frame_interval,
