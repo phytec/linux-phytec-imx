@@ -1477,10 +1477,65 @@ static void onsemi_params_write_frame(struct onsemi_core *onsemi, int *err)
 	}
 }
 
+static void onsemi_fix_sel_bayer(struct onsemi_core const *onsemi,
+				 struct v4l2_rect *new,
+				 struct v4l2_rect const *orig)
+{
+	struct onsemi_v4l_parm const	*parm = onsemi->v4l_parm;
+	unsigned int			idx;
+	unsigned int			x_mod;
+	unsigned int			y_mod;
+
+	/* TODO: allow to define the offset in the camera */
+	switch (parm->code) {
+	case MEDIA_BUS_FMT_SBGGR8_1X8:
+	case MEDIA_BUS_FMT_SBGGR10_1X10:
+	case MEDIA_BUS_FMT_SBGGR12_1X12:
+		idx = 0x10;		/* y+1, x+0 */
+		break;
+	case MEDIA_BUS_FMT_SGBRG8_1X8:
+	case MEDIA_BUS_FMT_SGBRG10_1X10:
+	case MEDIA_BUS_FMT_SGBRG12_1X12:
+		idx = 0x11;		/* y+1, x+1 */
+		break;
+	case MEDIA_BUS_FMT_SGRBG8_1X8:
+	case MEDIA_BUS_FMT_SGRBG10_1X10:
+	case MEDIA_BUS_FMT_SGRBG12_1X12:
+		idx = 0x00;		/* y+0, x+0 */
+		break;
+	case MEDIA_BUS_FMT_SRGGB8_1X8:
+	case MEDIA_BUS_FMT_SRGGB10_1X10:
+	case MEDIA_BUS_FMT_SRGGB12_1X12:
+		idx = 0x01;		/* y+0, x+1 */
+		break;
+	default:
+		WARN_ON(1);
+		*new = *orig;
+		return;
+	}
+
+	x_mod = parm->x_skip;
+	y_mod = parm->y_skip;
+
+	if (WARN_ON(x_mod == 0) || WARN_ON(y_mod == 0)) {
+		*new = *orig;
+		return;
+	}
+
+	*new = (struct v4l2_rect) {
+		.left	= orig->left - (orig->left % x_mod) + ((idx >> 0) & 0xf),
+		.top	= orig->top  - (orig->top  % y_mod) + ((idx >> 4) & 0xf),
+		.width	= orig->width,
+		.height = orig->height,
+	};
+}
+
 static void onsemi_params_write_crop(struct onsemi_core *onsemi,
 				     struct onsemi_v4l_parm const *parm,
 				     bool write_back, int *err)
 {
+	struct v4l2_rect	crop;
+
 	if (WARN_ON(!parm && write_back))
 		return;
 
@@ -1490,10 +1545,22 @@ static void onsemi_params_write_crop(struct onsemi_core *onsemi,
 	if (!parm)
 		parm = onsemi->v4l_parm;
 
-	onsemi_write(err, onsemi, 0x3002, parm->crop.top);
-	onsemi_write(err, onsemi, 0x3004, parm->crop.left);
-	onsemi_write(err, onsemi, 0x3006, parm->crop.top + parm->crop.height - 1);
-	onsemi_write(err, onsemi, 0x3008, parm->crop.left + parm->crop.width - 1);
+	switch (onsemi->color_mode) {
+	case ONSEMI_COLOR_MONOCHROME:
+		crop = parm->crop;
+		break;
+	case ONSEMI_COLOR_BAYER:
+		onsemi_fix_sel_bayer(onsemi, &crop, &parm->crop);
+		break;
+	default:
+		WARN_ON(1);
+		return;
+	}
+
+	onsemi_write(err, onsemi, 0x3002, crop.top);
+	onsemi_write(err, onsemi, 0x3004, crop.left);
+	onsemi_write(err, onsemi, 0x3006, crop.top  + crop.height - 1);
+	onsemi_write(err, onsemi, 0x3008, crop.left + crop.width - 1);
 
 	if (*err < 0)
 		return;
@@ -2104,57 +2171,6 @@ static int onsemi_get_fmt(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static int onsemi_check_sel_bayer(struct onsemi_core const *onsemi,
-				  struct v4l2_subdev_selection const *s)
-{
-	struct onsemi_v4l_parm const	*parm = onsemi->v4l_parm;
-	unsigned int			idx;
-	unsigned int			x_mod;
-	unsigned int			y_mod;
-
-	switch (parm->code) {
-	case MEDIA_BUS_FMT_SBGGR8_1X8:
-	case MEDIA_BUS_FMT_SBGGR10_1X10:
-	case MEDIA_BUS_FMT_SBGGR12_1X12:
-		idx = 0x10;		/* y+1, x+0 */
-		break;
-	case MEDIA_BUS_FMT_SGBRG8_1X8:
-	case MEDIA_BUS_FMT_SGBRG10_1X10:
-	case MEDIA_BUS_FMT_SGBRG12_1X12:
-		idx = 0x11;		/* y+1, x+1 */
-		break;
-	case MEDIA_BUS_FMT_SGRBG8_1X8:
-	case MEDIA_BUS_FMT_SGRBG10_1X10:
-	case MEDIA_BUS_FMT_SGRBG12_1X12:
-		idx = 0x00;		/* y+0, x+0 */
-		break;
-	case MEDIA_BUS_FMT_SRGGB8_1X8:
-	case MEDIA_BUS_FMT_SRGGB10_1X10:
-	case MEDIA_BUS_FMT_SRGGB12_1X12:
-		idx = 0x01;		/* y+0, x+1 */
-		break;
-	default:
-		WARN_ON(1);
-		return -EINVAL;
-	}
-
-	x_mod = parm->x_skip;
-	y_mod = parm->y_skip;
-
-	if (WARN_ON(x_mod == 0) || WARN_ON(y_mod == 0))
-		return -EINVAL;
-
-	if ((s->r.left + x_mod - ((idx >> 0) & 0xf)) % x_mod != 0 ||
-	    (s->r.top  + y_mod - ((idx >> 4) & 0xf)) % y_mod != 0) {
-		v4l2_info(&onsemi->subdev,
-			  "oddly aligned crop area (%dx%d %% %dx%d)\n",
-			  s->r.left, s->r.top, x_mod, y_mod);
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
 static int onsemi_set_selection(struct v4l2_subdev *sd,
 				struct v4l2_subdev_pad_config *cfg,
 				struct v4l2_subdev_selection *s)
@@ -2184,19 +2200,6 @@ static int onsemi_set_selection(struct v4l2_subdev *sd,
 		return 0;
 
 	mutex_lock(&onsemi->lock);
-
-	switch (onsemi->color_mode) {
-	case ONSEMI_COLOR_MONOCHROME:
-		/* no extra checks */
-		break;
-	case ONSEMI_COLOR_BAYER:
-		rc = onsemi_check_sel_bayer(onsemi, s);
-		break;
-	default:
-		WARN_ON(1);
-		rc = -EINVAL;
-		break;
-	}
 
 	is_streaming = test_bit(ONSEMI_FLAG_V4L_STREAMING, &onsemi->flags);
 
