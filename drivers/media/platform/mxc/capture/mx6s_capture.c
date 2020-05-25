@@ -1410,12 +1410,10 @@ static int mx6s_csi_close(struct file *file)
 		mx6s_csi_deinit(csi_dev);
 		v4l2_subdev_call(sd, core, s_power, 0);
 		release_bus_freq(BUS_FREQ_HIGH);
+		pm_runtime_put(csi_dev->dev);
 	}
 
 	mutex_unlock(&csi_dev->lock);
-
-	if (do_release)
-		pm_runtime_put_sync_suspend(csi_dev->dev);
 
 	return rc;
 }
