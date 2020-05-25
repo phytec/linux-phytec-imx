@@ -92,6 +92,8 @@ struct onsemi_limits {
 	struct onsemi_range		pix_clk;
 	struct onsemi_range		op_clk;
 
+	struct v4l2_rect		default_crop;
+
 	struct onsemi_range		f_serial;
 };
 

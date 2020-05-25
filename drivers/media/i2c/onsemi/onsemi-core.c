@@ -2271,6 +2271,9 @@ static int onsemi_get_selection(struct v4l2_subdev *sd,
 		break;
 
 	case V4L2_SEL_TGT_CROP_DEFAULT:
+		s->r = limits->default_crop;
+		break;
+
 	case V4L2_SEL_TGT_CROP_BOUNDS:
 		s->r = (struct v4l2_rect) {
 			.left	= limits->x.min,
