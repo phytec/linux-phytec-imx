@@ -224,6 +224,13 @@ static int ar0144_fill_limits(struct onsemi_core *onsemi,
 		.max	= 768000000,
 	};
 
+	limits->default_crop = (struct v4l2_rect) {
+		.left	= 4,
+		.top	= 4,
+		.width	= 1280,
+		.height	= 800,
+	};
+
 	rc = 0;
 
 out:
