@@ -1763,36 +1763,87 @@ static int mx6s_vidioc_cropcap(struct file *file, void *fh,
 			      struct v4l2_cropcap *a)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	struct v4l2_subdev_selection	sel = {
+		.which	= V4L2_SUBDEV_FORMAT_ACTIVE,
+		.pad	= 0,
+		.target	= V4L2_SEL_TGT_CROP_BOUNDS,
+		.flags	= 0,
+	};
+	int rc;
 
 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -EINVAL;
-	dev_dbg(csi_dev->dev, "VIDIOC_CROPCAP not implemented\n");
 
-	return 0;
+	rc = v4l2_subdev_call(sd, pad, get_selection, NULL, &sel);
+	if (rc < 0)
+		goto out;
+
+	a->bounds = sel.r;
+	a->defrect = sel.r;
+	a->pixelaspect = (struct v4l2_fract) {
+		.numerator = 1,
+		.denominator = 1,
+	};
+
+	rc = 0;
+
+out:
+	return rc;
 }
 
 static int mx6s_vidioc_g_crop(struct file *file, void *priv,
 			     struct v4l2_crop *a)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	struct v4l2_subdev_selection	sel = {
+		.which	= V4L2_SUBDEV_FORMAT_ACTIVE,
+		.pad	= 0,
+		.target	= V4L2_SEL_TGT_CROP,
+		.flags	= 0,
+	};
+	int rc;
 
 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -EINVAL;
-	dev_dbg(csi_dev->dev, "VIDIOC_G_CROP not implemented\n");
 
-	return 0;
+	rc = v4l2_subdev_call(sd, pad, get_selection, NULL, &sel);
+	if (rc < 0)
+		goto out;
+
+	a->c = sel.r;
+
+	rc = 0;
+
+out:
+	return rc;
 }
 
 static int mx6s_vidioc_s_crop(struct file *file, void *priv,
 			     const struct v4l2_crop *a)
 {
 	struct mx6s_csi_dev *csi_dev = video_drvdata(file);
+	struct v4l2_subdev *sd = csi_dev->sd;
+	struct v4l2_subdev_selection	sel = {
+		.which	= V4L2_SUBDEV_FORMAT_ACTIVE,
+		.pad	= 0,
+		.target	= V4L2_SEL_TGT_CROP,
+		.flags	= 0,
+		.r	= a->c,
+	};
+	int rc;
 
 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -EINVAL;
 
-	dev_dbg(csi_dev->dev, "VIDIOC_S_CROP not implemented\n");
+	rc = v4l2_subdev_call(sd, pad, set_selection, NULL, &sel);
+	if (rc < 0)
+		goto out;
 
+	rc = 0;
+
+out:
 	return 0;
 }
 
