@@ -1927,6 +1927,37 @@ static int onsemi_enum_mbus_code(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static int onsemi_enum_frame_size(struct v4l2_subdev *sd,
+				  struct v4l2_subdev_pad_config *cfg,
+				  struct v4l2_subdev_frame_size_enum *fse)
+{
+	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
+	struct onsemi_v4l_parm		*parm = onsemi->v4l_parm;
+	struct onsemi_businfo const	*info;
+	unsigned int			w;
+	unsigned int			h;
+
+	if (fse->index > 0)
+		return -EINVAL;
+
+	info = onsemi_get_businfo(onsemi, fse->pad);
+	if (!info)
+		return -EINVAL;
+
+	w  = parm->crop.width;
+	w /= parm->x_scale;
+
+	h  = parm->crop.height;
+	h /= parm->y_scale;
+
+	fse->min_width  = w;
+	fse->max_width  = w;
+	fse->min_height = h;
+	fse->max_height = h;
+
+	return 0;
+}
+
 static int onsemi_mbus_to_bpp(struct onsemi_core const *onsemi,
 			      struct onsemi_businfo const *info,
 			      unsigned int code, unsigned int *bpp)
@@ -2795,6 +2826,7 @@ static struct v4l2_subdev_video_ops const	onsemi_subdev_video_ops = {
 };
 
 static struct v4l2_subdev_pad_ops const		onsemi_subdev_pad_ops = {
+	.enum_frame_size	= onsemi_enum_frame_size,
 	.enum_mbus_code		= onsemi_enum_mbus_code,
 	.set_fmt		= onsemi_set_fmt,
 	.get_fmt		= onsemi_get_fmt,
