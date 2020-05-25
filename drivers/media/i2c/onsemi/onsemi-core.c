@@ -1298,22 +1298,6 @@ out:
 	return rc;
 }
 
-static int onsemi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *p)
-{
-	switch (p->type) {
-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-		p->parm.capture = (struct v4l2_captureparm) {
-			.capability	= 0,
-			.capturemode	= 0,
-		};
-
-		return 0;
-
-	default:
-		return -EINVAL;
-	};
-}
-
 static int onsemi_g_mbus_config(struct v4l2_subdev *sd,
 				struct v4l2_mbus_config *cfg)
 {
@@ -2618,6 +2602,40 @@ static int onsemi_g_ctrl(struct v4l2_ctrl *ctrl)
 	}
 
 out:
+	mutex_unlock(&onsemi->lock);
+
+	return rc;
+}
+
+static int onsemi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *p)
+{
+	struct onsemi_core		*onsemi = sd_to_onsemi(sd);
+	int				rc;
+
+	mutex_lock(&onsemi->lock);
+
+	switch (p->type) {
+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+		p->parm.capture = (struct v4l2_captureparm) {
+			.capability	= 0,
+			.capturemode	= 0,
+		};
+
+		rc = _onsemi_g_frame_interval(onsemi,
+					      &p->parm.capture.timeperframe,
+					      onsemi->active_bus);
+
+		if (rc >= 0)
+			p->parm.capture.capability |= V4L2_CAP_TIMEPERFRAME;
+
+		rc = 0;
+		break;
+
+	default:
+		rc = -EINVAL;
+		break;
+	};
+
 	mutex_unlock(&onsemi->lock);
 
 	return rc;
