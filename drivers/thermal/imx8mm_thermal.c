@@ -149,6 +149,8 @@ static int imx_init_temp_grade(struct platform_device *pdev)
 	case 2: /* Industrial (-40 °C to 105 °C) */
 		temp_max = 105000;
 		break;
+	default:
+		return -EINVAL;
 	}
 
 	/*
