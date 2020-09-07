@@ -200,6 +200,9 @@
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
+	pinctrl-1 = <&pinctrl_i2c2_gpio>;
+	sda-gpios = <&gpio5 17 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	scl-gpios = <&gpio5 16 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	status = "okay";
 
 	tlv320aic3007: tlv320aic3007@18 {
@@ -314,6 +317,12 @@
 		>;
 	};
 
+	pinctrl_i2c2_gpio: i2c2grp_gpio {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C2_SCL_GPIO5_IO16	0x1e3
+			MX8MQ_IOMUXC_I2C2_SDA_GPIO5_IO17	0x1e3
+		>;
+	};
 
 	pinctrl_leds: leds1grp {
 		fsl,pins = <
