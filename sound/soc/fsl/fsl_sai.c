@@ -517,6 +517,9 @@ static int fsl_sai_check_ver(struct device *dev)
 static int fsl_sai_set_bclk(struct snd_soc_dai *dai, bool tx, u32 freq)
 {
 	struct fsl_sai *sai = snd_soc_dai_get_drvdata(dai);
+	struct clk *p;
+	struct clk *parent_pll =
+		(freq % 11025 == 0) ? sai->pll11k_clk : sai->pll8k_clk;
 	unsigned char offset = sai->soc->reg_offset;
 	unsigned long clk_rate;
 	unsigned int reg = 0;
@@ -532,6 +535,39 @@ static int fsl_sai_set_bclk(struct snd_soc_dai *dai, bool tx, u32 freq)
 		clk_rate = clk_get_rate(sai->mclk_clk[id]);
 		if (!clk_rate)
 			continue;
+
+		/* Find parent pll */
+		p = sai->mclk_clk[id];
+		while (p && sai->pll8k_clk && sai->pll11k_clk) {
+			struct clk *pp = clk_get_parent(p);
+
+			if (clk_is_match(pp, sai->pll8k_clk) ||
+				clk_is_match(pp, sai->pll11k_clk)) {
+				break;
+			}
+			p = pp;
+		}
+
+		/* set fitting parent pll */
+		ret = clk_set_parent(p, parent_pll);
+		if (ret != 0) {
+			dev_err(dai->dev,
+				"could not set parent of clock %s to %s\n",
+				__clk_get_name(p), __clk_get_name(parent_pll));
+			continue;
+		}
+
+		/*
+		 * clk_rate/freq needs to be between 2 and 512 and
+		 * has to be an even number (see below)
+		 * so we set it to maximum ratio, then scale the frequency
+		 * below 300Mhz, but above stay above lowest rati
+		 */
+		clk_rate = freq * 512;
+		while (clk_rate >= 300*1000*1000 && clk_rate >= freq*2)
+			clk_rate /= 2;
+
+		ret = clk_set_rate(sai->mclk_clk[id], clk_rate);
 
 		ratio = clk_rate / freq;
 
