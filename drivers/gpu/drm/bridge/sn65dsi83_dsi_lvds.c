@@ -428,7 +428,7 @@ int sn65dsi83_parse_dt(struct sn65dsi83 *sn_bridge)
 		return -ENODEV;
 	}
 
-	sn_bridge->gpio_enable = devm_gpiod_get(dev, "enable", GPIOD_OUT_LOW);
+	sn_bridge->gpio_enable = devm_gpiod_get(dev, "enable", GPIOD_OUT_HIGH);
 	if (IS_ERR(sn_bridge->gpio_enable)) {
 		DRM_ERROR("failed to parse enable gpio");
 		return PTR_ERR(sn_bridge->gpio_enable);
