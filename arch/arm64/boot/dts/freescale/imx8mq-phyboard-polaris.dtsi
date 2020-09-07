@@ -72,6 +72,16 @@
 		regulator-name = "vcc3v3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
+	};
+
+	reg_wselect: w_select {
+		compatible = "regulator-fixed";
+		regulator-name = "w_select";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		pinctrl-names = "default";
+		pinctrl-0  = <&pinctrl_regwselect>;
+		gpio = <&gpio1 3 GPIO_ACTIVE_LOW>;
 		regulator-always-on;
 	};
 
@@ -282,17 +292,6 @@
 	dr_mode = "host";
 };
 
-&usdhc2 {
-	pinctrl-names = "default", "state_100mhz", "state_200mhz";
-	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
-	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
-	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
-	bus-width = <4>;
-	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
-	vmmc-supply = <&reg_vcc3v3>;
-	status = "okay";
-};
-
 &iomuxc {
 	pinctrl-names = "default";
 
@@ -359,45 +358,9 @@
 		>;
 	};
 
-	pinctrl_usdhc2_gpio: usdhc2grpgpio {
+	pinctrl_regwselect: regwselectgrp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_SD2_CD_B_GPIO2_IO12	0x41
-		>;
-	};
-
-	pinctrl_usdhc2: usdhc2grp {
-		fsl,pins = <
-			MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK		0x83
-			MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD		0xc3
-			MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0	0xc3
-			MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1	0xc3
-			MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2	0xc3
-			MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3	0xc3
-			MX8MQ_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0xc1
-		>;
-	};
-
-	pinctrl_usdhc2_100mhz: usdhc2grp100mhz {
-		fsl,pins = <
-			MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK		0x8d
-			MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD		0xcf
-			MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0	0xcf
-			MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1	0xcf
-			MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2	0xcf
-			MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3	0xcf
-			MX8MQ_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0xc1
-		>;
-	};
-
-	pinctrl_usdhc2_200mhz: usdhc2grp200mhz {
-		fsl,pins = <
-			MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK		0x9f
-			MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD		0xdf
-			MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0	0xdf
-			MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1	0xdf
-			MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2	0xdf
-			MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3	0xdf
-			MX8MQ_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0xc1
+			MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3       0x41
 		>;
 	};
 };

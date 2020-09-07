@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2018 PHYTEC Messtechnik GmbH
- * Author: Christian Hemp <c.hemp@phytec.de>
+ * Copyright (C) 2019 PHYTEC Messtechnik GmbH
+ * Author: Janine Hagemann <j.hagemann@phytec.de>
  */
 
 /dts-v1/;
 
 #include "imx8mq-phycore-som.dtsi"
 #include "imx8mq-phyboard-polaris.dtsi"
-#include "imx8mq-phyboard-polaris-sdcard.dtsi"
 #include "imx8mq-phyboard-polaris-peb-av-009.dtsi"
+#include "imx8mq-phyboard-polaris-sterling.dtsi"
 
 / {
 	model = "PHYTEC phyBOARD-Polaris Carrier-Board with eMMC";
@@ -27,5 +27,9 @@
 };
 
 &usdhc2 {
+	status = "okay";
+};
+
+&uart2 {
 	status = "okay";
 };
