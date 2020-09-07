@@ -10,6 +10,7 @@
 #include "imx8mq-phyboard-polaris.dtsi"
 #include "imx8mq-phyboard-polaris-sdcard.dtsi"
 #include "imx8mq-phyboard-polaris-peb-av-009.dtsi"
+#include "imx8mq-phyboard-polaris-peb-eval-01.dtsi"
 
 / {
 	model = "PHYTEC phyBOARD-Polaris Carrier-Board with eMMC";
