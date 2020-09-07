@@ -1068,11 +1068,16 @@
 				power-domains = <&dispmix_pd>;
 				status = "disabled";
 
-				lcdif_disp0: port@0 {
-					reg = <0>;
+				 lcdif_disp0_ports: ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
 
-					lcdif_to_dsim: endpoint {
-						remote-endpoint = <&dsim_from_lcdif>;
+					lcdif_disp0: port@0 {
+						reg = <0>;
+
+						lcdif_to_dsim: endpoint {
+							remote-endpoint = <&dsim_from_lcdif>;
+						};
 					};
 				};
 			};
@@ -1096,9 +1101,17 @@
 				power-domains = <&mipi_pd>;
 				status = "disabled";
 
-				port@0 {
-					dsim_from_lcdif: endpoint {
-						remote-endpoint = <&lcdif_to_dsim>;
+				mipi_dsi_ports: ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+
+						dsim_from_lcdif: endpoint {
+							remote-endpoint = <&lcdif_to_dsim>;
+						};
+
 					};
 				};
 			};
