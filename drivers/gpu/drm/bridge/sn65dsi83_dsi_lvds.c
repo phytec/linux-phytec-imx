@@ -478,7 +478,7 @@ static int sn65dsi83_probe(struct i2c_client *client,
 
 	ret = sn65dsi83_parse_dt(sn_bridge);
 	if (ret)
-		return -EINVAL;
+		return ret;
 
 	ret = regmap_raw_read(sn_bridge->regmap, ID0_REGISTER, &id_reg,
 			NUM_ID_REGS);
