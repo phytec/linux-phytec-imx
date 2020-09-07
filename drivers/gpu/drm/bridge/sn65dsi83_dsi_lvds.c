@@ -319,7 +319,7 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 						   .type = "sn65dsi83",
 						   .node = NULL,
 						 };
-	int ret = 0;
+	int ret;
 
 	if (!bridge->encoder) {
 		DRM_ERROR("Parent encoder object not found\n");
@@ -343,14 +343,15 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 	host = of_find_mipi_dsi_host_by_node(sn_bridge->host_node);
 	if (!host) {
 		DRM_ERROR("failed to find dsi host\n");
-		return ret;
+		ret = -ENODEV;
+		goto err_dsi_host;
 	}
 
 	dsi = mipi_dsi_device_register_full(host, &info);
 	if (IS_ERR(dsi)) {
 		DRM_ERROR("failed to create dsi device\n");
 		ret = PTR_ERR(dsi);
-		return ret;
+		goto err_dsi_host;
 	}
 
 	dsi->lanes = sn_bridge->num_dsi_lanes;
@@ -360,7 +361,7 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 	ret = mipi_dsi_attach(dsi);
 	if (ret < 0) {
 		DRM_ERROR("failed to attach dsi to host\n");
-		mipi_dsi_device_unregister(dsi);
+		goto err_dsi_attach;
 	}
 
 	sn_bridge->dsi = dsi;
@@ -368,11 +369,16 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 	ret = drm_panel_attach(sn_bridge->panel, &sn_bridge->connector);
 	if (ret) {
 		DRM_ERROR("failed to attach panel\n");
-		drm_connector_cleanup(&sn_bridge->connector);
-		return ret;
+		goto err_dsi_attach;
 	}
 
 	return 0;
+
+err_dsi_attach:
+	mipi_dsi_device_unregister(dsi);
+err_dsi_host:
+	drm_connector_cleanup(&sn_bridge->connector);
+	return ret;
 }
 
 static const struct drm_bridge_funcs sn65dsi83_bridge_funcs = {
