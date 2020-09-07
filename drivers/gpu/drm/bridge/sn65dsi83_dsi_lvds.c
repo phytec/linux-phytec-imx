@@ -343,7 +343,7 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 	host = of_find_mipi_dsi_host_by_node(sn_bridge->host_node);
 	if (!host) {
 		DRM_ERROR("failed to find dsi host\n");
-		return -EPROBE_DEFER;
+		return ret;
 	}
 
 	dsi = mipi_dsi_device_register_full(host, &info);
@@ -411,23 +411,14 @@ void sn65dsi83_detach_dsi(struct sn65dsi83 *sn_bridge)
 	mipi_dsi_device_unregister(sn_bridge->dsi);
 }
 
-int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
+int sn65dsi83_parse_dt(struct sn65dsi83 *sn_bridge)
 {
-	struct device_node *endpoint0, *endpoint1;
 	struct device *dev = sn_bridge->dev;
+	struct device_node *np = dev->of_node;
 	int ret;
 
-	endpoint0 = of_graph_get_next_endpoint(np, NULL);
-	if (!endpoint0)
-		return -ENODEV;
-
-	endpoint1 = of_graph_get_next_endpoint(np, endpoint0);
-	if (!endpoint1)
-		return -ENODEV;
-
-	sn_bridge->host_node = of_graph_get_remote_port_parent(endpoint1);
+	sn_bridge->host_node = of_graph_get_remote_node(np, 1, 0);
 	if (!sn_bridge->host_node) {
-		of_node_put(endpoint1);
 		return -ENODEV;
 	}
 
@@ -437,14 +428,16 @@ int sn65dsi83_parse_dt(struct device_node *np, struct sn65dsi83 *sn_bridge)
 		return PTR_ERR(sn_bridge->gpio_enable);
 	}
 
-	ret = of_property_read_u32(dev->of_node, "lvds_vod_swing",
+	ret = of_property_read_u32(np, "lanes_in",
+				&sn_bridge->num_dsi_lanes);
+	if (ret)
+		return -EINVAL;
+
+	ret = of_property_read_u32(np, "lvds_vod_swing",
 				&sn_bridge->lvds_vod_swing);
 	/* If not set, use default */
 	if (ret)
 		sn_bridge->lvds_vod_swing = 0x01;
-
-	of_node_put(endpoint1);
-	of_node_put(sn_bridge->host_node);
 
 	return 0;
 }
@@ -454,35 +447,32 @@ static int sn65dsi83_probe(struct i2c_client *client,
 {
 	struct device *dev = &client->dev;
 	struct sn65dsi83 *sn_bridge;
-	struct device_node *endpoint, *panel_node;
 	u8 id_reg[NUM_ID_REGS];
-	int ret = 0, i;
+	int ret, i;
 
 	sn_bridge = devm_kzalloc(dev, sizeof(*sn_bridge), GFP_KERNEL);
 	if (!sn_bridge)
 		return -ENOMEM;
 
-	sn_bridge->dev = &client->dev;
 	sn_bridge->regmap = devm_regmap_init_i2c(client,
 					&sn65dsi83_lvds_regmap_config);
-	if (IS_ERR(sn_bridge->regmap)) {
-		ret = PTR_ERR(sn_bridge->regmap);
-		return ret;
+	if (IS_ERR(sn_bridge->regmap))
+		return  PTR_ERR(sn_bridge->regmap);
+
+	ret = drm_of_find_panel_or_bridge(dev->of_node, 0, 0,
+					  &sn_bridge->panel, NULL);
+	if (ret) {
+		DRM_ERROR("could not find any panel node\n");
+		return -EPROBE_DEFER;
 	}
 
-	of_property_read_u32(dev->of_node, "lanes_in",
-				&sn_bridge->num_dsi_lanes);
+	sn_bridge->dev = &client->dev;
 
-	endpoint = of_graph_get_next_endpoint(dev->of_node, NULL);
-	if (endpoint) {
-		panel_node = of_graph_get_remote_port_parent(endpoint);
-		if (panel_node) {
-			sn_bridge->panel = of_drm_find_panel(panel_node);
-			of_node_put(panel_node);
-			if (!sn_bridge->panel)
-				return -EPROBE_DEFER;
-		}
-	}
+	dev_set_drvdata(&client->dev, sn_bridge);
+
+	ret = sn65dsi83_parse_dt(sn_bridge);
+	if (ret)
+		return -EINVAL;
 
 	ret = regmap_raw_read(sn_bridge->regmap, ID0_REGISTER, &id_reg,
 			NUM_ID_REGS);
@@ -497,10 +487,6 @@ static int sn65dsi83_probe(struct i2c_client *client,
 			return -ENODEV;
 		}
 	}
-
-	ret = sn65dsi83_parse_dt(dev->of_node, sn_bridge);
-	if (ret)
-		return -EINVAL;
 
 	i2c_set_clientdata(client, sn_bridge);
 	sn_bridge->bridge.funcs = &sn65dsi83_bridge_funcs;
@@ -535,10 +521,6 @@ static const struct i2c_device_id sn65dsi83_i2c_ids[] = {
 };
 MODULE_DEVICE_TABLE(i2c, sn65dsi83_i2c_ids);
 
-static struct mipi_dsi_driver sn65dsi83_dsi_driver = {
-	.driver.name = "sn65dsi83_dsi",
-};
-
 static struct i2c_driver sn65dsi83_driver = {
 	.driver = {
 		.name = "sn65dsi83",
@@ -548,24 +530,7 @@ static struct i2c_driver sn65dsi83_driver = {
 	.probe = sn65dsi83_probe,
 	.remove = sn65dsi83_remove,
 };
-
-static int __init sn65dsi83_init(void)
-{
-	if (IS_ENABLED(CONFIG_DRM_MIPI_DSI))
-		mipi_dsi_driver_register(&sn65dsi83_dsi_driver);
-
-	return i2c_add_driver(&sn65dsi83_driver);
-}
-module_init(sn65dsi83_init);
-
-static void __exit sn65dsi83_exit(void)
-{
-	i2c_del_driver(&sn65dsi83_driver);
-
-	if (IS_ENABLED(CONFIG_DRM_MIPI_DSI))
-		mipi_dsi_driver_unregister(&sn65dsi83_dsi_driver);
-}
-module_exit(sn65dsi83_exit);
+module_i2c_driver(sn65dsi83_driver);
 
 MODULE_AUTHOR("Janine Hagemann <j.hagemann@phytec.de>");
 MODULE_DESCRIPTION("SN65DSI83 MIPI/LVDS transmitter driver");
