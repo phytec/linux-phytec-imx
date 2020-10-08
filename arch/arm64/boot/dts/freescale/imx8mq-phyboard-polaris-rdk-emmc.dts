@@ -13,7 +13,7 @@
 #include "imx8mq-phyboard-polaris-peb-eval-01.dtsi"
 
 / {
-	model = "PHYTEC phyBOARD-Polaris Carrier-Board with eMMC";
+	model = "PHYTEC phyBOARD-Polaris carrier board";
 	compatible = "phytec,imx8mq-pbacd12-emmc", "phytec,imx8mq-pbacd12",
 		     "phytec,imx8mq-pcl066", "fsl,imx8mq";
 
