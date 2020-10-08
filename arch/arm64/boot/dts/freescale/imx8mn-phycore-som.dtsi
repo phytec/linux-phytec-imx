@@ -10,7 +10,7 @@
 
 / {
 	model = "PHYTEC phyCORE-i.MX8MN";
-	compatible = "phytec,i.mx8mn-phycore-som", "fsl,imx8mn";
+	compatible = "phytec,imx8mn-phycore-som", "fsl,imx8mn";
 
 	aliases {
 		rtc0 = &rv3028;
