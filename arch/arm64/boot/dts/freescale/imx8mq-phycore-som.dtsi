@@ -20,6 +20,7 @@
 
 	aliases {
 		rtc0 = &i2c_rtc;
+		rtc1 = &snvs_rtc;
 	};
 
 	reg_gpio_dvfs: regulator-gpio {
