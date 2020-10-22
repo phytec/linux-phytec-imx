@@ -114,7 +114,6 @@
 
 	pf8100@8 {
 		compatible = "nxp,pf8x00";
-		pinctrl-names = "default";
 		reg = <0x08>;
 
 		regulators {
