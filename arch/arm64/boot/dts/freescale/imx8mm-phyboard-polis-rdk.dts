@@ -20,3 +20,7 @@
 &i2c1_sn65dsi83 {
 	status = "okay";
 };
+
+&flash0 {
+	status = "okay";
+};
