@@ -125,6 +125,10 @@
 	status = "okay";
 };
 
+&snvs_pwrkey {
+	status = "okay";
+};
+
 /* USB */
 &usbotg1 {
 	pinctrl-names = "default";
