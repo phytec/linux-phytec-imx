@@ -249,6 +249,10 @@
 	status = "okay";
 };
 
+&snvs_pwrkey {
+	status = "okay";
+};
+
 &spdif2 {
 	assigned-clocks = <&clk IMX8MQ_CLK_SPDIF2>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
