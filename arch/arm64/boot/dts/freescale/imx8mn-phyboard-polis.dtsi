@@ -93,6 +93,10 @@
 	};
 };
 
+&snvs_pwrkey {
+	status = "okay";
+};
+
 /* USB */
 &usbotg1 {
 	dr_mode = "host";
