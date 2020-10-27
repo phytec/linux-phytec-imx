@@ -139,6 +139,30 @@
 	status = "okay";
 };
 
+&i2c2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	pinctrl-1 = <&pinctrl_i2c2_gpio>;
+	sda-gpios = <&gpio5 17 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	scl-gpios = <&gpio5 16 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	status = "okay";
+
+	eeprom_pollux: m24c32@51 {
+		compatible = "atmel,24c32";
+		reg = <0x51>;
+		pagesize = <32>;
+		status = "okay";
+	};
+
+	eeprom_pollux_id: m24c32@59 {
+		compatible = "atmel,24c32";
+		reg = <0x59>;
+		pagesize = <32>;
+		status = "okay";
+	};
+};
+
 /* LVDS1 */
 &lcdif2 {
 	status = "okay";
@@ -269,6 +293,21 @@
 			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x40000019
 		>;
 	};
+
+	pinctrl_i2c2: i2c2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_I2C2_SCL__I2C2_SCL			0x400001c3
+			MX8MP_IOMUXC_I2C2_SDA__I2C2_SDA			0x400001c3
+		>;
+	};
+
+	pinctrl_i2c2_gpio: i2c2grp_gpio {
+		fsl,pins = <
+			MX8MP_IOMUXC_I2C2_SCL__GPIO5_IO16		0x1e3
+			MX8MP_IOMUXC_I2C2_SDA__GPIO5_IO17		0x1e3
+		>;
+	};
+
 
 	pinctrl_pwm3: pwm3grp {
 		fsl,pins = <
