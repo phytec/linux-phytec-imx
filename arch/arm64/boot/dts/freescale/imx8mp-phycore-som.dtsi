@@ -20,7 +20,7 @@
 	cpu-supply = <&buck2_reg>;
 };
 
-/* ethernet */
+/* ethernet 1 */
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec>;
