@@ -5,6 +5,7 @@
  */
 
 #include <dt-bindings/leds/leds-pca9532.h>
+#include <dt-bindings/pwm/pwm.h>
 
 / {
 	backlight1: backlight1 {
@@ -24,6 +25,14 @@
 
 		compatible = "fixed-clock";
 		clock-frequency = <27000000>;
+	};
+
+	pwmfan0: pwm-fan {
+		compatible = "pwm-fan";
+		cooling-levels = <1 90 150 200 255>;
+		pwms = <&pwm2 0 38000 PWM_POLARITY_INVERTED>;
+		#cooling-cells = <2>;
+		status = "okay";
 	};
 
 	panel1: panel1 {
@@ -271,6 +280,13 @@
 	};
 };
 
+/* PWM */
+&pwm2 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm2>;
+};
+
 &pwm3 {
 	status = "okay";
 	pinctrl-names = "default";
@@ -409,6 +425,12 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_I2C3_SCL__GPIO5_IO18		0x400001c3
 			MX8MP_IOMUXC_I2C3_SDA__GPIO5_IO19		0x400001c3
+		>;
+	};
+
+	pinctrl_pwm2: pwm2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SPDIF_RX__PWM2_OUT			0x12
 		>;
 	};
 
