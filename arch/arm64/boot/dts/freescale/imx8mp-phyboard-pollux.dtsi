@@ -4,6 +4,8 @@
  * Author: Teresa Remmet <t.remmet@phytec.de>
  */
 
+#include <dt-bindings/leds/leds-pca9532.h>
+
 / {
 	backlight1: backlight1 {
 		compatible = "pwm-backlight";
@@ -160,6 +162,26 @@
 		reg = <0x51>;
 		pagesize = <16>;
 		status = "okay";
+	};
+
+	leddim: leddimmer@62 {
+		compatible = "nxp,pca9533";
+		reg = <0x62>;
+
+		led1 {
+			label = "red:user1";
+			type = <PCA9532_TYPE_LED>;
+		};
+
+		led2 {
+			label = "green:user2";
+			type = <PCA9532_TYPE_LED>;
+		};
+
+		led3 {
+			label = "blue:user3";
+			type = <PCA9532_TYPE_LED>;
+		};
 	};
 };
 
