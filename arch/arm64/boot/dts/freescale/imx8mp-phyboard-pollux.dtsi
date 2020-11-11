@@ -12,7 +12,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_lvds1>;
 		default-brightness-level = <6>;
-		pwms = <&pwm3 0 50000>;
+		pwms = <&pwm3 0 50000 0>;
 		power-supply = <&reg_lvds1_reg_en>;
 		enable-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
 		brightness-levels= <0 4 8 16 32 64 128 255>;
