@@ -255,6 +255,15 @@
 	pinctrl-0 = <&pinctrl_pwm3>;
 };
 
+/* UART */
+
+/* debug uart */
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	status = "okay";
+};
+
 /* SD-Card */
 &usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
@@ -391,6 +400,13 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20			0x12
 			MX8MP_IOMUXC_GPIO1_IO09__GPIO1_IO09		0x12
+		>;
+	};
+
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_UART2_RXD__UART2_DCE_RX	0x49
+			MX8MP_IOMUXC_UART2_TXD__UART2_DCE_TX	0x49
 		>;
 	};
 
