@@ -93,6 +93,27 @@
 	};
 };
 
+/* TPM */
+&ecspi2 {
+	#address-cells = <1>;
+	#size-cells =           <0>;
+	fsl,spi-num-chipselects = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
+	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	tpm: tpm_tis@0 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tpm>;
+		compatible = "tcg,tpm_tis-spi";
+		reg = <0>;
+		spi-max-frequency = <38000000>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+	};
+};
+
 &snvs_pwrkey {
 	status = "okay";
 };
@@ -205,6 +226,20 @@
 		>;
 	};
 
+	pinctrl_ecspi2: ecspi2grp {
+		fsl,pins = <
+			MX8MN_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK    0x82
+			MX8MN_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI    0x82
+			MX8MN_IOMUXC_ECSPI2_MISO_ECSPI2_MISO    0x82
+		>;
+	};
+
+	pinctrl_ecspi2_cs: ecspi2csgrp {
+		fsl,pins = <
+			MX8MN_IOMUXC_ECSPI2_SS0_GPIO5_IO13      0x00
+		>;
+	};
+
 	pinctrl_i2c2: i2c2grp {
 		fsl,pins = <
 			MX8MN_IOMUXC_I2C2_SCL_I2C2_SCL		0x400001c3
@@ -217,6 +252,12 @@
 			MX8MN_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
 			MX8MN_IOMUXC_GPIO1_IO14_GPIO1_IO14	0x16
 			MX8MN_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x16
+		>;
+	};
+
+	pinctrl_tpm: tpmgrp {
+		fsl,pins = <
+			MX8MN_IOMUXC_SD1_STROBE_GPIO2_IO11      0x140
 		>;
 	};
 
