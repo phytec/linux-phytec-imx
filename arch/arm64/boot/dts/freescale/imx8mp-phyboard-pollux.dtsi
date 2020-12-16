@@ -89,6 +89,17 @@
 		startup-delay-us = <100>;
 		off-on-delay-us = <12000>;
 	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		rpmsg_reserved: rpmsg@0x55800000 {
+			no-map;
+			reg = <0 0x55800000 0 0x800000>;
+		};
+	};
 };
 
 /* ethernet 0 */
@@ -279,6 +290,30 @@
 	};
 };
 
+&pcie{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie>;
+	clkreq-gpio = <&gpio1 11 GPIO_ACTIVE_LOW>;
+	disable-gpio = <&gpio1 14 GPIO_ACTIVE_LOW>;
+	ext_osc = <0>;
+	clocks = <&clk IMX8MP_CLK_HSIO_AXI_DIV>,
+		 <&clk IMX8MP_CLK_PCIE_AUX>,
+		 <&clk IMX8MP_CLK_PCIE_PHY>,
+		 <&clk IMX8MP_CLK_PCIE_ROOT>;
+	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
+	assigned-clocks = <&clk IMX8MP_CLK_HSIO_AXI_SRC>,
+			  <&clk IMX8MP_CLK_PCIE_AUX>;
+	assigned-clock-parents = <&clk IMX8MP_SYS_PLL2_500M>,
+				 <&clk IMX8MP_SYS_PLL2_50M>;
+	reserved-region = <&rpmsg_reserved>;
+	status = "okay";
+};
+
+&pcie_phy{
+	ext_osc = <0>;
+	status = "okay";
+};
+
 /* PWM */
 &pwm2 {
 	status = "okay";
@@ -433,6 +468,13 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20		0x12
 			MX8MP_IOMUXC_GPIO1_IO09__GPIO1_IO09	0x12
+		>;
+	};
+
+	pinctrl_pcie: pciegrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x61
+			MX8MP_IOMUXC_GPIO1_IO14__GPIO1_IO14	0x41
 		>;
 	};
 
