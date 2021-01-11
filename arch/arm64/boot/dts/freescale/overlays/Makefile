@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
+dtb-y += imx8mm-phyboard-polis-peb-av-010.dtbo
+
 DTC_FLAGS += -@
 
 quiet_cmd_dtbo = DTBO     $@
