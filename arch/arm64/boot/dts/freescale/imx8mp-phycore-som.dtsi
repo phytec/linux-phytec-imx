@@ -205,6 +205,13 @@
 		pagesize = <32>;
 	};
 
+	eepromid@59 {
+		compatible = "atmel,24c32";
+		reg = <0x59>;
+		pagesize = <32>;
+		size = <32>;
+	};
+
 	rv3028: rtc@52 {
 		compatible = "microcrystal,rv3028";
 		reg = <0x52>;
