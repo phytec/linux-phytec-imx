@@ -1101,6 +1101,8 @@ static int mipi_csis_set_fmt(struct v4l2_subdev *mipi_sd,
 		mf->code = csis_fmt->code;
 	}
 
+	state->csis_fmt = csis_fmt;
+
 	return 0;
 }
 
