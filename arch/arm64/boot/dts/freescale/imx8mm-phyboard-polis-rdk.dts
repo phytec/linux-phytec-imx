@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2019 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mm-phycore-som.dtsi"
+#include "imx8mm-phyboard-polis.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Polis-i.MX8MM RDK";
+	compatible = "phytec,imx8mm-phyboard-polis",
+		     "phytec,i.mx8mm-phycore-som","fsl,imx8mm";
+};
+
+&i2c1_sn65dsi83 {
+	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+};
