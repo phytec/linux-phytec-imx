@@ -1439,11 +1439,7 @@ static irqreturn_t mipi_csis_irq_handler(int irq, void *dev_id)
 			if (!(status & state->events[i].mask))
 				continue;
 			state->events[i].counter++;
-			v4l2_dbg(2, debug, &state->sd, "%s: %d\n",
-				 state->events[i].name,
-				 state->events[i].counter);
 		}
-		v4l2_dbg(2, debug, &state->sd, "status: %08x\n", status);
 	}
 	spin_unlock_irqrestore(&state->slock, flags);
 
