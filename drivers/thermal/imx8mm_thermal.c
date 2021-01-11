@@ -17,6 +17,7 @@
 #include <linux/thermal.h>
 
 #include "thermal_core.h"
+#include "thermal_hwmon.h"
 
 #define TER			0x0	/* TMU enable */
 #define	TPS			0x4
@@ -213,6 +214,11 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 			devfreq_cooling_unregister(tmu->sensors[i].cdev);
 			return ret;
 		}
+
+		tmu->sensors[i].tzd->tzp->no_hwmon = false;
+		ret = thermal_add_hwmon_sysfs(tmu->sensors[i].tzd);
+		if (ret)
+			return ret;
 	}
 
 	/* disable the monitor for config */
