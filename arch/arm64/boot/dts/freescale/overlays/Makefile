@@ -6,6 +6,8 @@ dtb-y += imx8mm-phyboard-polis-peb-eval-01.dtbo
 dtb-y += imx8mm-phycore-rpmsg.dtbo
 dtb-y += imx8mm-phycore-no-eth.dtbo
 dtb-y += imx8mm-phycore-no-spiflash.dtbo
+dtb-y += imx8mn-phyboard-polis-peb-eval-01.dtbo
+dtb-y += imx8mn-phyboard-polis-peb-av-010.dtbo
 
 DTC_FLAGS += -@
 
