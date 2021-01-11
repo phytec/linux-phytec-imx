@@ -114,6 +114,27 @@
 	};
 };
 
+/* TPM */
+&ecspi2 {
+	#address-cells = <1>;
+	#size-cells =		<0>;
+	fsl,spi-num-chipselects = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
+	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	tpm: tpm_tis@0 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tpm>;
+		compatible = "tcg,tpm_tis-spi";
+		reg = <0>;
+		spi-max-frequency = <38000000>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+	};
+};
+
 /* PCIe */
 &pcie0 {
 	pinctrl-names = "default";
@@ -248,6 +269,20 @@
 		>;
 	};
 
+	pinctrl_ecspi2: ecspi2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK	0x82
+			MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI	0x82
+			MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO	0x82
+		>;
+	};
+
+	pinctrl_ecspi2_cs: ecspi2csgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x00
+		>;
+	};
+
 	pinctrl_fan: fan0grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SAI1_RXD6_GPIO4_IO8        0x16
@@ -284,6 +319,12 @@
 			MX8MM_IOMUXC_SAI1_TXD0_GPIO4_IO12	0x12
 			/* COEX2 */
 			MX8MM_IOMUXC_SAI1_TXD7_GPIO4_IO19	0x12
+		>;
+	};
+
+	pinctrl_tpm: tpmgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11	0x140
 		>;
 	};
 
