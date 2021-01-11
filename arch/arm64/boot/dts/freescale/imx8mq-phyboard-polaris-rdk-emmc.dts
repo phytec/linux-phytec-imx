@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2018 PHYTEC Messtechnik GmbH
+ * Author: Christian Hemp <c.hemp@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mq-phycore-som.dtsi"
+#include "imx8mq-phyboard-polaris.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Polaris carrier board";
+	compatible = "phytec,imx8mq-pbacd12-emmc", "phytec,imx8mq-pbacd12",
+		     "phytec,imx8mq-pcl066", "fsl,imx8mq";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+};
+
+&usdhc1 {
+	status = "okay";
+};
