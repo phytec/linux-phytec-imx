@@ -721,7 +721,7 @@ static int pca9450_probe(struct platform_device *pdev)
 	/* Add Interrupt */
 	irq  = platform_get_irq(pdev, 0);
 	if (irq <= 0)
-		dev_warn(&pdev->dev, "platform irq error # %d\n", irq);
+		dev_warn(&pdev->dev, "irq not available.");
 	if (irq > 0) {
 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
 						pca9450_pmic_interrupt,
