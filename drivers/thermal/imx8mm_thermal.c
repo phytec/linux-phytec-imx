@@ -9,11 +9,13 @@
 #include <linux/device_cooling.h>
 #include <linux/err.h>
 #include <linux/io.h>
+#include <linux/mfd/syscon.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
+#include <linux/regmap.h>
 #include <linux/thermal.h>
 
 #include "thermal_core.h"
@@ -138,6 +140,77 @@ static struct thermal_zone_of_device_ops tmu_tz_ops = {
 	.set_trip_temp = tmu_set_trip_temp,
 };
 
+/* Register definition for the temperature grade */
+#define IMX8_OCOTP_TESTER3     0x0440
+
+/* IMX8MM and IMX8MN use OCOTP_TESTER3[7:6] */
+#define IMX8MM_MN_TESTER3_SHIFT	6
+
+/* IMX8MP uses OCOTP_TESTER3[6:5] */
+#define IMX8MP_TESTER3_SHIFT	5
+
+static int imx_init_temp_grade(struct platform_device *pdev)
+{
+	struct imx8mm_tmu *tmu = platform_get_drvdata(pdev);
+	struct regmap *map;
+	const struct thermal_soc_data *data;
+	int ret, temp_max, i;
+	u32 val, num_sensors;
+
+	data = of_device_get_match_data(&pdev->dev);
+	num_sensors = data->num_sensors;
+
+	map = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
+					      "fsl,tempmon-data");
+	if (IS_ERR(map)) {
+		ret = PTR_ERR(map);
+		dev_err(&pdev->dev, "failed to get sensor regmap: %d\n", ret);
+		return ret;
+	}
+
+	ret = regmap_read(map, IMX8_OCOTP_TESTER3, &val);
+
+	if (ret) {
+		dev_err(&pdev->dev, "failed to read sensor data: %d\n", ret);
+		return ret;
+	}
+
+	/* determine CPU by num_sensors and apply register shift */
+
+	switch (num_sensors) {
+	case 1:
+		val >>= IMX8MM_MN_TESTER3_SHIFT;
+		break;
+	case 2:
+		val >>= IMX8MP_TESTER3_SHIFT;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	switch (val & 0x3) {
+	case 0: /* Commercial (0 to 95 °C) */
+		temp_max = 95000;
+		break;
+	case 2: /* Industrial (-40 °C to 105 °C) */
+		temp_max = 105000;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	/*
+	 * Set the critical trip point at 5 °C under max
+	 * Set the passive trip point at 10 °C under max (changeable via sysfs)
+	 */
+	for (i = 0; i < num_sensors; i++) {
+		tmu->sensors[i].temp_passive = temp_max - (1000 * 10);
+		tmu->sensors[i].temp_critical = temp_max - (1000 * 5);
+	}
+
+	return ret;
+}
+
 static int imx8mm_tmu_probe(struct platform_device *pdev)
 {
 	const struct thermal_trip *trips;
@@ -177,8 +250,10 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 
 	for (i = 0; i < num_sensors; i++) {
 		tmu->sensors[i].priv = tmu;
-		tmu->sensors[i].tzd = devm_thermal_zone_of_sensor_register(&pdev->dev, i,
-							&tmu->sensors[i], &tmu_tz_ops);
+		tmu->sensors[i].tzd = devm_thermal_zone_of_sensor_register(
+							&pdev->dev, i,
+							&tmu->sensors[i],
+							&tmu_tz_ops);
 		if (IS_ERR(tmu->sensors[i].tzd)) {
 			dev_err(&pdev->dev,
 				"failed to register thermal zone sensor[%d]: %d\n", i, ret);
@@ -187,11 +262,24 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 
 		tmu->sensors[i].hw_id = i;
 
-		trips = of_thermal_get_trip_points(tmu->sensors[i].tzd);
-
-		/* get the thermal trip temp */
-		tmu->sensors[i].temp_passive = trips[0].temperature;
-		tmu->sensors[i].temp_critical = trips[1].temperature;
+		ret = imx_init_temp_grade(pdev);
+		if (ret) {
+			dev_info(&pdev->dev, "failed to init from fsl,tempmon-data use temp from devicetree\n");
+			trips = of_thermal_get_trip_points(tmu->sensors[i].tzd);
+			/* get the thermal trip temp */
+			tmu->sensors[i].temp_passive = trips[0].temperature;
+			tmu->sensors[i].temp_critical = trips[1].temperature;
+		} else {
+			/* set the thermal trip temp */
+			tmu->sensors[i].tzd->ops->set_trip_temp(
+							tmu->sensors[i].tzd,
+							IMX_TRIP_PASSIVE,
+							tmu->sensors[i].temp_passive);
+			tmu->sensors[i].tzd->ops->set_trip_temp(
+							tmu->sensors[i].tzd,
+							IMX_TRIP_CRITICAL,
+							tmu->sensors[i].temp_critical);
+		}
 
 		tmu->sensors[i].cdev = devfreq_cooling_register();
 		if (IS_ERR(tmu->sensors[i].cdev)) {
