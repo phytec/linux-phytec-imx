@@ -15,3 +15,7 @@
 		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
 
 };
+
+&flash0 {
+	status = "okay";
+};
