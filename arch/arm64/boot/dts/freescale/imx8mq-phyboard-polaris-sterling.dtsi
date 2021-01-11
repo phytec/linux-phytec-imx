@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2019 PHYTEC Messtechnik GmbH
+ * Author: Janine Hagemann <j.hagemann@phytec.de>
+ */
+
+/ {
+	reg_bt_en: bt_en {
+		compatible = "regulator-fixed";
+		regulator-name = "bt_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <100>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
+	reg_wlan_en: wlan_en {
+		compatible = "regulator-fixed";
+		regulator-name = "wlan_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 10 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+};
+
+/* bluetooth */
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2_bt>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
+	uart-has-rtscts;
+	fsl,dte-mode;
+	status = "disabled";
+};
+
+/* WLAN */
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2_wlan>, <&pinctrl_wlan>;
+	bus-width = <4>;
+	non-removable;
+	no-1-8-v;
+	status = "disabled";
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+
+	pinctrl_uart2_bt: uart2grp_bt {
+		fsl,pins = <
+			MX8MQ_IOMUXC_UART4_RXD_UART2_DTE_RTS_B	0x49
+			MX8MQ_IOMUXC_UART4_TXD_UART2_DTE_CTS_B	0x49
+			MX8MQ_IOMUXC_UART2_RXD_UART2_DTE_TX	0x49
+			MX8MQ_IOMUXC_UART2_TXD_UART2_DTE_RX	0x49
+		>;
+	};
+
+	pinctrl_usdhc2_wlan: usdhc2wlangrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK		0x8d
+			MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD		0xcf
+			MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0	0xcf
+			MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1	0xcf
+			MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2	0xcf
+			MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3	0xcf
+		>;
+	};
+
+	pinctrl_wlan: wlangrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10	0x41
+		>;
+	};
+};
