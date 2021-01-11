@@ -175,6 +175,7 @@
 		compatible = "microcrystal,rv3028";
 		reg = <0x52>;
 		trickle-resistor-ohms = <3000>;
+		enable-level-switching-mode;
 	};
 };
 
