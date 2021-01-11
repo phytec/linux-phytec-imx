@@ -9,6 +9,7 @@
 #include "imx8mq-phycore-som.dtsi"
 #include "imx8mq-phyboard-polaris.dtsi"
 #include "imx8mq-phyboard-polaris-sdcard.dtsi"
+#include "imx8mq-phyboard-polaris-peb-av-009.dtsi"
 
 / {
 	model = "PHYTEC phyBOARD-Polaris carrier board";
