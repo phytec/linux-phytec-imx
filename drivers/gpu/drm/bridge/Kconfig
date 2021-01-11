@@ -147,6 +147,13 @@ config DRM_TOSHIBA_TC358764
 	help
 	  Toshiba TC358764 DSI/LVDS bridge driver.
 
+config DRM_SN65DSI83_LVDS
+	tristate "SN65DSI83 DSI/LVDS bridge"
+	depends on DRM && DRM_PANEL
+	depends on OF
+	select DRM_MIPI_DSI
+	select VIDEOMODE_HELPERS
+
 config DRM_TOSHIBA_TC358767
 	tristate "Toshiba TC358767 eDP bridge"
 	depends on OF
