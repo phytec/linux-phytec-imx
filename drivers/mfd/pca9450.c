@@ -80,6 +80,9 @@ static int pca9450_irq_init(struct pca9450 *pca9450,
 		return -EINVAL;
 	}
 
+	if (bdinfo->gpio_intr < 0)
+		return ret;
+
 	dev_info(pca9450->dev, "gpio_intr = %d\n", bdinfo->gpio_intr);
 	irq = gpio_to_irq(bdinfo->gpio_intr);
 
@@ -166,9 +169,12 @@ static struct pca9450_board *pca9450_parse_dt(struct i2c_client *client,
 
 	board_info->gpio_intr = of_get_named_gpio(np, "gpio_intr", 0);
 	if (!gpio_is_valid(board_info->gpio_intr)) {
-		if (board_info->gpio_intr != -EPROBE_DEFER)
+		if (board_info->gpio_intr != -EPROBE_DEFER) {
 			dev_err(&client->dev, "no pmic intr pin available\n");
-		goto err_intr;
+			board_info->gpio_intr = -1;
+		} else {
+			goto err_intr;
+		}
 	}
 
 	r = of_property_read_u32(np, "irq_base", &prop);
