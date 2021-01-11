@@ -17,6 +17,7 @@
 #include <linux/thermal.h>
 
 #include "thermal_core.h"
+#include "thermal_hwmon.h"
 
 #define TER			0x0	/* TMU enable */
 #define TPS			0x4
@@ -256,6 +257,11 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 		/* get the thermal trip temp */
 		tmu->sensors[i].temp_passive = trips[0].temperature;
 		tmu->sensors[i].temp_critical = trips[1].temperature;
+
+		tmu->sensors[i].tzd->tzp->no_hwmon = false;
+		ret = thermal_add_hwmon_sysfs(tmu->sensors[i].tzd);
+		if (ret)
+			return ret;
 	}
 
 	platform_set_drvdata(pdev, tmu);
