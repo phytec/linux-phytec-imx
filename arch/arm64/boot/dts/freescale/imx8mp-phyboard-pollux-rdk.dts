@@ -17,6 +17,14 @@
 
 };
 
+&cameradev {
+	status = "okay";
+};
+
 &flash0 {
+	status = "okay";
+};
+
+&vm016 {
 	status = "okay";
 };
