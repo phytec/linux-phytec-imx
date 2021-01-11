@@ -565,6 +565,7 @@
 				reg = <0x30260000 0x10000>;
 				clocks = <&clk IMX8MN_CLK_TMU_ROOT>;
 				#thermal-sensor-cells = <0>;
+				fsl,tempmon-data = <&ocotp>;
 			};
 
 			wdog1: watchdog@30280000 {
