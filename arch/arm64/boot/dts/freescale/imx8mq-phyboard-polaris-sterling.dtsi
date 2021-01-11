@@ -1,0 +1,94 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2019 PHYTEC Messtechnik GmbH
+ * Author: Janine Hagemann <j.hagemann@phytec.de>
+ */
+
+/ {
+	usdhc2_pwrseq: pwr_seq {
+		compatible = "mmc-pwrseq-simple";
+		reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+		post-power-on-delay-ms = <100>;
+		power-off-delay-us = <60>;
+	};
+};
+
+/* bluetooth */
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2_bt>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
+	uart-has-rtscts;
+	fsl,dte-mode;
+	/delete-property/ dma-names;
+	/delete-property/ dmas;
+
+	bluetooth {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt>;
+		clocks = <&i2c_rtc>;
+		clock-names = "rv3028-clkout";
+		compatible = "brcm,bcm43438-bt";
+		max-speed = <2000000>;
+		shutdown-gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		device-wakeup-gpios = <&gpio1 9 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+/* WLAN */
+&usdhc2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2_wlan>, <&pinctrl_wlan>;
+	bus-width = <4>;
+	non-removable;
+	no-1-8-v;
+	mmc-pwrseq = <&usdhc2_pwrseq>;
+	wifi-host;
+
+	brcmf: wifi@1 {
+		reg = <1>;
+		compatible = "brcm,bcm4329-fmac";
+		clocks = <&i2c_rtc>;
+		clock-names = "rv3028-clkout";
+	};
+};
+
+&iomuxc {
+	pinctrl_bt: btgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x41
+			MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x41
+			MX8MQ_IOMUXC_GPIO1_IO11_GPIO1_IO11	0x41
+		>;
+	};
+
+	pinctrl_uart2_bt: uart2btgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_UART4_RXD_UART2_DTE_RTS_B	0x49
+			MX8MQ_IOMUXC_UART4_TXD_UART2_DTE_CTS_B	0x49
+			MX8MQ_IOMUXC_UART2_RXD_UART2_DTE_TX	0x49
+			MX8MQ_IOMUXC_UART2_TXD_UART2_DTE_RX	0x49
+		>;
+	};
+
+	pinctrl_usdhc2_wlan: usdhc2wlangrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK		0x8d
+			MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD		0xcf
+			MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0	0xcf
+			MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1	0xcf
+			MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2	0xcf
+			MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3	0xcf
+		>;
+	};
+
+	pinctrl_wlan: wlangrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10	0x41
+		>;
+	};
+};
