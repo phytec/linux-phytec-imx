@@ -235,6 +235,12 @@ properties:
               - fsl,imx8mn-ddr4-evk       # i.MX8MN DDR4 EVK Board
           - const: fsl,imx8mn
 
+      - description: PHYTEC phyCORE-i.MX8MP SoM based boards
+        items:
+          - const: phytec,imx8mp-phyboard-pollux-rdk # phyBOARD-Pollux RDK
+          - const: phytec,imx8mp-phycore-som         # phyCORE-i.MX8MP SoM
+          - const: fsl,imx8mp
+
       - description: i.MX8MQ based Boards
         items:
           - enum:
