@@ -1,0 +1,65 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2018 PHYTEC Messtechnik GmbH
+ * Author: Norbert Wesp <n.wesp@phytec.de>
+ */
+
+/ {
+	user_buttons: gpio-keys {
+		compatible = "gpio-key";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_keys>;
+		status = "okay";
+
+		switch1 {
+			label = "home";
+			linux,code = <KEY_HOME>;
+			gpios = <&gpio3 5 GPIO_ACTIVE_LOW>;
+			wakeup-source;
+		};
+
+		switch2 {
+			label = "menu";
+			linux,code = <KEY_MENU>;
+			gpios = <&gpio3 9 GPIO_ACTIVE_LOW>;
+			wakeup-source;
+		};
+	};
+
+	user_leds: user-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_user_leds>;
+		status = "okay";
+
+		user-led1 {
+			gpios = <&gpio3 4 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			default-state = "on";
+		};
+
+		user-led2 {
+			gpios = <&gpio3 10 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			default-state = "on";
+		};
+	};
+};
+
+&iomuxc {
+	phytec-polaris-pebeval01 {
+		pinctrl_gpio_keys: gpio_keysgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5		0x16
+				MX8MQ_IOMUXC_NAND_DATA03_GPIO3_IO9	0x16
+			>;
+		};
+
+		pinctrl_user_leds: user_ledsgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4	0x16
+				MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10	0x16
+			>;
+		};
+	};
+};
