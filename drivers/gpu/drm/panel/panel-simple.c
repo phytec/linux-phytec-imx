@@ -3011,6 +3011,31 @@ static const struct panel_desc toshiba_lt089ac29000 = {
 	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE,
 };
 
+static const struct drm_display_mode tianma_tm070jvhg33_timing = {
+	.clock = 68000,
+	.hdisplay = 1280,
+	.hsync_start = 1280 + 64,
+	.hsync_end = 1280 + 64 + 5,
+	.htotal = 1280 + 64 + 5 + 10,
+	.vdisplay = 800,
+	.vsync_start = 800 + 40,
+	.vsync_end = 800 + 40 + 2,
+	.vtotal = 800 + 40 + 2 + 10,
+	.vrefresh = 60,
+};
+
+static const struct panel_desc tianma_tm070jvhg33 = {
+	.modes = &tianma_tm070jvhg33_timing,
+	.num_modes = 1,
+	.bpc = 8,
+	.size = {
+		.width = 151,
+		.height = 95,
+	},
+	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+	.bus_flags = DRM_BUS_FLAG_DE_LOW,
+};
+
 static const struct drm_display_mode tpk_f07a_0102_mode = {
 	.clock = 33260,
 	.hdisplay = 800,
@@ -3474,6 +3499,9 @@ static const struct of_device_id platform_of_match[] = {
 	}, {
 		.compatible = "toshiba,lt089ac29000",
 		.data = &toshiba_lt089ac29000,
+	}, {
+		.compatible = "tianma,tm070jvhg33",
+		.data = &tianma_tm070jvhg33,
 	}, {
 		.compatible = "tpk,f07a-0102",
 		.data = &tpk_f07a_0102,
