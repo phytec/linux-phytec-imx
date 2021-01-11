@@ -302,6 +302,13 @@
 		pinctrl-0 = <&pinctrl_rtc>;
 		reg = <0x52>;
 	};
+
+	eepromid@59 {
+		compatible = "atmel,24c32";
+		pagesize = <32>;
+		reg = <0x59>;
+		size = <32>;
+	};
 };
 
 /* EMMC */
