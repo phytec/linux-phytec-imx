@@ -15,7 +15,6 @@
 		pwms = <&pwm4 0 50000>;
 		enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
 		brightness-levels= <0 4 8 16 32 64 128 255>;
-		status = "okay";
 	};
 
 	panel: panel {
@@ -31,22 +30,19 @@
 
 };
 
-&pwm4 {
+&dphy {
 	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm4>;
 };
 
 &i2c2 {
-	i2c_sn65dsi83: sn65dsi83@2c {
+	mipitolvds@2c {
 		compatible = "ti,sn65dsi83";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_i2c2_sn65dsi83>;
+		pinctrl-0 = <&pinctrl_sn65dsi83>;
 		enable-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
 		reg = <0x2c>;
 		lanes_in = <4>;
 		lvds_vod_swing = <0x3>;
-		status = "okay";
 
 		ports {
 			#address-cells = <1>;
@@ -72,7 +68,6 @@
 };
 
 &lcdif {
-	status = "okay";
 	max-memory-bandwidth = <497829888>; /* 1920x1080-32@60.02 */
 
 	assigned-clocks = <&clk IMX8MQ_CLK_LCDIF_PIXEL>,
@@ -83,6 +78,7 @@
 				 <&clk IMX8MQ_VIDEO_PLL1>,
 				 <&clk IMX8MQ_CLK_27M>;
 	assigned-clock-rate = <126000000>, <0>, <0>, <1134000000>;
+	status = "okay";
 
 	ports {
 		#address-cells = <1>;
@@ -96,15 +92,11 @@
 	};
 };
 
-&dphy {
-	status = "okay";
-};
-
 &mipi_dsi {
-	status = "okay";
 	as_bridge;
 	sync-pol = <1>;
 	pwr-delay = <10>;
+	status = "okay";
 
 	ports {
 		#address-cells = <1>;
@@ -128,12 +120,16 @@
 	};
 };
 
-&iomuxc {
+&pwm4 {
 	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm4>;
+	status = "okay";
+};
 
-	pinctrl_i2c2_sn65dsi83: sn65dsi83_i2c2_grp {
+&iomuxc {
+	pinctrl_lcd: lcd0grp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_SAI3_RXD_GPIO4_IO30		0x16
+			MX8MQ_IOMUXC_SAI3_TXD_GPIO5_IO1                 0x16
 		>;
 	};
 
@@ -143,9 +139,9 @@
 		>;
 	};
 
-	pinctrl_lcd: lcd0grp {
+	pinctrl_sn65dsi83: sn65dsi83grp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_SAI3_TXD_GPIO5_IO1                 0x16
+			MX8MQ_IOMUXC_SAI3_RXD_GPIO4_IO30		0x16
 		>;
 	};
 };
