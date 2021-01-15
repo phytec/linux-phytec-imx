@@ -32,6 +32,18 @@
 	arm-supply = <&reg_sw5>;
 };
 
+&A53_1 {
+	arm-supply = <&reg_sw5>;
+};
+
+&A53_2 {
+	arm-supply = <&reg_sw5>;
+};
+
+&A53_3 {
+	arm-supply = <&reg_sw5>;
+};
+
 /* Ethernet */
 &fec1 {
 	pinctrl-names = "default";
