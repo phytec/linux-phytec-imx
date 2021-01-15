@@ -1,16 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2018 PHYTEC Messtechnik GmbH
  * Author: Christian Hemp <c.hemp@phytec.de>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 / {
@@ -29,85 +20,18 @@
 		pinctrl-0 = <&pinctrl_leds>;
 
 		led-red {
-			label = "red-emmc";
 			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "mmc0";
 		};
 
 		led-blue {
-			label = "blue-mmc";
 			gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "mmc1";
 		};
 
 		led-green {
-			label = "green-heartbeat";
 			gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
-		};
-	};
-
-	reg_usb0_vbus: usb0-vbus {
-		compatible = "regulator-fixed";
-		regulator-name = "usb0-vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		enable-active-high;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_usb0_vbusen>;
-		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
-		status = "okay";
-	};
-
-	reg_vcc1v8: vcc1v8 {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc1v8";
-		regulator-min-microvolt = <1800000>;
-		regulator-max-microvolt = <1800000>;
-		regulator-always-on;
-	};
-
-	reg_vcc3v3: vcc3v3 {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc3v3";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-	};
-
-	reg_wselect: w_select {
-		compatible = "regulator-fixed";
-		regulator-name = "w_select";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		pinctrl-names = "default";
-		pinctrl-0  = <&pinctrl_regwselect>;
-		gpio = <&gpio1 3 GPIO_ACTIVE_LOW>;
-		regulator-always-on;
-	};
-
-	thermal-zones {
-		/* fan thermal */
-		fan-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <2000>;
-			thermal-sensors = <&tmu 1>;
-			trips {
-				fan_fan0: trip0 {
-				temperature = <70000>;
-				hysteresis = <5000>;
-				type = "active";
-				};
-			};
-
-			cooling-maps {
-				map0 {
-					trip = <&fan_fan0>;
-					cooling-device =
-						<&fan
-						 THERMAL_NO_LIMIT
-						 THERMAL_NO_LIMIT>;
-				};
-			};
 		};
 	};
 
@@ -135,13 +59,13 @@
 				"Mic Jack", "Mic Bias",
 				"LINE1L", "Line In",
 				"LINE1R", "Line In";
-		status = "okay";
 
 		dailink_master: simple-audio-card,cpu {
-				sound-dai = <&sai2>;
+			sound-dai = <&sai2>;
 		};
+
 		simple-audio-card,codec {
-				sound-dai = <&tlv320aic3007>;
+			sound-dai = <&tlv320aic3007>;
 		};
 	};
 
@@ -166,6 +90,67 @@
 		model = "imx-hdmi-arc";
 		spdif-controller = <&spdif2>;
 		spdif-in;
+	};
+
+	thermal-zones {
+		fan-thermal {
+			polling-delay-passive = <250>;
+			polling-delay = <2000>;
+			thermal-sensors = <&tmu 1>;
+			trips {
+				fan_fan0: trip0 {
+					temperature = <70000>;
+					hysteresis = <5000>;
+					type = "active";
+				};
+			};
+			cooling-maps {
+				map0 {
+					trip = <&fan_fan0>;
+					cooling-device =
+						<&fan
+						 THERMAL_NO_LIMIT
+						 THERMAL_NO_LIMIT>;
+				};
+			};
+		};
+	};
+
+	reg_usb0_vbus: usb0-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb0-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb0_vbusen>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+	};
+
+	reg_vcc1v8: vcc1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc1v8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+	};
+
+	reg_vcc3v3: vcc3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
+	reg_wselect: w_select {
+		compatible = "regulator-fixed";
+		regulator-name = "w_select";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		pinctrl-names = "default";
+		pinctrl-0  = <&pinctrl_regwselect>;
+		gpio = <&gpio1 3 GPIO_ACTIVE_LOW>;
+		regulator-always-on;
 	};
 };
 
@@ -210,7 +195,6 @@
 			DRVDD-supply = <&reg_vcc3v3>;
 			DVDD-supply = <&reg_vcc1v8>;
 	};
-
 };
 
 &pcie1 {
@@ -290,22 +274,14 @@
 };
 
 &usb_dwc3_1 {
-	status = "okay";
 	dr_mode = "host";
+	status = "okay";
 };
 
 &iomuxc {
-	pinctrl-names = "default";
-
 	pinctrl_fan: fan0grp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_I2C3_SDA_GPIO5_IO19	0x16
-		>;
-	};
-
-	pinctrl_usb0_vbusen: usb0vengrp {
-		fsl,pins = <
-			MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x16
 		>;
 	};
 
@@ -316,7 +292,7 @@
 		>;
 	};
 
-	pinctrl_i2c2_gpio: i2c2grp_gpio {
+	pinctrl_i2c2_gpio: i2c2gpiogrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_I2C2_SCL_GPIO5_IO16	0x1e3
 			MX8MQ_IOMUXC_I2C2_SDA_GPIO5_IO17	0x1e3
@@ -335,6 +311,12 @@
 		fsl,pins = <
 			MX8MQ_IOMUXC_SAI1_RXD0_GPIO4_IO2	0x16
 			MX8MQ_IOMUXC_SAI1_RXD1_GPIO4_IO3	0x16
+		>;
+	};
+
+	pinctrl_regwselect: regwselectgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3       0x41
 		>;
 	};
 
@@ -366,9 +348,9 @@
 		>;
 	};
 
-	pinctrl_regwselect: regwselectgrp {
+	pinctrl_usb0_vbusen: usb0vengrp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3       0x41
+			MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x16
 		>;
 	};
 };
