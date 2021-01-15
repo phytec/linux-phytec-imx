@@ -1,23 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2018 PHYTEC Messtechnik GmbH
  * Author: Christian Hemp <c.hemp@phytec.de>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 #include "imx8mq.dtsi"
 #include <dt-bindings/net/ti-dp83867.h>
 
 / {
-
 	aliases {
 		rtc0 = &i2c_rtc;
 		rtc1 = &snvs_rtc;
@@ -35,13 +25,7 @@
 		states = <900000 0x1 1000000 0x0>;
 	};
 
-	thermal-zones {
-		cpu-thermal {
-			thermal-sensors = <&tmu 0>;
-		};
-	};
-
-	resmem: reserved-memory {
+	reserved-memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
 		ranges;
@@ -52,6 +36,12 @@
 			size = <0 0x3c000000>;
 			alloc-ranges = <0 0x4000000 0 0x40000000>;
 			linux,cma-default;
+		};
+	};
+
+	thermal-zones {
+		cpu-thermal {
+			thermal-sensors = <&tmu 0>;
 		};
 	};
 };
@@ -198,15 +188,9 @@
 		};
 	};
 
-	i2c_eeprom: eeprom@50 {
+	eeprom@50 {
 		compatible = "atmel,24c32";
 		reg = <0x50>;
-		pagesize = <32>;
-	};
-
-	i2c_eeprom_id: eeprom@58 {
-		compatible = "atmel,24c32";
-		reg = <0x58>;
 		pagesize = <32>;
 	};
 
@@ -220,6 +204,12 @@
 		wakeup-source;
 		trickle-resistor-ohms = <3000>;
 		enable-level-switching-mode;
+	};
+
+	eepromid@58 {
+		compatible = "atmel,24c32";
+		reg = <0x58>;
+		pagesize = <32>;
 	};
 };
 
@@ -253,11 +243,9 @@
 };
 
 &iomuxc {
-	pinctrl-names = "default";
-
 	pinctrl_dvfs: dvfsgrp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_GPIO1_IO00_GPIO1_IO0	0x16
+			MX8MQ_IOMUXC_GPIO1_IO00_GPIO1_IO0		0x16
 		>;
 	};
 
@@ -283,14 +271,14 @@
 
 	pinctrl_i2c1: i2c1grp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL		0x4000007f
-			MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA		0x4000007f
+			MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x4000007f
+			MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x4000007f
 		>;
 	};
 
 	pinctrl_rtc: rtcgrp {
 		fsl,pins = <
-			MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5	0x18
+			MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x18
 		>;
 	};
 
@@ -311,7 +299,7 @@
 		>;
 	};
 
-	pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
+	pinctrl_usdhc1_100mhz: usdhc1-100mhzgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x85
 			MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc5
@@ -328,7 +316,7 @@
 		>;
 	};
 
-	pinctrl_usdhc1_200mhz: usdhc1grp200mhz {
+	pinctrl_usdhc1_200mhz: usdhc1-200mhzgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x87
 			MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc7
