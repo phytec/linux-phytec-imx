@@ -49,9 +49,7 @@
 };
 
 &iomuxc {
-	pinctrl-names = "default";
-
-	pinctrl_uart2_bt: uart2grp_bt {
+	pinctrl_uart2_bt: uart2btgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_UART4_RXD_UART2_DTE_RTS_B	0x49
 			MX8MQ_IOMUXC_UART4_TXD_UART2_DTE_CTS_B	0x49
