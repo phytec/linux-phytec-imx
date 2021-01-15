@@ -222,7 +222,7 @@
 		interrupt-parent = <&gpio1>;
 		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
 		wakeup-source;
-		trickle-resistor-ohms = <1000>; /* maps to 3 kOhm setting */
+		trickle-resistor-ohms = <3000>;
 		enable-level-switching-mode;
 
 		clocks = <&rtcclkout>;
