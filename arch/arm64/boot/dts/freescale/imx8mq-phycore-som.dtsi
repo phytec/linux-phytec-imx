@@ -218,7 +218,7 @@
 		interrupt-parent = <&gpio1>;
 		interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
 		wakeup-source;
-		trickle-resistor-ohms = <1000>;
+		trickle-resistor-ohms = <3000>;
 		enable-level-switching-mode;
 	};
 };
