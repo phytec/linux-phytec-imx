@@ -482,6 +482,28 @@ static int dp83867_phy_reset(struct phy_device *phydev)
 			 DP83867_PHYCR_FORCE_LINK_GOOD, 0);
 }
 
+static int dp83867_suspend(struct phy_device *phydev)
+{
+	int err;
+
+	err = phy_write(phydev, MII_DP83867_MICR, 0);
+	if (err < 0)
+		return err;
+
+	return genphy_suspend(phydev);
+}
+
+static int dp83867_resume(struct phy_device *phydev)
+{
+	int err;
+
+	err = dp83867_config_intr(phydev);
+	if (err < 0)
+		return err;
+
+	return genphy_resume(phydev);
+}
+
 static struct phy_driver dp83867_driver[] = {
 	{
 		.phy_id		= DP83867_PHY_ID,
@@ -497,8 +519,8 @@ static struct phy_driver dp83867_driver[] = {
 		.ack_interrupt	= dp83867_ack_interrupt,
 		.config_intr	= dp83867_config_intr,
 
-		.suspend	= genphy_suspend,
-		.resume		= genphy_resume,
+		.suspend	= dp83867_suspend,
+		.resume		= dp83867_resume,
 	},
 };
 module_phy_driver(dp83867_driver);
