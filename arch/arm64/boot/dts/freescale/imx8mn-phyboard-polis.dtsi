@@ -1,45 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2019 Daniel Glöckner <dg@emlix.com>
- * Copyright (C) 2019-2020 PHYTEC Messtechnik GmbH
+ * Based on imx8mm-phyboard-polis.dtsi
+ *
+ * Copyright (C) 2020 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
  */
 
 / {
-	leds {
-		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_leds>;
-
-		led-red {
-			label = "red-emmc";
-			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "mmc0";
-		};
-
-		led-blue {
-			label = "blue-mmc";
-			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "mmc1";
-		};
-
-		led-green {
-			label = "green-heartbeat";
-			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "heartbeat";
-		};
-	};
-
-	reg_can_en: regulator-can-en {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_can_en>;
-		regulator-name = "reg_can_en";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
-		startup-delay-us = <20>;
-	};
-
 	clocks {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -53,20 +20,46 @@
 		};
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		led-red {
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mmc0";
+		};
+
+		led-blue {
+			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mmc1";
+		};
+
+		led-green {
+			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
 	usdhc1_pwrseq: pwr_seq {
 		compatible = "mmc-pwrseq-simple";
 		reset-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
 		post-power-on-delay-ms = <100>;
 		power-off-delay-us = <60>;
 	};
+
+	reg_can_en: regulator-can-en {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_can_en>;
+		regulator-name = "reg_can_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		startup-delay-us = <20>;
+	};
 };
 
-&i2c2 {
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c2>;
-	status = "okay";
-};
 
 /* CAN mcp2517fd */
 &ecspi1 {
@@ -157,6 +150,15 @@
 	};
 };
 
+/* UART console */
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+	assigned-clocks = <&clk IMX8MN_CLK_UART3>;
+	assigned-clock-parents = <&clk IMX8MN_SYS_PLL1_80M>;
+	status = "okay";
+};
+
 &usdhc1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -176,15 +178,6 @@
 	};
 };
 
-/* UART console */
-&uart3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart3>;
-	assigned-clocks = <&clk IMX8MN_CLK_UART3>;
-	assigned-clock-parents = <&clk IMX8MN_SYS_PLL1_80M>;
-	status = "okay";
-};
-
 /* SD-Card */
 &usdhc2 {
 	vqmmc-supply = <&reg_ldo2>;
@@ -198,7 +191,13 @@
 };
 
 &iomuxc {
-	pinctrl-names = "default";
+	pinctrl_bt: btgrp {
+		fsl,pins = <
+			MX8MN_IOMUXC_SD1_DATA4_GPIO2_IO6	0x00
+			MX8MN_IOMUXC_SD1_DATA6_GPIO2_IO8	0x00
+			MX8MN_IOMUXC_SD1_DATA7_GPIO2_IO9	0x00
+		>;
+	};
 
 	pinctrl_can_en: can-engrp {
 		fsl,pins = <
@@ -240,13 +239,6 @@
 		>;
 	};
 
-	pinctrl_i2c2: i2c2grp {
-		fsl,pins = <
-			MX8MN_IOMUXC_I2C2_SCL_I2C2_SCL		0x400001c3
-			MX8MN_IOMUXC_I2C2_SDA_I2C2_SDA		0x400001c3
-		>;
-	};
-
 	pinctrl_leds: leds1grp {
 		fsl,pins = <
 			MX8MN_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
@@ -270,7 +262,7 @@
 		>;
 	};
 
-	pinctrl_uart2_bt: uart2grp_bt {
+	pinctrl_uart2_bt: uart2btgrp {
 		fsl,pins = <
 			MX8MN_IOMUXC_SAI3_RXD_UART2_DTE_CTS_B	0x00
 			MX8MN_IOMUXC_SAI3_RXC_UART2_DTE_RTS_B	0x00
@@ -286,19 +278,6 @@
 		>;
 	};
 
-	pinctrl_wlan: wlangrp {
-		fsl,pins = <
-			MX8MN_IOMUXC_SD1_DATA5_GPIO2_IO7	0x00
-		>;
-	};
-
-	pinctrl_bt: btgrp {
-		fsl,pins = <
-			MX8MN_IOMUXC_SD1_DATA4_GPIO2_IO6	0x00
-			MX8MN_IOMUXC_SD1_DATA6_GPIO2_IO8	0x00
-			MX8MN_IOMUXC_SD1_DATA7_GPIO2_IO9	0x00
-		>;
-	};
 
 	pinctrl_usdhc1: usdhc1grp {
 		fsl,pins = <
@@ -311,7 +290,7 @@
 		>;
 	};
 
-	pinctrl_usdhc2_gpio: usdhc2grpgpio {
+	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
 		fsl,pins = <
 			MX8MN_IOMUXC_SD2_CD_B_GPIO2_IO12	0x41
 		>;
@@ -329,7 +308,7 @@
 		>;
 	};
 
-	pinctrl_usdhc2_100mhz: usdhc2grp100mhz {
+	pinctrl_usdhc2_100mhz: usdhc2-100mhzgrp {
 		fsl,pins = <
 			MX8MN_IOMUXC_SD2_CLK_USDHC2_CLK		0x194
 			MX8MN_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d4
@@ -341,7 +320,7 @@
 		>;
 	};
 
-	pinctrl_usdhc2_200mhz: usdhc2grp200mhz {
+	pinctrl_usdhc2_200mhz: usdhc2-200mhzgrp {
 		fsl,pins = <
 			MX8MN_IOMUXC_SD2_CLK_USDHC2_CLK		0x196
 			MX8MN_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d6
@@ -350,6 +329,12 @@
 			MX8MN_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d6
 			MX8MN_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d6
 			MX8MN_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0x1d0
+		>;
+	};
+
+	pinctrl_wlan: wlangrp {
+		fsl,pins = <
+			MX8MN_IOMUXC_SD1_DATA5_GPIO2_IO7	0x00
 		>;
 	};
 };
