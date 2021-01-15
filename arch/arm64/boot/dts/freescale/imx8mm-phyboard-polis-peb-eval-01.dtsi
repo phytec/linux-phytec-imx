@@ -5,11 +5,10 @@
  */
 
 / {
-	user_buttons: gpio-keys {
+	gpio-keys {
 		compatible = "gpio-key";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_gpio_keys>;
-		status = "okay";
 
 		button0 {
 			label = "home";
@@ -26,12 +25,10 @@
 		};
 	};
 
-	user_leds: user-leds {
+	user-leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_user_leds>;
-		status = "okay";
-
 
 		user-led0 {
 			gpios = <&gpio4 14 GPIO_ACTIVE_HIGH>;
@@ -54,8 +51,6 @@
 };
 
 &iomuxc {
-	pinctrl-names = "default";
-
 	pinctrl_gpio_keys: gpio_keysgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SAI1_TXD5_GPIO4_IO17	0x16
