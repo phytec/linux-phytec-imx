@@ -2,7 +2,6 @@
 /*
  * Copyright (C) 2019 PHYTEC Messtechnik GmbH
  * Author: Teresa Remmet <t.remmet@phytec.de>
- *
  */
 
 / {
@@ -14,13 +13,11 @@
 		pwms = <&pwm4 0 50000>;
 		enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
 		brightness-levels= <0 4 8 16 32 64 128 255>;
-		status = "okay";
 	};
 
-	panel: panel {
+	panel {
 		compatible = "edt,etml1010g0dka";
 		backlight = <&backlight>;
-		status = "okay";
 
 		port {
 			panel_in: endpoint {
@@ -30,10 +27,31 @@
 	};
 };
 
-&pwm4 {
+&lcdif {
+	max-res = <1920>, <1080>;
 	status = "okay";
+};
+
+&mipi_dsi {
+	sync-pol = <1>;
+	pwr-delay = <10>;
+	status = "okay";
+};
+
+&mipi_dsi_ports {
+	port@1 {
+		reg = <1>;
+		dsi_out: endpoint {
+			remote-endpoint = <&bridge_in>;
+			attach-bridge;
+		};
+	};
+};
+
+&pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
+	status = "okay";
 };
 
 &sn65dsi83_port0 {
@@ -48,39 +66,16 @@
 	};
 };
 
-&lcdif {
-	status = "okay";
-	max-res = <1920>, <1080>;
-};
-
-&mipi_dsi {
-	status = "okay";
-	sync-pol = <1>;
-	pwr-delay = <10>;
-};
-
-&mipi_dsi_ports {
-	port@1 {
-		reg = <1>;
-		dsi_out: endpoint {
-			remote-endpoint = <&bridge_in>;
-			attach-bridge;
-		};
-	};
-};
-
 &iomuxc {
-	pinctrl-names = "default";
+	pinctrl_lcd: lcd0grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_TXD_GPIO5_IO1                 0x12
+		>;
+	};
 
 	pinctrl_pwm4: pwm4grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SAI3_MCLK_PWM4_OUT			0x12
-		>;
-	};
-
-	pinctrl_lcd: lcd0grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SAI3_TXD_GPIO5_IO1                 0x12
 		>;
 	};
 };
