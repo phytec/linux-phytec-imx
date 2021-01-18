@@ -70,9 +70,6 @@
 	cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
-	assigned-clocks = <&clk IMX8MN_CLK_ECSPI1_ROOT>;
-	assigned-clock-rates = <18181819>;
-
 	can0: can@0 {
 		compatible = "microchip,mcp251xfd";
 		reg = <0>;
