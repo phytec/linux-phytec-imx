@@ -15,3 +15,8 @@
 	compatible = "phytec,imx8mn-phyboard-polis-dsi",
 		     "phytec,i.mx8mn-phycore-som","fsl,imx8mn";
 };
+
+&cooling_map0 {
+	cooling-device =
+		<&A53_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+};
