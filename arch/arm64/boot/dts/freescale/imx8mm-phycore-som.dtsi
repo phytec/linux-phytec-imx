@@ -250,7 +250,6 @@
 
 /* EMMC */
 &usdhc3 {
-	vqmmc-supply = <&reg_sw6>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>;
 	pinctrl-1 = <&pinctrl_usdhc3_100mhz>;
