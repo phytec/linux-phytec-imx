@@ -95,6 +95,17 @@
 		DRVDD-supply = <&reg_sound_3v3>;
 		DVDD-supply = <&reg_sound_1v8>;
 	};
+
+	eeprom@57 {
+		compatible = "atmel,24c32";
+		reg = <0x57>;
+	};
+
+	eepromid@5f {
+		compatible = "atmel,24c32";
+		reg = <0x5f>;
+		size = <32>;
+	};
 };
 
 &lcdif {
