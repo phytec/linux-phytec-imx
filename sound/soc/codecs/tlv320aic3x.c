@@ -1367,8 +1367,11 @@ static int aic3x_regulator_event(struct notifier_block *nb,
 		 * Put codec to reset and require cache sync as at least one
 		 * of the supplies was disabled
 		 */
-		if (gpio_is_valid(aic3x->gpio_reset))
+		if (gpio_is_valid(aic3x->gpio_reset)) {
 			gpio_set_value(aic3x->gpio_reset, 0);
+			ndelay(15);
+			gpio_set_value(aic3x->gpio_reset, 1);
+		}
 		regcache_mark_dirty(aic3x->regmap);
 	}
 
@@ -1829,6 +1832,9 @@ int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver
 		if (ret != 0)
 			goto err;
 		gpio_direction_output(aic3x->gpio_reset, 0);
+		/* CODEC datasheet says minimum of 10ns */
+		ndelay(15);
+		gpio_set_value(aic3x->gpio_reset, 1);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(aic3x->supplies); i++)
