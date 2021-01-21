@@ -259,6 +259,7 @@
 	eepromid@59 {
 		compatible = "atmel,24c32";
 		reg = <0x59>;
+		size = <32>;
 	};
 
 	i2c1_sn65dsi83: mipitolvds@2d {
