@@ -210,6 +210,7 @@
 		compatible = "atmel,24c32";
 		reg = <0x58>;
 		pagesize = <32>;
+		size = <32>;
 	};
 };
 
