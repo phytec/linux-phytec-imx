@@ -33,15 +33,15 @@
 };
 
 &A53_1 {
-	arm-supply = <&reg_sw5>;
+	arm-supply = <&reg_buck5>;
 };
 
 &A53_2 {
-	arm-supply = <&reg_sw5>;
+	arm-supply = <&reg_buck5>;
 };
 
 &A53_3 {
-	arm-supply = <&reg_sw5>;
+	arm-supply = <&reg_buck5>;
 };
 
 /* Ethernet */
@@ -112,74 +112,112 @@
 		reg = <0x08>;
 
 		regulators {
-			reg_ldo1: ldo1 {
+			reg_ldo1: ldo1 { /* NVCC_SD1 as usdhc1 */
 				regulator-min-microvolt = <3300000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
-			reg_ldo2: ldo2 {
+			reg_ldo2: ldo2 { /* NVCC_SD2 as usdhc2 */
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-always-on;
 				regulator-boot-on;
 				vselect-en;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
-			reg_ldo3: ldo3 {
-				regulator-min-microvolt = <1500000>;
+			reg_ldo3: ldo3 { /* VCC_ENET_2V5 */
+				regulator-always-on;
+				regulator-boot-on;
 				regulator-max-microvolt = <2500000>;
-				regulator-always-on;
-				regulator-boot-on;
+				regulator-min-microvolt = <1500000>;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
-			reg_ldo4: ldo4 {
+			reg_ldo4: ldo4 { /* PVCC, NVCC-NAND/ENET/CLK, XTAL */
 				regulator-min-microvolt = <1500000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <1500000>;
+					regulator-suspend-max-microvolt = <1500000>;
+				};
 			};
 
-			reg_buck1: buck1 {
+			reg_buck1: buck1 { /* Arm PLL supply voltage */
 				regulator-min-microvolt = <400000>;
+				regulator-max-microvolt = <950000>;
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <400000>;
+					regulator-suspend-max-microvolt = <400000>;
+				};
+			};
+
+			reg_buck2: buck2 { /* VDD_DRAM, VDD_GPU */
+				regulator-min-microvolt = <400000>;
+				regulator-max-microvolt = <1000000>;
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <400000>;
+					regulator-suspend-max-microvolt = <400000>;
+				};
+			};
+
+			reg_buck3: buck3 { /* VDD_VPU */
+				regulator-min-microvolt = <400000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
+			};
+
+			reg_buck4: buck4 { /* VDD_MIPI_0P9 */
+				regulator-min-microvolt = <855000>;
+				regulator-max-microvolt = <1050000>;
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
+			};
+
+			reg_buck5: buck5 { /* VDD_ARM */
+				regulator-min-microvolt = <400000>;
+				regulator-max-microvolt = <1050000>;
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
+			};
+
+			reg_buck6: buck6 { /* VDD_1V8 */
+				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
-			};
-
-			reg_buck2: buck2 {
-				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-always-on;
-				regulator-boot-on;
-			};
-
-			reg_buck3: buck3 {
-				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-boot-on;
-			};
-
-			reg_buck4: buck4 {
-				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-always-on;
-				regulator-boot-on;
-			};
-
-			reg_buck5: buck5 {
-				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-always-on;
-				regulator-boot-on;
-			};
-
-			reg_buck6: buck6 {
-				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-always-on;
-				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <1800000>;
+					regulator-suspend-max-microvolt = <1800000>;
+				};
 			};
 
 			reg_buck7: buck7 {
