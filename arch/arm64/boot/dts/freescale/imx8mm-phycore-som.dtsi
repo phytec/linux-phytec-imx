@@ -29,7 +29,7 @@
 };
 
 &A53_0 {
-	arm-supply = <&reg_sw5>;
+	arm-supply = <&reg_buck5>;
 };
 
 &A53_1 {
@@ -108,7 +108,7 @@
 	status = "okay";
 
 	pmic@8 {
-		compatible = "nxp,pf8x00";
+		compatible = "nxp,pf8121a";
 		reg = <0x08>;
 
 		regulators {
@@ -141,48 +141,48 @@
 				regulator-boot-on;
 			};
 
-			reg_sw1: sw1 {
+			reg_buck1: buck1 {
 				regulator-min-microvolt = <400000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
 			};
 
-			reg_sw2: sw2 {
+			reg_buck2: buck2 {
 				regulator-min-microvolt = <400000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
 			};
 
-			reg_sw3: sw3 {
+			reg_buck3: buck3 {
 				regulator-min-microvolt = <400000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-boot-on;
 			};
 
-			reg_sw4: sw4 {
-				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-always-on;
-				regulator-boot-on;
-			};
-
-			reg_sw5: sw5 {
+			reg_buck4: buck4 {
 				regulator-min-microvolt = <400000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
 			};
 
-			reg_sw6: sw6 {
+			reg_buck5: buck5 {
 				regulator-min-microvolt = <400000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
 			};
 
-			reg_sw7: sw7 {
+			reg_buck6: buck6 {
+				regulator-min-microvolt = <400000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-always-on;
+				regulator-boot-on;
+			};
+
+			reg_buck7: buck7 {
 				regulator-min-microvolt = <1000000>;
 				regulator-max-microvolt = <4100000>;
 				regulator-always-on;
@@ -261,7 +261,7 @@
 
 /* VPU */
 &vpumix_pd {
-	power-supply = <&reg_sw3>;
+	power-supply = <&reg_buck3>;
 };
 
 &vpu_g1 {
