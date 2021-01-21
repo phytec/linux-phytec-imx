@@ -154,7 +154,7 @@ static const unsigned int pf8x00_sw_current_table[] = {
 
 /* Output: 0.4V to 1.8V */
 #define PF8XOO_SW1_6_VOLTAGE_NUM 0xB2
-static const struct linear_range pf8x00_sw1_to_6_voltages[] = {
+static const struct regulator_linear_range pf8x00_sw1_to_6_voltages[] = {
 	REGULATOR_LINEAR_RANGE(400000, 0x00, 0xB0, 6250),
 	REGULATOR_LINEAR_RANGE(1800000, 0xB1, 0xB1, 0),
 };
