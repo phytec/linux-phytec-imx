@@ -2424,11 +2424,13 @@ out:
 	return ret;
 }
 
-static int ar0144_parse_par_ep(struct device *dev, struct ar0144 *sensor,
-			       struct device_node *ep)
+static int ar0144_parse_par_ep(struct ar0144 *sensor, struct device_node *ep)
 {
-	struct v4l2_fwnode_endpoint endpoint;
+	struct device *dev = sensor->dev;
 	struct fwnode_handle *fwnode;
+	struct v4l2_fwnode_endpoint endpoint = {
+		.bus_type = V4L2_MBUS_PARALLEL
+	};
 	int ret;
 	int32_t tmp;
 
@@ -2436,7 +2438,6 @@ static int ar0144_parse_par_ep(struct device *dev, struct ar0144 *sensor,
 	if (!ep)
 		return 0;
 
-	endpoint.bus_type = V4L2_MBUS_PARALLEL;
 	fwnode = of_fwnode_handle(ep);
 
 	ret = v4l2_fwnode_endpoint_alloc_parse(fwnode, &endpoint);
@@ -2461,11 +2462,13 @@ static int ar0144_parse_par_ep(struct device *dev, struct ar0144 *sensor,
 	return 0;
 }
 
-static int ar0144_parse_mipi_ep(struct device *dev, struct ar0144 *sensor,
-			       struct device_node *ep)
+static int ar0144_parse_mipi_ep(struct ar0144 *sensor, struct device_node *ep)
 {
-	struct v4l2_fwnode_endpoint endpoint;
+	struct device *dev = sensor->dev;
 	struct fwnode_handle *fwnode;
+	struct v4l2_fwnode_endpoint endpoint = {
+		.bus_type = V4L2_MBUS_CSI2_DPHY
+	};
 	int ret;
 	unsigned int tmp;
 
@@ -2473,7 +2476,6 @@ static int ar0144_parse_mipi_ep(struct device *dev, struct ar0144 *sensor,
 	if (!ep)
 		return 0;
 
-	endpoint.bus_type = V4L2_MBUS_CSI2_DPHY;
 	fwnode = of_fwnode_handle(ep);
 
 	ret = v4l2_fwnode_endpoint_alloc_parse(fwnode, &endpoint);
@@ -2596,11 +2598,11 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 	else
 		sensor->active_bus = AR0144_BUS_UNKNOWN;
 
-	ret = ar0144_parse_par_ep(dev, sensor, par_ep);
+	ret = ar0144_parse_par_ep(sensor, par_ep);
 	if (ret)
 		goto out;
 
-	ret = ar0144_parse_mipi_ep(dev, sensor, mipi_ep);
+	ret = ar0144_parse_mipi_ep(sensor, mipi_ep);
 
 out:
 	of_node_put(par_ep);
