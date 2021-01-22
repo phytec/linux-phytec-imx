@@ -231,8 +231,16 @@ enum {
 	V4L2_CID_X_DIGITAL_GAIN_BLUE,
 	V4L2_CID_X_DIGITAL_GAIN_GREENB,
 
+	V4L2_CID_X_EMBEDDED_DATA,
 	V4L2_CID_X_BLACK_LEVEL_AUTO,
 	V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION,
+};
+
+enum {
+	V4L2_X_EMBEDDED_OFF,
+	V4L2_X_EMBEDDED_STAT,
+	V4L2_X_EMBEDDED_DATA,
+	V4L2_X_EMBEDDED_BOTH,
 };
 
 enum ar0144_model {
@@ -411,6 +419,8 @@ struct ar0144 {
 	unsigned int h_scale;
 	unsigned int vblank;
 	unsigned int hblank;
+	bool embedded_data;
+	bool embedded_stat;
 
 	struct ar0144_parallel_businfo pinfo;
 	struct ar0144_mipi_businfo minfo;
@@ -1006,6 +1016,12 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 		goto out;
 
 	y_end = sensor->crop.top + height - 1;
+
+	if (sensor->embedded_stat)
+		y_end -= 2;
+	if (sensor->embedded_data)
+		y_end -= 2;
+
 	ret = ar0144_write(sensor, AR0144_Y_ADRR_END, y_end);
 	if (ret)
 		goto out;
@@ -1864,6 +1880,31 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 					 AR0144_FLD_MIN_ANA_GAIN_MASK, val);
 		break;
 
+	case V4L2_CID_X_EMBEDDED_DATA:
+		if (sensor->is_streaming) {
+			ret = -EBUSY;
+			goto out;
+		}
+
+		/*
+		 * Embedded statistics are always enabled but only shown when
+		 * when the corresponding ctrl is set.
+		 */
+		val = ctrl->val & V4L2_X_EMBEDDED_DATA ?
+		       AR0144_FLD_EMBEDDED_DATA : 0;
+		ret = ar0144_update_bits(sensor, AR0144_SMIA_TEST,
+					 AR0144_FLD_EMBEDDED_DATA, val);
+
+		if (ret)
+			goto out;
+
+		sensor->embedded_stat = ctrl->val & V4L2_X_EMBEDDED_STAT ?
+					true : false;
+		sensor->embedded_data = ctrl->val & V4L2_X_EMBEDDED_DATA ?
+					true : false;
+
+		break;
+
 	case V4L2_CID_TEST_PATTERN:
 		ret = ar0144_write(sensor, AR0144_TEST_PATTERN,
 				   ctrl->val < 4 ? ctrl->val : 256);
@@ -1984,6 +2025,13 @@ static const char * const ar0144_test_pattern_menu[] = {
 	"color bar",
 	"fade to gray",
 	"walking 1 (12 bit)"
+};
+
+static char const * const ar0144_embdata_menu[] = {
+	"disabled",
+	"stats",
+	"data",
+	"both",
 };
 
 static const char * const ar0144_binning_menu[] = {
@@ -2156,6 +2204,16 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.qmenu		= ar0144_test_pattern_menu,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
+		.id		= V4L2_CID_X_EMBEDDED_DATA,
+		.type		= V4L2_CTRL_TYPE_MENU,
+		.flags		= V4L2_CTRL_FLAG_MODIFY_LAYOUT,
+		.name		= "embedded data",
+		.min		= V4L2_X_EMBEDDED_OFF,
+		.max		= ARRAY_SIZE(ar0144_embdata_menu) - 1,
+		.def		= V4L2_X_EMBEDDED_OFF,
+		.qmenu		= ar0144_embdata_menu,
+	}, {
+		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_X_BINNING_COL,
 		.type		= V4L2_CTRL_TYPE_MENU,
 		.name		= "col binning",
@@ -2294,6 +2352,12 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		case V4L2_CID_X_DIGITAL_GAIN_BLUE:
 		case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 			if (sensor->model == AR0144_MODEL_MONOCHROME)
+				continue;
+
+			break;
+
+		case V4L2_CID_X_EMBEDDED_DATA:
+			if (sensor->active_bus == AR0144_BUS_MIPI)
 				continue;
 
 			break;
