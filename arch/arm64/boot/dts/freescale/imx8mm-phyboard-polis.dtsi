@@ -151,6 +151,7 @@
 	#size-cells = <0>;
 
 	phy-supply = <&reg_mipi_1p0>;
+	clock-frequency = <500000000>;
 
 	port@0 {
 		reg = <0>;
