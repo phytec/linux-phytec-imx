@@ -224,6 +224,7 @@ enum {
 
 	V4L2_CID_X_BINNING_ROW,
 	V4L2_CID_X_BINNING_COL,
+	V4L2_CID_X_COMPANDING,
 
 	V4L2_CID_X_DIGITAL_GAIN_RED,
 	V4L2_CID_X_DIGITAL_GAIN_GREENR,
@@ -1884,6 +1885,12 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 					 AR0144_FLD_RM_ROW_BIN : 0);
 		break;
 
+	case V4L2_CID_X_COMPANDING:
+		ret = ar0144_update_bits(sensor, AR0144_COMPANDING,
+					 AR0144_FLD_COMPAND_EN,
+					 ctrl->val ? AR0144_FLD_COMPAND_EN : 0);
+		break;
+
 	case V4L2_CID_DIGITAL_GAIN:
 	case V4L2_CID_X_DIGITAL_GAIN_RED:
 	case V4L2_CID_X_DIGITAL_GAIN_GREENR:
@@ -2149,6 +2156,15 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		/* filter out 'sum' from the menu by omitting last entry */
 		.max		= ARRAY_SIZE(ar0144_binning_menu) - 2,
 		.qmenu		= ar0144_binning_menu,
+	}, {
+		.ops		= &ar0144_ctrl_ops,
+		.id		= V4L2_CID_X_COMPANDING,
+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+		.name		= "compading",
+		.min		= 0,
+		.max		= 1,
+		.step		= 1,
+		.def		= 0,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_ANALOGUE_GAIN,
