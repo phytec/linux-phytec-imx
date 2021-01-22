@@ -206,6 +206,32 @@ static void imx7_csi_reg_write(struct imx7_csi *csi, unsigned int value,
 	writel(value, csi->regbase + offset);
 }
 
+static int imx7_csi_dump_regs(struct imx7_csi *csi)
+{
+	unsigned int i;
+	u32 cfg;
+	struct {
+		u32 offset;
+		const char * const name;
+	} registers[] = {
+		{ CSI_CSICR1, "CSICR1" },
+		{ CSI_CSICR2, "CSICR2" },
+		{ CSI_CSICR3, "CSICR3" },
+		{ CSI_CSIFBUF_PARA, "CSIFBUF_PARA" },
+		{ CSI_CSIIMAG_PARA, "CSIIMAG_PARA" },
+		{ CSI_CSICR18, "CSICR18" },
+	};
+
+	dev_dbg(csi->dev, "--- REGISTERS ---\n");
+
+	for (i = 0; i < ARRAY_SIZE(registers); i++) {
+		cfg = imx7_csi_reg_read(csi, registers[i].offset);
+		dev_dbg(csi->dev, "%12s: 0x%08x\n", registers[i].name, cfg);
+	}
+
+	return 0;
+}
+
 static void imx7_csi_hw_reset(struct imx7_csi *csi)
 {
 	imx7_csi_reg_write(csi,
@@ -901,6 +927,8 @@ static int imx7_csi_streaming_start(struct imx7_csi *csi)
 		goto dma_stop;
 
 	imx7_csi_enable(csi);
+
+	imx7_csi_dump_regs(csi);
 
 	return 0;
 
