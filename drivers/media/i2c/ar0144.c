@@ -360,7 +360,6 @@ struct ar0144_sensor_limits {
 
 struct ar0144_parallel_businfo {
 	unsigned long link_freq;
-	unsigned int bus_width;
 	unsigned int slew_rate_dat;
 	unsigned int slew_rate_clk;
 };
@@ -1060,8 +1059,8 @@ static int ar0144_config_parallel(struct ar0144 *sensor)
 			return ret;
 	}
 
-	val = sensor->pinfo.bus_width << AR0144_FLD_DATA_FMT_IN_SHIFT;
-	val |= sensor->pinfo.bus_width << AR0144_FLD_DATA_FMT_OUT_SHIFT;
+	val = sensor->bpp << AR0144_FLD_DATA_FMT_IN_SHIFT;
+	val |= sensor->bpp << AR0144_FLD_DATA_FMT_OUT_SHIFT;
 	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS, val);
 	if (ret)
 		return ret;
@@ -2444,16 +2443,6 @@ static int ar0144_parse_par_ep(struct device *dev, struct ar0144 *sensor,
 	if (ret) {
 		dev_err(dev, "Failed to parse parallel endpoint (%d)\n", ret);
 		return ret;
-	}
-
-	sensor->pinfo.bus_width = endpoint.bus.parallel.bus_width;
-
-	if (sensor->pinfo.bus_width != 8 &&
-	    sensor->pinfo.bus_width != 10 &&
-	    sensor->pinfo.bus_width != 12) {
-		dev_err(dev, "Unsupported parallel bus width: %d\n",
-			sensor->pinfo.bus_width);
-		return -EINVAL;
 	}
 
 	if (endpoint.nr_of_link_frequencies > 0)
