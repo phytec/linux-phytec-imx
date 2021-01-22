@@ -58,8 +58,18 @@
 		gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
 		startup-delay-us = <20>;
 	};
-};
 
+	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usbotg1pwrgrp>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg1_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+};
 
 /* CAN mcp251xfd */
 &ecspi1 {
@@ -108,14 +118,6 @@
 	status = "okay";
 };
 
-/* USB */
-&usbotg1 {
-	dr_mode = "host";
-	picophy,pre-emp-curr-control = <3>;
-	picophy,dc-vol-level-adjust = <7>;
-	status = "okay";
-};
-
 /* UART - RS485 */
 &uart1 {
 	pinctrl-names = "default";
@@ -153,6 +155,18 @@
 	pinctrl-0 = <&pinctrl_uart3>;
 	assigned-clocks = <&clk IMX8MN_CLK_UART3>;
 	assigned-clock-parents = <&clk IMX8MN_SYS_PLL1_80M>;
+	status = "okay";
+};
+
+/* USB */
+&usbotg1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usbotg1grp>;
+	vbus-supply = <&reg_usb_otg1_vbus>;
+	dr_mode = "otg";
+	over-current-active-low;
+	picophy,pre-emp-curr-control = <3>;
+	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";
 };
 
@@ -275,6 +289,17 @@
 		>;
 	};
 
+	pinctrl_usbotg1pwrgrp: usbotg1pwrgrp {
+		fsl,pins = <
+			MX8MN_IOMUXC_GPIO1_IO12_GPIO1_IO12      0x00
+		>;
+	};
+
+	pinctrl_usbotg1grp: usbotg1grp {
+		fsl,pins = <
+			MX8MN_IOMUXC_GPIO1_IO13_USB1_OTG_OC     0x80
+		>;
+	};
 
 	pinctrl_usdhc1: usdhc1grp {
 		fsl,pins = <
