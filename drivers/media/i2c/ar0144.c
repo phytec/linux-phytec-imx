@@ -624,7 +624,16 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 		ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
 					 AR0144_FLD_SMIA_SER_DIS,
 					 AR0144_FLD_SMIA_SER_DIS);
+		if (ret)
+			return ret;
 	}
+
+	/* In MIPI mode the sensor might be in LP-11 test mode so make sure
+	 * to disable it.
+	 */
+	if (sensor->active_bus == AR0144_BUS_MIPI)
+		ret = ar0144_update_bits(sensor, AR0144_SER_CTRL_STAT,
+					 AR0144_FLD_FRAMER_TEST_MODE, 0);
 
 	return ret;
 }
@@ -637,12 +646,6 @@ static int ar0144_mipi_enter_lp11(struct ar0144 *sensor)
 	ret = ar0144_read(sensor, AR0144_SER_CTRL_STAT, &val);
 	if (ret)
 		return ret;
-
-	/* If test mode is already active skip enabling it
-	 * again.
-	 */
-	if (val & AR0144_FLD_FRAMER_TEST_MODE)
-		return 0;
 
 	val = AR0144_FLD_TEST_MODE_LP11 << AR0144_FLD_TEST_MODE_SHIFT |
 	      AR0144_FLD_TEST_LANE_0 << AR0144_FLD_TEST_LANE_EN_SHIFT;
@@ -1223,12 +1226,6 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 	 */
 	if (sensor->active_bus == AR0144_BUS_MIPI) {
 		ret = ar0144_enter_standby(sensor);
-		if (ret)
-			return ret;
-
-
-		ret = ar0144_update_bits(sensor, AR0144_SER_CTRL_STAT,
-					 AR0144_FLD_FRAMER_TEST_MODE, 0);
 		if (ret)
 			return ret;
 	}
