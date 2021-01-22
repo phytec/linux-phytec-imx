@@ -826,7 +826,7 @@ static int imx7_csi_configure(struct imx7_csi *csi)
 	cr3 = imx7_csi_reg_read(csi, CSI_CSICR3);
 	cr3 &= ~BIT_TWO_8BIT_SENSOR;
 
-	cr18 &= BIT_MIPI_DATA_FORMAT_MASK;
+	cr18 &= ~BIT_MIPI_DATA_FORMAT_MASK;
 	cr18 |= BIT_DATA_FROM_MIPI;
 
 	switch (out_pix->pixelformat) {
