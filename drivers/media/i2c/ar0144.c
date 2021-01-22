@@ -359,7 +359,6 @@ struct ar0144_sensor_limits {
 };
 
 struct ar0144_parallel_businfo {
-	enum v4l2_mbus_type mbus_type;
 	unsigned long link_freq;
 	unsigned int bus_width;
 	unsigned int slew_rate_dat;
@@ -367,7 +366,6 @@ struct ar0144_parallel_businfo {
 };
 
 struct ar0144_mipi_businfo {
-	enum v4l2_mbus_type mbus_type;
 	unsigned int num_lanes;
 
 	u16 t_hs_prep;
@@ -2448,7 +2446,6 @@ static int ar0144_parse_par_ep(struct device *dev, struct ar0144 *sensor,
 		return ret;
 	}
 
-	sensor->pinfo.mbus_type = endpoint.bus_type;
 	sensor->pinfo.bus_width = endpoint.bus.parallel.bus_width;
 
 	if (sensor->pinfo.bus_width != 8 &&
@@ -2496,7 +2493,6 @@ static int ar0144_parse_mipi_ep(struct device *dev, struct ar0144 *sensor,
 		return ret;
 	}
 
-	sensor->minfo.mbus_type = endpoint.bus_type;
 	sensor->minfo.num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
 	if (sensor->minfo.num_lanes < 1 || sensor->minfo.num_lanes > 2) {
 		dev_err(dev, "Wrong number of lanes configured");
