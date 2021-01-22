@@ -433,6 +433,7 @@ struct ar0144 {
 
 	struct mutex lock;
 
+	int power_user;
 	bool is_streaming;
 };
 
@@ -729,6 +730,11 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 	}
 
 	if (on) {
+		if (sensor->power_user > 0) {
+			sensor->power_user++;
+			goto out;
+		}
+
 		ret = ar0144_power_on(sensor);
 		if (ret)
 			goto out;
@@ -760,8 +766,19 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 			}
 		}
 
+		sensor->power_user++;
+
 	} else {
-		ar0144_power_off(sensor);
+		sensor->power_user--;
+		if (sensor->power_user < 0) {
+			dev_err(sd->dev, "More s_power OFF than ON\n");
+			ret = -EINVAL;
+			goto out;
+		}
+
+		if (sensor->power_user == 0) {
+			ar0144_power_off(sensor);
+		}
 	}
 
 out:
