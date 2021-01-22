@@ -67,6 +67,13 @@
 		startup-delay-us = <20>;
 	};
 
+	reg_mipi_1p0: regulator-mipi-1p0 {
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_1p0";
+		regulator-min-microvolt = <1000000>;
+		regulator-max-microvolt = <1000000>;
+	};
+
 	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_usbotg1pwrgrp>;
@@ -76,6 +83,14 @@
 		regulator-max-microvolt = <5000000>;
 		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
+	};
+};
+
+&csi1_bridge {
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&mipi_csi_ep>;
+		};
 	};
 };
 
@@ -119,6 +134,28 @@
 		spi-max-frequency = <38000000>;
 		interrupt-parent = <&gpio2>;
 		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	phy-supply = <&reg_mipi_1p0>;
+
+	port@0 {
+		reg = <0>;
+
+		mipi_csi_sensor_ep: endpoint {
+		};
+	};
+
+	port@1 {
+		reg = <1>;
+
+		mipi_csi_ep: endpoint {
+			remote-endpoint = <&csi1_ep>;
+		};
 	};
 };
 
