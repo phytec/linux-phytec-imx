@@ -764,7 +764,7 @@ static int imx7_csi_configure(struct imx7_csi *csi)
 	struct imx_media_video_dev *vdev = csi->vdev;
 	struct v4l2_pix_format *out_pix = &vdev->fmt.fmt.pix;
 	__u32 in_code = csi->format_mbus[IMX7_CSI_PAD_SINK].code;
-	u32 cr1, cr18;
+	u32 cr1, cr3, cr18;
 	int width = out_pix->width;
 
 	if (out_pix->field == V4L2_FIELD_INTERLACED) {
@@ -795,6 +795,10 @@ static int imx7_csi_configure(struct imx7_csi *csi)
 
 	cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
 	cr1 &= ~BIT_GCLK_MODE;
+	cr1 &= ~BIT_PIXEL_BIT;
+
+	cr3 = imx7_csi_reg_read(csi, CSI_CSICR3);
+	cr3 &= ~BIT_TWO_8BIT_SENSOR;
 
 	cr18 &= BIT_MIPI_DATA_FORMAT_MASK;
 	cr18 |= BIT_DATA_FROM_MIPI;
@@ -812,31 +816,53 @@ static int imx7_csi_configure(struct imx7_csi *csi)
 		else
 			cr18 |= BIT_MIPI_DATA_FORMAT_RAW12;
 		break;
+	case V4L2_PIX_FMT_SGRBG8:
+	case V4L2_PIX_FMT_SRGGB8:
+	case V4L2_PIX_FMT_SGBRG8:
+	case V4L2_PIX_FMT_SBGGR8:
+		cr18 |= BIT_MIPI_DATA_FORMAT_RAW8;
+		break;
 	case V4L2_PIX_FMT_Y10:
 		cr18 |= BIT_MIPI_DATA_FORMAT_RAW10;
 		cr1 |= BIT_PIXEL_BIT;
 		break;
 	case V4L2_PIX_FMT_Y12:
 		cr18 |= BIT_MIPI_DATA_FORMAT_RAW12;
-		cr1 |= BIT_PIXEL_BIT;
+		cr3 |= BIT_TWO_8BIT_SENSOR;
 		break;
-	case V4L2_PIX_FMT_SBGGR8:
-		cr18 |= BIT_MIPI_DATA_FORMAT_RAW8;
-		break;
+	case V4L2_PIX_FMT_Y16:
+	case V4L2_PIX_FMT_SGRBG16:
+	case V4L2_PIX_FMT_SRGGB16:
+	case V4L2_PIX_FMT_SGBRG16:
 	case V4L2_PIX_FMT_SBGGR16:
-		if (in_code == MEDIA_BUS_FMT_SBGGR10_1X10)
+		if ((in_code == MEDIA_BUS_FMT_SGRBG10_1X10) |
+		    (in_code == MEDIA_BUS_FMT_SRGGB10_1X10) |
+		    (in_code == MEDIA_BUS_FMT_SGBRG10_1X10) |
+		    (in_code == MEDIA_BUS_FMT_SBGGR10_1X10) |
+		    (in_code == MEDIA_BUS_FMT_Y10_1X10)) {
 			cr18 |= BIT_MIPI_DATA_FORMAT_RAW10;
-		else if (in_code == MEDIA_BUS_FMT_SBGGR12_1X12)
+			cr1 |= BIT_PIXEL_BIT;
+		} else if ((in_code == MEDIA_BUS_FMT_SGRBG12_1X12) |
+			   (in_code == MEDIA_BUS_FMT_SRGGB12_1X12) |
+			   (in_code == MEDIA_BUS_FMT_SGBRG12_1X12) |
+			   (in_code == MEDIA_BUS_FMT_SBGGR12_1X12) |
+			   (in_code == MEDIA_BUS_FMT_Y12_1X12)) {
 			cr18 |= BIT_MIPI_DATA_FORMAT_RAW12;
-		else if (in_code == MEDIA_BUS_FMT_SBGGR14_1X14)
+			cr3 |= BIT_TWO_8BIT_SENSOR;
+		} else if ((in_code == MEDIA_BUS_FMT_SGRBG14_1X14) |
+			   (in_code == MEDIA_BUS_FMT_SRGGB14_1X14) |
+			   (in_code == MEDIA_BUS_FMT_SGBRG14_1X14) |
+			   (in_code == MEDIA_BUS_FMT_SBGGR14_1X14)) {
 			cr18 |= BIT_MIPI_DATA_FORMAT_RAW14;
-		cr1 |= BIT_PIXEL_BIT;
+			cr3 |= BIT_TWO_8BIT_SENSOR;
+		}
 		break;
 	default:
 		return -EINVAL;
 	}
 
 	imx7_csi_reg_write(csi, cr1, CSI_CSICR1);
+	imx7_csi_reg_write(csi, cr3, CSI_CSICR3);
 	imx7_csi_reg_write(csi, cr18, CSI_CSICR18);
 
 	return 0;
