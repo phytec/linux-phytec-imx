@@ -185,6 +185,7 @@
 	pinctrl-0 = <&pinctrl_usbotg1grp>;
 	vbus-supply = <&reg_usb_otg1_vbus>;
 	dr_mode = "otg";
+	over-current-active-low;
 	picophy,pre-emp-curr-control = <3>;
 	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";
