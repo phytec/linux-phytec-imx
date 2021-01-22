@@ -14,7 +14,7 @@
 / {
 	model = "PHYTEC phyBOARD-Polis-i.MX8MM RDK";
 	compatible = "phytec,imx8mm-phyboard-polis",
-		     "phytec,i.mx8mm-phycore-som","fsl,imx8mm";
+		     "phytec,imx8mm-phycore-som","fsl,imx8mm";
 };
 
 &i2c1_sn65dsi83 {
