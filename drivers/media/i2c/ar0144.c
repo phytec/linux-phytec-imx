@@ -780,6 +780,7 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 		}
 
 		if (sensor->power_user == 0) {
+			ar0144_enter_standby(sensor);
 			ar0144_power_off(sensor);
 		}
 	}
