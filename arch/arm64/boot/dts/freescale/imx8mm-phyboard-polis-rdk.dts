@@ -24,3 +24,7 @@
 &flash0 {
 	status = "okay";
 };
+
+&sai5 {
+	status = "disabled";
+};
