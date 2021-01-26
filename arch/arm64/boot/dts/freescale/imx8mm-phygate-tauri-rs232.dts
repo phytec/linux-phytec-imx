@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+* Copyright (C) 2021 PHYTEC Messtechnik GmbH
+* Author: Jens Lang <j.lang@phytec.de>
+*/
+
+/dts-v1/;
+#include "imx8mm-phygate-tauri.dtsi"
+
+/ {
+	model = "PHYTEC phyGATE-Tauri-imx8mm RS232 Handshake";
+	compatible = "phytec,imx8mm-phyboard-tauri",
+		     "phytec,imx8mm-phycore-som","fsl,imx8mm";
+
+};
+
+/* UART2-FULL * RS232  */
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	assigned-clocks = <&clk IMX8MM_CLK_UART2>;
+	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
+	uart-has-rtscts;
+	status = "okay";
+};
+
+&iomuxc {
+
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_UART2_RXD_UART2_DCE_RX	0x00
+			MX8MM_IOMUXC_UART2_TXD_UART2_DCE_TX	0x00
+
+			MX8MM_IOMUXC_UART4_RXD_UART2_DCE_CTS_B	0x00
+			MX8MM_IOMUXC_UART4_TXD_UART2_DCE_RTS_B	0x00
+		>;
+	};
+};
