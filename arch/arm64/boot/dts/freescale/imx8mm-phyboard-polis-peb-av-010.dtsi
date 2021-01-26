@@ -62,12 +62,13 @@
 			"MIC3R", "Microphone Jack",
 			"Microphone Jack", "Mic Bias";
 
-		dailink_master: simple-audio-card,cpu {
+		simple-audio-card,cpu {
 			sound-dai = <&sai5>;
 		};
 
-		simple-audio-card,codec {
+		dailink_master: simple-audio-card,codec {
 			sound-dai = <&codec>;
+			clocks = <&clk IMX8MM_CLK_SAI5>;
 		};
 	};
 };
@@ -137,14 +138,15 @@
 
 &sai5 {
 	assigned-clocks = <&clk IMX8MM_CLK_SAI5>;
-	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <49152000>;
+	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL2_OUT>;
+	assigned-clock-rates = <11289600>;
 	clocks = <&clk IMX8MM_CLK_SAI5_IPG>, <&clk IMX8MM_CLK_DUMMY>,
 		<&clk IMX8MM_CLK_SAI5_ROOT>, <&clk IMX8MM_CLK_DUMMY>,
 		<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_AUDIO_PLL1_OUT>,
 		<&clk IMX8MM_AUDIO_PLL2_OUT>;
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k",
 			"pll11k";
+	fsl,sai-mclk-direction-output;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai5>;
 	#sound-dai-cells = <0>;
