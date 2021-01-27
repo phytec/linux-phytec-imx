@@ -14,6 +14,19 @@
 		stdout-path = &uart3;
 	};
 
+	clocks {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		can_osc_20m: can-clock@0 {
+			compatible = "fixed-clock";
+			reg = <0>;
+			#clock-cells = <0>;
+			clock-frequency = <20000000>;
+			clock-output-names = "can_osc_20m";
+		};
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
@@ -44,15 +57,11 @@
 		};
 	};
 
-	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_usbotg1pwrgrp>;
-		compatible = "regulator-fixed";
-		regulator-name = "usb_otg1_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
+	usdhc1_pwrseq: pwr_seq {
+		compatible = "mmc-pwrseq-simple";
+		reset-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
+		post-power-on-delay-ms = <100>;
+		power-off-delay-us = <60>;
 	};
 
 	reg_usb_hub_vbus: regulator-hub-otg1-vbus {
@@ -67,56 +76,44 @@
 		regulator-always-on;
 	};
 
-	clocks {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		can_osc_20m: can-clock@0 {
-			compatible = "fixed-clock";
-			reg = <0>;
-			#clock-cells = <0>;
-			clock-frequency = <20000000>;
-			clock-output-names = "can_osc_20m";
-		};
-	};
-
-	usdhc1_pwrseq: pwr_seq {
-		compatible = "mmc-pwrseq-simple";
-		reset-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
-		post-power-on-delay-ms = <100>;
-		power-off-delay-us = <60>;
+	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usbotg1pwrgrp>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg1_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
 	};
 };
 
-/* CAN mcp2517fd */
+/* CAN mcp251xfd */
 &ecspi1 {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	pinctrl-names = "default";
-	fsl,spi-num-chipselects = <3>;
 	pinctrl-0 = <&pinctrl_ecspi1 &pinctrl_ecspi1_cs>;
 	cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>, <&gpio5 13 GPIO_ACTIVE_LOW>, <&gpio5 2 GPIO_ACTIVE_LOW>;
+	fsl,spi-num-chipselects = <3>;
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
-
-	assigned-clocks = <&clk IMX8MM_CLK_ECSPI1_ROOT>;
-	assigned-clock-rates = <18181819>;
 
 	can0: can@0 {
 		compatible = "microchip,mcp251xfd";
 		reg = <0>;
-		spi-max-frequency = <10000000>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_can_int>;
+		spi-max-frequency = <10000000>;
 		interrupt-parent = <&gpio1>;
 		interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&can_osc_20m>;
 	};
 
 	tpm: tpm_tis@1 {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tpm>;
 		compatible = "tcg,tpm_tis-spi";
 		reg = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tpm>;
 		spi-max-frequency = <38000000>;
 		interrupt-parent = <&gpio2>;
 		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
@@ -124,8 +121,8 @@
 
 	spidev: spi@2 {
 		compatible = "linux,spidev";
-		spi-max-frequency = <38000000>;
 		reg = <2>;
+		spi-max-frequency = <38000000>;
 	};
 };
 
@@ -135,7 +132,7 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	temp_sense0: tmp102@49 {
+	temp_sense0: temp@49 {
 		compatible = "ti,tmp102";
 		reg = <0x49>;
 		pinctrl-names = "default";
@@ -191,6 +188,23 @@
 	status = "okay";
 };
 
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	assigned-clocks = <&clk IMX8MM_CLK_UART1>;
+	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
+	status = "okay";
+};
+
+/* UART console */
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+	assigned-clocks = <&clk IMX8MM_CLK_UART3>;
+	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
+	status = "okay";
+};
+
 /* USB */
 &usbotg1 {
 	pinctrl-names = "default";
@@ -209,23 +223,6 @@
 	status = "okay";
 };
 
-&uart1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart1>;
-	assigned-clocks = <&clk IMX8MM_CLK_UART1>;
-	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
-	status = "okay";
-};
-
-/* UART console */
-&uart3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart3>;
-	assigned-clocks = <&clk IMX8MM_CLK_UART3>;
-	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
-	status = "okay";
-};
-
 /* SD-Card */
 &usdhc2 {
 	vqmmc-supply = <&reg_ldo2>;
@@ -239,20 +236,6 @@
 };
 
 &iomuxc {
-
-	pinctrl_leds: leds1grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SAI3_RXD_GPIO4_IO30	0x00
-			MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x00
-		>;
-	};
-
-	pinctrl_gpiokeys: keygrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x00
-		>;
-	};
-
 	pinctrl_can_int: can-intgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x00
@@ -271,7 +254,7 @@
 		fsl,pins = <
 			MX8MM_IOMUXC_ECSPI1_SS0_GPIO5_IO9	0x00
 			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x00
-			 MX8MM_IOMUXC_SAI3_MCLK_GPIO5_IO2	0x00
+			MX8MM_IOMUXC_SAI3_MCLK_GPIO5_IO2	0x00
 		>;
 	};
 
@@ -293,6 +276,19 @@
 		fsl,pins = <
 			MX8MM_IOMUXC_I2C4_SCL_I2C4_SCL	0x400001c3
 			MX8MM_IOMUXC_I2C4_SDA_I2C4_SDA	0x400001c3
+		>;
+	};
+
+	pinctrl_gpiokeys: keygrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x00
+		>;
+	};
+
+	pinctrl_leds: leds1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_RXD_GPIO4_IO30	0x00
+			MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x00
 		>;
 	};
 
@@ -335,6 +331,20 @@
 		>;
 	};
 
+	pinctrl_uart1: uart1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_UART1_TXD_UART1_DCE_TX	0x00
+			MX8MM_IOMUXC_UART1_RXD_UART1_DCE_RX	0x00
+		>;
+	};
+
+	pinctrl_uart3: uart3grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_UART3_RXD_UART3_DCE_RX	0x49
+			MX8MM_IOMUXC_UART3_TXD_UART3_DCE_TX	0x49
+		>;
+	};
+
 	pinctrl_usbotg1pwrgrp: usbotg1pwrgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x00
@@ -350,20 +360,6 @@
 	pinctrl_usbotg1grp: usbotg1grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO13_USB1_OTG_OC	0x80
-		>;
-	};
-
-	pinctrl_uart1: uart1grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_UART1_TXD_UART1_DCE_TX	0x00
-			MX8MM_IOMUXC_UART1_RXD_UART1_DCE_RX	0x00
-		>;
-	};
-
-	pinctrl_uart3: uart3grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_UART3_RXD_UART3_DCE_RX	0x49
-			MX8MM_IOMUXC_UART3_TXD_UART3_DCE_TX	0x49
 		>;
 	};
 
