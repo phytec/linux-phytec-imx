@@ -134,10 +134,10 @@
 			};
 
 			reg_ldo3: ldo3 { /* VCC_ENET_2V5 */
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <2500000>;
 				regulator-always-on;
 				regulator-boot-on;
-				regulator-max-microvolt = <2500000>;
-				regulator-min-microvolt = <1500000>;
 				regulator-state-mem {
 					regulator-off-in-suspend;
 				};
