@@ -107,7 +107,7 @@
 	scl-gpios = <&gpio5 14 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	status = "okay";
 
-	pf8100@8 {
+	pmic@8 {
 		compatible = "nxp,pf8121a";
 		reg = <0x08>;
 
