@@ -117,6 +117,9 @@
 				regulator-max-microvolt = <3300000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+				};
 			};
 
 			reg_ldo2: ldo2 {
@@ -125,6 +128,9 @@
 				regulator-always-on;
 				regulator-boot-on;
 				vselect-en;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
 			reg_ldo3: ldo3 {
@@ -132,6 +138,9 @@
 				regulator-max-microvolt = <2500000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
 			reg_ldo4: ldo4 {
@@ -139,6 +148,11 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <1500000>;
+					regulator-suspend-max-microvolt = <1500000>;
+				};
 			};
 
 			reg_buck1: buck1 {
@@ -146,6 +160,11 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <400000>;
+					regulator-suspend-max-microvolt = <400000>;
+				};
 			};
 
 
@@ -154,11 +173,19 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <400000>;
+					regulator-suspend-max-microvolt = <400000>;
+				};
 			};
 
 			reg_buck3: buck3 {
 				regulator-min-microvolt = <400000>;
 				regulator-max-microvolt = <1800000>;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
 			reg_buck4: buck4 {
@@ -166,6 +193,9 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
 			reg_buck5: buck5 {
@@ -173,6 +203,9 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-off-in-suspend;
+				};
 			};
 
 			reg_buck6: buck6 {
@@ -180,6 +213,11 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-always-on;
 				regulator-boot-on;
+				regulator-state-mem {
+					regulator-on-in-suspend;
+					regulator-suspend-min-microvolt = <1800000>;
+					regulator-suspend-max-microvolt = <1800000>;
+				};
 			};
 
 			reg_buck7: buck7 {
