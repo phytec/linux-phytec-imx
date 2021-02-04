@@ -162,7 +162,7 @@
 			reg_buck1: buck1 {
 				regulator-name = "VDD_SOC_VDDA_PHY_0P8";
 				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <950000>;
+				regulator-max-microvolt = <900000>;
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-state-mem {
@@ -188,7 +188,7 @@
 			reg_buck3: buck3 {
 				regulator-name = "VDD_VPU";
 				regulator-min-microvolt = <400000>;
-				regulator-max-microvolt = <1800000>;
+				regulator-max-microvolt = <1000000>;
 				regulator-boot-on;
 				regulator-state-mem {
 					regulator-off-in-suspend;
@@ -232,8 +232,8 @@
 
 			reg_buck7: buck7 {
 				regulator-name = "NVCC_DRAM_1P1V";
-				regulator-min-microvolt = <1000000>;
-				regulator-max-microvolt = <4100000>;
+				regulator-min-microvolt = <1100000>;
+				regulator-max-microvolt = <1100000>;
 				regulator-always-on;
 				regulator-boot-on;
 			};
