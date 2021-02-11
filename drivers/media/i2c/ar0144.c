@@ -406,6 +406,17 @@ struct ar0144_pll_config {
 	bool update;
 };
 
+struct ar0144_gains {
+	struct v4l2_ctrl *red_ctrl;
+	struct v4l2_ctrl *greenb_ctrl;
+	struct v4l2_ctrl *greenr_ctrl;
+	struct v4l2_ctrl *blue_ctrl;
+	unsigned int red_clip;
+	unsigned int greenb_clip;
+	unsigned int greenr_clip;
+	unsigned int blue_clip;
+};
+
 struct ar0144 {
 	struct v4l2_subdev subdev;
 	struct device *dev;
@@ -433,11 +444,8 @@ struct ar0144 {
 	const struct ar0144_format *formats;
 	unsigned int num_fmts;
 
-	struct v4l2_ctrl *gain_red_ctrl;
-	struct v4l2_ctrl *gain_greenb_ctrl;
-	struct v4l2_ctrl *gain_greenr_ctrl;
-	struct v4l2_ctrl *gain_blue_ctrl;
 	struct v4l2_ctrl *link_freq_ctrl;
+	struct ar0144_gains gains;
 
 	struct clk *extclk;
 	struct gpio_desc *reset_gpio;
@@ -1711,17 +1719,34 @@ static int ar0144_set_analogue_gain(struct ar0144 *sensor, unsigned int val)
 	return 1000 * (1u << coarse) * 32 / (32 - fine);
 }
 
+unsigned int ar0144_get_min_color_gain(struct ar0144 *sensor)
+{
+	unsigned int gains[4];
+	int min_idx = 0;
+	int i;
+
+	gains[0] = sensor->gains.red_ctrl->cur.val;
+	gains[1] = sensor->gains.greenr_ctrl->cur.val;
+	gains[2] = sensor->gains.greenb_ctrl->cur.val;
+	gains[3] = sensor->gains.blue_ctrl->cur.val;
+
+	for (i = 0; i < 4; i++) {
+		if (gains[i] < gains[min_idx])
+			min_idx = i;
+	}
+
+	return gains[min_idx];
+}
+
 static int ar0144_set_digital_gain(struct ar0144 *sensor,
 				   struct v4l2_ctrl *ctrl)
 {
 	unsigned int coarse, fine;
-	unsigned int gain_diff, gain_new;
+	unsigned int gain, gain_min, gain_factor;
 	int ret = 0;
 
 	coarse = ctrl->val / 1000;
 	fine = (ctrl->val % 1000) * 128 / 1000;
-
-	/* TODO: Fix clipping */
 
 	switch (ctrl->id) {
 	case V4L2_CID_DIGITAL_GAIN:
@@ -1731,76 +1756,118 @@ static int ar0144_set_digital_gain(struct ar0144 *sensor,
 			return ret;
 		}
 
-		gain_diff = ctrl->val - ctrl->cur.val;
+		gain_min = ar0144_get_min_color_gain(sensor);
+		gain_factor = (ctrl->val * 1000) / gain_min;
 
-		gain_new = sensor->gain_red_ctrl->cur.val + gain_diff;
-		gain_new = clamp_t(unsigned int, gain_new, 1000, 15999);
-		coarse = gain_new / 1000;
-		fine = (gain_new % 1000) * 128 / 1000;
+		gain = sensor->gains.red_ctrl->cur.val;
+		gain += sensor->gains.red_clip;
+		gain = (gain * gain_factor) / 1000;
+
+		if (gain > 15999)
+			sensor->gains.red_clip = gain - 15999;
+		else
+			sensor->gains.red_clip = 0;
+
+		gain = clamp_t(unsigned int, gain, 1000, 15999);
+		coarse = gain / 1000;
+		fine = (gain % 1000) * 128 / 1000;
 		ret = ar0144_write(sensor, AR0144_RED_GAIN,
 				   (coarse << 7) | fine);
 		if (ret)
 			return ret;
 
-		sensor->gain_red_ctrl->val = gain_new;
-		sensor->gain_red_ctrl->cur.val = gain_new;
+		sensor->gains.red_ctrl->val = gain;
+		sensor->gains.red_ctrl->cur.val = gain;
 
-		gain_new = sensor->gain_greenr_ctrl->cur.val + gain_diff;
-		gain_new = clamp_t(unsigned int, gain_new, 1000, 15999);
-		coarse = gain_new / 1000;
-		fine = (gain_new % 1000) * 128 / 1000;
+		gain = sensor->gains.greenr_ctrl->cur.val;
+		gain += sensor->gains.greenr_clip;
+		gain = (gain * gain_factor) / 1000;
+
+		if (gain > 15999)
+			sensor->gains.greenr_clip = gain - 15999;
+		else
+			sensor->gains.greenr_clip = 0;
+
+		gain = clamp_t(unsigned int, gain, 1000, 15999);
+		coarse = gain / 1000;
+		fine = (gain % 1000) * 128 / 1000;
 		ret = ar0144_write(sensor, AR0144_GREENR_GAIN,
 				   (coarse << 7) | fine);
 		if (ret)
 			return ret;
 
-		sensor->gain_greenr_ctrl->val = gain_new;
-		sensor->gain_greenr_ctrl->cur.val = gain_new;
+		sensor->gains.greenr_ctrl->val = gain;
+		sensor->gains.greenr_ctrl->cur.val = gain;
 
-		gain_new = sensor->gain_greenb_ctrl->cur.val + gain_diff;
-		gain_new = clamp_t(unsigned int, gain_new, 1000, 15999);
-		coarse = gain_new / 1000;
-		fine = (gain_new % 1000) * 128 / 1000;
+		gain = sensor->gains.greenb_ctrl->cur.val;
+		gain += sensor->gains.greenb_clip;
+		gain = (gain * gain_factor) / 1000;
+
+		if (gain > 15999)
+			sensor->gains.greenb_clip = gain - 15999;
+		else
+			sensor->gains.greenb_clip = 0;
+
+
+		gain = clamp_t(unsigned int, gain, 1000, 15999);
+		coarse = gain / 1000;
+		fine = (gain % 1000) * 128 / 1000;
 		ret = ar0144_write(sensor, AR0144_GREENB_GAIN,
 				   (coarse << 7) | fine);
 		if (ret)
 			return ret;
 
-		sensor->gain_greenb_ctrl->val = gain_new;
-		sensor->gain_greenb_ctrl->cur.val = gain_new;
+		sensor->gains.greenb_ctrl->val = gain;
+		sensor->gains.greenb_ctrl->cur.val = gain;
 
-		gain_new = sensor->gain_blue_ctrl->cur.val + gain_diff;
-		gain_new = clamp_t(unsigned int, gain_new, 1000, 15999);
-		coarse = gain_new / 1000;
-		fine = (gain_new % 1000) * 128 / 1000;
+		gain = sensor->gains.blue_ctrl->cur.val;
+		gain += sensor->gains.blue_clip;
+		gain = (gain * gain_factor) / 1000;
+
+		if (gain > 15999)
+			sensor->gains.blue_clip = gain - 15999;
+		else
+			sensor->gains.blue_clip = 0;
+
+		gain = clamp_t(unsigned int, gain, 1000, 15999);
+		coarse = gain / 1000;
+		fine = (gain % 1000) * 128 / 1000;
 		ret = ar0144_write(sensor, AR0144_BLUE_GAIN,
 				   (coarse << 7) | fine);
 		if (ret)
 			return ret;
 
-		sensor->gain_blue_ctrl->val = gain_new;
-		sensor->gain_blue_ctrl->cur.val = gain_new;
+		sensor->gains.blue_ctrl->val = gain;
+		sensor->gains.blue_ctrl->cur.val = gain;
 
 		break;
 
 	case V4L2_CID_X_DIGITAL_GAIN_RED:
 		ret = ar0144_write(sensor, AR0144_RED_GAIN,
 				   (coarse << 7) | fine);
+		if (!ret)
+			sensor->gains.red_clip = 0;
 		break;
 
 	case V4L2_CID_X_DIGITAL_GAIN_GREENR:
 		ret = ar0144_write(sensor, AR0144_GREENR_GAIN,
 				   (coarse << 7) | fine);
-		break;
-
-	case V4L2_CID_X_DIGITAL_GAIN_BLUE:
-		ret = ar0144_write(sensor, AR0144_BLUE_GAIN,
-				   (coarse << 7) | fine);
+		if (!ret)
+			sensor->gains.greenr_clip = 0;
 		break;
 
 	case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 		ret = ar0144_write(sensor, AR0144_GREENB_GAIN,
 				   (coarse << 7) | fine);
+		if (!ret)
+			sensor->gains.greenb_clip = 0;
+		break;
+
+	case V4L2_CID_X_DIGITAL_GAIN_BLUE:
+		ret = ar0144_write(sensor, AR0144_BLUE_GAIN,
+				   (coarse << 7) | fine);
+		if (!ret)
+			sensor->gains.blue_clip = 0;
 		break;
 	}
 
@@ -2424,22 +2491,22 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 
 		case V4L2_CID_X_DIGITAL_GAIN_RED:
 			if (sensor->model == AR0144_MODEL_COLOR)
-				sensor->gain_red_ctrl = ctrl;
+				sensor->gains.red_ctrl = ctrl;
 			break;
 
 		case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 			if (sensor->model == AR0144_MODEL_COLOR)
-				sensor->gain_greenb_ctrl = ctrl;
+				sensor->gains.greenb_ctrl = ctrl;
 			break;
 
 		case V4L2_CID_X_DIGITAL_GAIN_GREENR:
 			if (sensor->model == AR0144_MODEL_COLOR)
-				sensor->gain_greenr_ctrl = ctrl;
+				sensor->gains.greenr_ctrl = ctrl;
 			break;
 
 		case V4L2_CID_X_DIGITAL_GAIN_BLUE:
 			if (sensor->model == AR0144_MODEL_COLOR)
-				sensor->gain_blue_ctrl = ctrl;
+				sensor->gains.blue_ctrl = ctrl;
 			break;
 
 		default:
