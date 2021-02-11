@@ -414,6 +414,7 @@ struct ar0144 {
 
 	struct v4l2_mbus_framefmt fmt;
 	struct v4l2_rect crop;
+	struct v4l2_fract interval;
 	unsigned int bpp;
 	unsigned int w_scale;
 	unsigned int h_scale;
@@ -1319,6 +1320,22 @@ out:
 	return ret;
 }
 
+static int ar0144_g_frame_interval(struct v4l2_subdev *sd,
+				   struct v4l2_subdev_frame_interval *interval)
+{
+	struct ar0144 *sensor = to_ar0144(sd);
+
+	mutex_lock(&sensor->lock);
+
+	/* TODO: Calculate current frame interval here or in set_selection to
+	 * always have the correct frame interval.
+	 */
+	interval->interval = sensor->interval;
+
+	mutex_unlock(&sensor->lock);
+	return 0;
+}
+
 static struct v4l2_rect *ar0144_get_pad_crop(struct ar0144 *sensor,
 					     struct v4l2_subdev_pad_config *cfg,
 					     unsigned int pad, u32 which)
@@ -1593,6 +1610,7 @@ static const struct v4l2_subdev_core_ops ar0144_subdev_core_ops = {
 
 static const struct v4l2_subdev_video_ops ar0144_subdev_video_ops = {
 	.s_stream		= ar0144_s_stream,
+	.g_frame_interval	= ar0144_g_frame_interval,
 };
 
 static const struct v4l2_subdev_pad_ops ar0144_subdev_pad_ops = {
@@ -2453,6 +2471,8 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 	sensor->fmt.height = AR0144_DEF_HEIGHT;
 	sensor->fmt.field = V4L2_FIELD_NONE;
 	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
+	sensor->interval.numerator = 1;
+	sensor->interval.denominator = 60;
 
 	if (sensor->model == AR0144_MODEL_MONOCHROME) {
 		sensor->formats = ar0144_mono_formats;
