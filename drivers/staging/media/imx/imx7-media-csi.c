@@ -986,6 +986,40 @@ out_unlock:
 	return ret;
 }
 
+static int imx7_csi_g_frame_interval(struct v4l2_subdev *sd,
+				     struct v4l2_subdev_frame_interval *fi)
+{
+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
+
+	if (fi->pad >= IMX7_CSI_PADS_NUM)
+		return -EINVAL;
+
+	mutex_lock(&csi->lock);
+
+	fi->interval = csi->frame_interval[fi->pad];
+
+	mutex_unlock(&csi->lock);
+
+	return 0;
+}
+
+static int imx7_csi_s_frame_interval(struct v4l2_subdev *sd,
+				     struct v4l2_subdev_frame_interval *fi)
+{
+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
+
+	if (fi->pad >= IMX7_CSI_PADS_NUM)
+		return -EINVAL;
+
+	mutex_lock(&csi->lock);
+
+	csi->frame_interval[fi->pad] = fi->interval;
+
+	mutex_unlock(&csi->lock);
+
+	return 0;
+}
+
 static struct v4l2_mbus_framefmt *
 imx7_csi_get_format(struct imx7_csi *csi,
 		    struct v4l2_subdev_pad_config *cfg,
@@ -1233,6 +1267,8 @@ static const struct media_entity_operations imx7_csi_entity_ops = {
 
 static const struct v4l2_subdev_video_ops imx7_csi_video_ops = {
 	.s_stream		= imx7_csi_s_stream,
+	.g_frame_interval	= imx7_csi_g_frame_interval,
+	.s_frame_interval	= imx7_csi_s_frame_interval,
 };
 
 static const struct v4l2_subdev_pad_ops imx7_csi_pad_ops = {
