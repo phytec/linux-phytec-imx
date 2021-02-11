@@ -1067,6 +1067,34 @@ out_unlock:
 	return ret;
 }
 
+static int imx7_csi_enum_frame_size(struct v4l2_subdev *sd,
+				    struct v4l2_subdev_pad_config *cfg,
+				    struct v4l2_subdev_frame_size_enum *fse)
+{
+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
+	struct v4l2_mbus_framefmt *fmt;
+	int ret = 0;
+
+	mutex_lock(&csi->lock);
+
+	fmt = imx7_csi_get_format(csi, cfg, fse->pad, fse->which);
+
+	if (fse->index != 0 || fse->code != fmt->code) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	fse->min_width = fmt->width;
+	fse->max_width = fse->min_width;
+	fse->min_height = fmt->height;
+	fse->max_height = fse->min_height;
+
+out_unlock:
+	mutex_unlock(&csi->lock);
+
+	return ret;
+}
+
 static int imx7_csi_get_fmt(struct v4l2_subdev *sd,
 			    struct v4l2_subdev_pad_config *cfg,
 			    struct v4l2_subdev_format *sdformat)
@@ -1274,6 +1302,7 @@ static const struct v4l2_subdev_video_ops imx7_csi_video_ops = {
 static const struct v4l2_subdev_pad_ops imx7_csi_pad_ops = {
 	.init_cfg =		imx7_csi_init_cfg,
 	.enum_mbus_code =	imx7_csi_enum_mbus_code,
+	.enum_frame_size =	imx7_csi_enum_frame_size,
 	.get_fmt =		imx7_csi_get_fmt,
 	.set_fmt =		imx7_csi_set_fmt,
 	.link_validate =	imx7_csi_pad_link_validate,
