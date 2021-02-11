@@ -1418,12 +1418,17 @@ static int ar0144_enum_frame_size(struct v4l2_subdev *sd,
 	struct ar0144 *sensor = to_ar0144(sd);
 	struct v4l2_mbus_framefmt *fmt;
 	struct v4l2_rect *crop;
+	int ret = 0;
+
+	mutex_lock(&sensor->lock);
 
 	fmt = ar0144_get_pad_fmt(sensor, cfg, fse->pad, fse->which);
 	crop = ar0144_get_pad_crop(sensor, cfg, fse->pad, fse->which);
 
-	if (fse->index >= 4 || fse->code != fmt->code)
-		return -EINVAL;
+	if (fse->index >= 4 || fse->code != fmt->code) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	fse->min_width = crop->width / (1u << fse->index);
 	fse->max_width = fse->min_width;
@@ -1431,9 +1436,13 @@ static int ar0144_enum_frame_size(struct v4l2_subdev *sd,
 	fse->max_height = fse->min_height;
 
 	if (fse->min_width > 1 && fse->min_height > 1)
-		return 0;
+		ret = 0;
 	else
-		return -EINVAL;
+		ret = -EINVAL;
+
+out:
+	mutex_unlock(&sensor->lock);
+	return ret;
 }
 
 static int ar0144_set_fmt(struct v4l2_subdev *sd,
