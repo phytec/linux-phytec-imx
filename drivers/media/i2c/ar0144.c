@@ -233,6 +233,7 @@ enum {
 
 	V4L2_CID_X_EMBEDDED_DATA,
 	V4L2_CID_X_BLACK_LEVEL_AUTO,
+	V4L2_CID_X_FLASH_DELAY,
 	V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION,
 };
 
@@ -2059,6 +2060,19 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 					 ctrl->val ? AR0144_FLD_DK_SUB_EN : 0);
 		break;
 
+	case V4L2_CID_FLASH_LED_MODE:
+		val = ctrl->val ? AR0144_FLD_LED_FLASH_EN : 0;
+		ret = ar0144_update_bits(sensor, AR0144_FLASH_CTRL,
+					 AR0144_FLD_LED_FLASH_EN, val);
+		break;
+
+	case V4L2_CID_X_FLASH_DELAY:
+		val = ctrl->val << AR0144_FLD_LED_DELAY_SHIFT;
+		val &= AR0144_FLD_LED_DELAY_MASK;
+		ret = ar0144_update_bits(sensor, AR0144_FLASH_CTRL,
+					 AR0144_FLD_LED_DELAY_MASK, val);
+		break;
+
 	case V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION:
 		val = ctrl->val ? AR0144_FLD_PIX_DEF_1D_DDC_EN : 0;
 
@@ -2412,6 +2426,23 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.max		= 1,
 		.step		= 1,
 		.def		= 1,
+	}, {
+		.ops		= &ar0144_ctrl_ops,
+		.id		= V4L2_CID_FLASH_LED_MODE,
+		.type		= V4L2_CTRL_TYPE_MENU,
+		.min		= 0,
+		.max		= V4L2_FLASH_LED_MODE_FLASH,
+		.menu_skip_mask = BIT(V4L2_FLASH_LED_MODE_TORCH),
+		.def		= V4L2_FLASH_LED_MODE_NONE,
+	}, {
+		.ops		= &ar0144_ctrl_ops,
+		.id		= V4L2_CID_X_FLASH_DELAY,
+		.type		= V4L2_CTRL_TYPE_INTEGER,
+		.name		= "Flash Delay",
+		.min		= -128,
+		.step		= 1,
+		.max		= 127,
+		.def		= 0,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION,
