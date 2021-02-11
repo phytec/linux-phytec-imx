@@ -857,18 +857,18 @@ static int ar0144_calculate_pll(struct ar0144 *sensor)
 	unsigned long vco;
 	unsigned long pix_clk;
 	unsigned long pix_clk_target;
-	long diff, diff_old;
 	unsigned int pll_div, pll_div_min, pll_div_max;
 	unsigned int pll_mul, pll_mul_min, pll_mul_max;
 	unsigned int op_div, op_div_min, op_div_max;
-	unsigned int tmp_div;
 	unsigned int bpp = sensor->bpp;
 	unsigned int lanes = sensor->minfo.num_lanes;
+	long diff, diff_old;
+	bool config_found = false;
 
 	if (!sensor->pll.update)
 		return 0;
 
-	if (bpp == 12 && lanes < 2) {
+	if (bpp == 12 && lanes < 2 && sensor->active_bus == AR0144_BUS_MIPI) {
 		v4l2_err(sd, "PLL config: 12 bpp require at least 2 lanes\n");
 		return -EINVAL;
 	}
@@ -891,48 +891,67 @@ static int ar0144_calculate_pll(struct ar0144 *sensor)
 	pll_mul_max = limits->pre_pll_mul.max;
 	op_div_min = limits->pll_op_sys_clk_div.min;
 	op_div_max = limits->pll_op_sys_clk_div.max;
-	sensor->pll.pre_pll_div = 1;
-	sensor->pll.pre_pll_mul = 0;
-	sensor->pll.op_sys_div = 1;
+	pll_div = pll_div_min;
+	pll_mul = pll_mul_min;
+	op_div = op_div_min;
 
-	for (pll_mul = pll_mul_min; pll_mul <= pll_mul_max; pll_mul++) {
-		for (pll_div = pll_div_min; pll_div <= pll_div_max; pll_div++) {
-			for (op_div = op_div_min; op_div <= op_div_max;
-			     op_div = op_div == 1 ? 2 : op_div+2) {
-				vco = ar0144_clk_div_mul(ext_freq, pll_div,
-							 pll_mul);
+	while (pll_div <= pll_div_max) {
+		if (pll_mul % 2 != 0)
+			pll_mul++;
 
-				if (vco < limits->vco.min ||
-				    vco > limits->vco.max)
-					continue;
-
-				tmp_div = bpp * op_div;
-				op_clk = ar0144_clk_div_mul(vco, tmp_div, 1);
-				pix_clk = op_clk * lanes;
-
-				if (pix_clk > 74250000)
-					continue;
-
-				diff = abs(pix_clk_target - pix_clk);
-				if (diff >= diff_old)
-					continue;
-
-				dev_dbg(sd->dev, "%s: vco: %lu op_clk: %lu\n",
-					__func__, vco, op_clk);
-				dev_dbg(sd->dev,
-					"%s op_div: %d pll_div: %d pll_mul: %d\n",
-					__func__, op_div, pll_div, pll_mul);
-
-				diff_old = diff;
-
-				sensor->pll.pre_pll_div = pll_div;
-				sensor->pll.pre_pll_mul = pll_mul;
-				sensor->pll.op_sys_div = op_div;
-			}
+		if (pll_mul > pll_mul_max) {
+			pll_mul = pll_mul_min;
+			op_div = op_div == 1 ? 2 : op_div + 2;
 		}
+
+		if (op_div > op_div_max) {
+			op_div = op_div_min;
+			pll_div++;
+			if (pll_div > pll_div_max)
+				break;
+		}
+
+		vco = ar0144_clk_div_mul(ext_freq, pll_div, pll_mul);
+
+		if (vco < limits->vco.min || vco > limits->vco.max) {
+			pll_mul++;
+			continue;
+		}
+
+		op_clk = ar0144_clk_div_mul(vco, bpp * op_div, 1);
+		pix_clk = op_clk * lanes;
+
+		if (pix_clk > limits->pix_clk.max) {
+			pll_mul++;
+			continue;
+		}
+
+		diff = abs(pix_clk_target - pix_clk);
+		if (diff >= diff_old) {
+			pll_mul++;
+			continue;
+		}
+
+		dev_dbg(sd->dev, "%s: vco: %lu op_clk: %lu\n",
+			__func__, vco, op_clk);
+		dev_dbg(sd->dev, "%s op_div: %d pll_div: %d pll_mul: %d\n",
+			__func__, op_div, pll_div, pll_mul);
+
+		diff_old = diff;
+
+		sensor->pll.pre_pll_div = pll_div;
+		sensor->pll.pre_pll_mul = pll_mul;
+		sensor->pll.op_sys_div = op_div;
+		sensor->pll.vco_freq = vco;
+		sensor->pll.pix_freq = pix_clk;
+		sensor->pll.ser_freq = op_clk * bpp;
+
+		config_found = true;
+
+		pll_mul++;
 	}
 
-	if (sensor->pll.pre_pll_mul == 0) {
+	if (!config_found) {
 		v4l2_err(sd, "Unable to find matching pll config\n");
 		return -EINVAL;
 	}
@@ -940,17 +959,6 @@ static int ar0144_calculate_pll(struct ar0144 *sensor)
 	sensor->pll.op_pix_div = bpp;
 	sensor->pll.vt_sys_div = sensor->pll.op_sys_div;
 	sensor->pll.vt_pix_div = bpp / lanes;
-
-	sensor->pll.vco_freq = ar0144_clk_div_mul(ext_freq,
-						  sensor->pll.pre_pll_div,
-						  sensor->pll.pre_pll_mul);
-
-	sensor->pll.pix_freq = ar0144_clk_div_mul(sensor->pll.vco_freq,
-						  sensor->pll.vt_sys_div *
-						  sensor->pll.vt_pix_div, 1);
-
-	sensor->pll.ser_freq = ar0144_clk_div_mul(sensor->pll.vco_freq,
-						  sensor->pll.op_sys_div, 1);
 
 	sensor->pll.update = false;
 
