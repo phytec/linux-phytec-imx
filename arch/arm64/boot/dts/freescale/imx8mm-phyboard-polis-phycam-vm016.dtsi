@@ -4,18 +4,7 @@
  * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
  */
 
-/dts-v1/;
-
-#include "imx8mm-phycore-som.dtsi"
-#include "imx8mm-phyboard-polis.dtsi"
-#include "imx8mm-phyboard-polis-peb-av-010.dtsi"
-#include "imx8mm-phyboard-polis-peb-eval-01.dtsi"
-
 / {
-	model = "PHYTEC phyBOARD-Polis-i.MX8MM RDK with VM-016";
-	compatible = "phytec,imx8mm-phyboard-polis",
-		     "phytec,imx8mm-phycore-som","fsl,imx8mm";
-
 	vm016_clk: vm016-ext-clk {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
