@@ -30,19 +30,19 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_user_leds>;
 
-		user-led0 {
+		user-led1 {
 			gpios = <&gpio4 14 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "gpio";
 			default-state = "on";
 		};
 
-		user-led1 {
+		user-led2 {
 			gpios = <&gpio4 15 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "gpio";
 			default-state = "on";
 		};
 
-		user-led2 {
+		user-led3 {
 			gpios = <&gpio5 28 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "gpio";
 			default-state = "on";
