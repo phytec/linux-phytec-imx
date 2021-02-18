@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2020 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mp-phycore-som-rev0.dtsi"
+#include "imx8mp-phyboard-pollux-rev0.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Pollux i.MX8MP rev0";
+	compatible = "phytec,imx8mp-phyboard-pollux-rdk",
+		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
+
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+};
+
+&vm016 {
+	status = "okay";
+};
