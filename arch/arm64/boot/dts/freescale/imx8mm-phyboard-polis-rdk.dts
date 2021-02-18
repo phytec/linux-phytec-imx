@@ -27,5 +27,5 @@
 };
 
 &sai5 {
-	status = "disabled";
+	status = "okay";
 };
