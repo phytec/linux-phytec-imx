@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Dominik Haller <d.haller@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mm-phycore-som.dtsi"
+#include "imx8mm-phyboard-polis.dtsi"
+#include "imx8mm-phyboard-polis-peb-av-010.dtsi"
+#include "imx8mm-phyboard-polis-peb-eval-01.dtsi"
+#include "imx8mm-phyboard-polis-phycam-vm016.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Polis-i.MX8MM RDK no audio";
+	compatible = "phytec,imx8mm-phyboard-polis",
+		     "phytec,imx8mm-phycore-som","fsl,imx8mm";
+};
+
+&i2c1_sn65dsi83 {
+	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+};
+
+&sai5 {
+	status = "disabled";
+};
