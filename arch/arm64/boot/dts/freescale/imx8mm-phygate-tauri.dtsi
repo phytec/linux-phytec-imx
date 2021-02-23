@@ -18,12 +18,12 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		can_osc_20m: can-clock@0 {
+		can_osc_40m: can-clock@0 {
 			compatible = "fixed-clock";
 			reg = <0>;
 			#clock-cells = <0>;
-			clock-frequency = <20000000>;
-			clock-output-names = "can_osc_20m";
+			clock-frequency = <40000000>;
+			clock-output-names = "can_osc_40m";
 		};
 	};
 
@@ -106,7 +106,7 @@
 		spi-max-frequency = <10000000>;
 		interrupt-parent = <&gpio1>;
 		interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
-		clocks = <&can_osc_20m>;
+		clocks = <&can_osc_40m>;
 	};
 
 	tpm: tpm_tis@1 {
