@@ -100,6 +100,24 @@
 			reg = <0 0x55800000 0 0x800000>;
 		};
 	};
+
+	sound-hdmi {
+		compatible = "fsl,imx-audio-cdnhdmi";
+		model = "audio-hdmi";
+		audio-cpu = <&aud2htx>;
+		hdmi-out;
+		constraint-rate = <44100>,
+				<88200>,
+				<176400>,
+				<32000>,
+				<48000>,
+				<96000>,
+				<192000>;
+	};
+};
+
+&aud2htx {
+	status = "okay";
 };
 
 /* ethernet 0 */
