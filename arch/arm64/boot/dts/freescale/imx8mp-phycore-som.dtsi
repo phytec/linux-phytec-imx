@@ -114,8 +114,7 @@
 		compatible = "nxp,pca9450";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_pmic>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <18 IRQ_TYPE_LEVEL_LOW>;
+		gpio_intr = <&gpio4 18 GPIO_ACTIVE_LOW>;
 
 		regulators {
 			buck1: BUCK1 {
