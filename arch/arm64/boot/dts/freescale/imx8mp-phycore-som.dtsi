@@ -118,7 +118,7 @@
 
 		regulators {
 			buck1: BUCK1 {
-				regulator-compatible = "BUCK1";
+				regulator-compatible = "buck1";
 				regulator-min-microvolt = <600000>;
 				regulator-max-microvolt = <2187500>;
 				regulator-boot-on;
@@ -127,7 +127,7 @@
 			};
 
 			buck2: BUCK2 {
-				regulator-compatible = "BUCK2";
+				regulator-compatible = "buck2";
 				regulator-min-microvolt = <600000>;
 				regulator-max-microvolt = <2187500>;
 				regulator-boot-on;
@@ -136,7 +136,7 @@
 			};
 
 			buck4: BUCK4 {
-				regulator-compatible = "BUCK4";
+				regulator-compatible = "buck4";
 				regulator-min-microvolt = <600000>;
 				regulator-max-microvolt = <3400000>;
 				regulator-boot-on;
@@ -144,7 +144,7 @@
 			};
 
 			buck5: BUCK5 {
-				regulator-compatible = "BUCK5";
+				regulator-compatible = "buck5";
 				regulator-min-microvolt = <600000>;
 				regulator-max-microvolt = <3400000>;
 				regulator-boot-on;
@@ -152,7 +152,7 @@
 			};
 
 			buck6: BUCK6 {
-				regulator-compatible = "BUCK6";
+				regulator-compatible = "buck6";
 				regulator-min-microvolt = <600000>;
 				regulator-max-microvolt = <3400000>;
 				regulator-boot-on;
@@ -160,7 +160,7 @@
 			};
 
 			ldo1: LDO1 {
-				regulator-compatible = "LDO1";
+				regulator-compatible = "ldo1";
 				regulator-min-microvolt = <1600000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
@@ -168,7 +168,7 @@
 			};
 
 			ldo2: LDO2 {
-				regulator-compatible = "LDO2";
+				regulator-compatible = "ldo2";
 				regulator-min-microvolt = <800000>;
 				regulator-max-microvolt = <1150000>;
 				regulator-boot-on;
@@ -176,7 +176,7 @@
 			};
 
 			ldo3: LDO3 {
-				regulator-compatible = "LDO3";
+				regulator-compatible = "ldo3";
 				regulator-min-microvolt = <800000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
@@ -184,7 +184,7 @@
 			};
 
 			ldo4: LDO4 {
-				regulator-compatible = "LDO4";
+				regulator-compatible = "ldo4";
 				regulator-min-microvolt = <800000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
@@ -192,7 +192,7 @@
 			};
 
 			ldo5: LDO5 {
-				regulator-compatible = "LDO5";
+				regulator-compatible = "ldo5";
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <3300000>;
 			};
