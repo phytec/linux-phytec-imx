@@ -253,6 +253,7 @@
 };
 
 &isi_0 {
+	dma-coherent;
 	status = "okay";
 
 	cap_device {
