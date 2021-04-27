@@ -87,6 +87,8 @@
 };
 
 &csi1_bridge {
+	dma-coherent;
+
 	port {
 		csi1_ep: endpoint {
 			remote-endpoint = <&mipi_csi_ep>;
