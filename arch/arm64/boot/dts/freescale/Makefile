@@ -81,6 +81,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-evk.dtb imx8mp-evk-root.dtb imx8mp-evk-inmate.d
 			  imx8mp-evk-basler-ov2775.dtb imx8mp-evk-dual-basler.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-ddr4-evk.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-rdk-rpmsg.dtb \
 			  imx8mp-phyboard-pollux-rdk-rev0.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mq-evk.dtb imx8mq-evk-rpmsg.dtb imx8mq-evk-pcie1-m2.dtb imx8mq-evk-usd-wifi.dtb \
 			  imx8mq-evk-usdhc2-m2.dtb imx8mq-evk-pcie-ep.dtb

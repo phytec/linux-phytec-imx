@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Dominik Haller <d.haller@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mp-phycore-som.dtsi"
+#include "imx8mp-phyboard-pollux.dtsi"
+#include "imx8mp-phyboard-pollux-peb-av-010.dtsi"
+#include "imx8mp-phyboard-pollux-peb-wlbt-05.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Pollux i.MX8MP rpmsg";
+	compatible = "phytec,imx8mp-phyboard-pollux-rdk",
+		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		m7_reserved: m7@0x80000000 {
+			no-map;
+			reg = <0 0x80000000 0 0x1000000>;
+		};
+
+		vdev0vring0: vdev0vring0@55000000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x55000000 0 0x8000>;
+			no-map;
+		};
+
+		vdev0vring1: vdev0vring1@55008000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x55008000 0 0x8000>;
+			no-map;
+		};
+
+		vdevbuffer: vdevbuffer@55400000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x55400000 0 0x100000>;
+			no-map;
+		};
+
+		rsc-table {
+			reg = <0x0 0x550ff000 0x0 0x1000>;
+			no-map;
+		};
+	};
+
+	imx8mp-cm7 {
+		compatible = "fsl,imx8mn-cm7";
+		rsc-da = <0x55000000>;
+		clocks = <&clk IMX8MP_CLK_M7_DIV>;
+		mbox-names = "tx", "rx", "rxdb";
+		mboxes = <&mu 0 1
+			&mu 1 1
+			&mu 3 1>;
+		memory-region = <&vdev0vring0>, <&vdev0vring1>, <&vdevbuffer>;
+		status = "okay";
+	};
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+};
+
+&rpmsg{
+	/*
+	 * 64K for one rpmsg instance:
+	 * --0x55000000~0x5500ffff: pingpong
+	 */
+	vdev-nums = <1>;
+	reg = <0x0 0x55000000 0x0 0x10000>;
+	memory-region = <&vdevbuffer>;
+	status = "disabled";
+};
+
+&vm016 {
+	status = "okay";
+};
