@@ -13,6 +13,7 @@ dtb-y += imx8mn-phycore-no-spiflash.dtbo
 dtb-y += imx8mn-phycore-no-eth.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-av-010.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-wlbt-05.dtbo
+dtb-y += imx8mp-phycore-rpmsg.dtbo
 
 DTC_FLAGS += -@
 
