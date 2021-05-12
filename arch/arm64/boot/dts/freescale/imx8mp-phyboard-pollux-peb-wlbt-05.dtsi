@@ -32,7 +32,47 @@
 	};
 };
 
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3_bt>;
+	assigned-clocks = <&clk IMX8MP_CLK_UART3>;
+	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
+	uart-has-rtscts;
+	status = "okay";
+
+	/delete-property/ dma-names;
+	/delete-property/ dmas;
+
+	bluetooth {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt>;
+		compatible = "brcm,bcm43438-bt";
+		max-speed = <2000000>;
+		shutdown-gpios = <&gpio2 7 GPIO_ACTIVE_HIGH>;
+		device-wakeup-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio2 9 GPIO_ACTIVE_HIGH>;
+	};
+};
+
 &iomuxc {
+
+	pinctrl_bt: btgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06	0x11
+			MX8MP_IOMUXC_SD1_DATA7__GPIO2_IO09	0x11
+			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07	0x11
+		>;
+	};
+
+	pinctrl_uart3_bt: uart3grp_bt {
+		fsl,pins = <
+			MX8MP_IOMUXC_UART3_TXD__UART3_DCE_TX	0x149
+			MX8MP_IOMUXC_UART3_RXD__UART3_DCE_RX	0x149
+			MX8MP_IOMUXC_SD1_STROBE__UART3_DCE_CTS	0x149
+			MX8MP_IOMUXC_SD1_RESET_B__UART3_DCE_RTS	0x149
+		>;
+	};
+
 	pinctrl_usdhc1: usdhc1grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SD1_CLK__USDHC1_CLK        0x190
