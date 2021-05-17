@@ -76,6 +76,7 @@
 		reg = <0x18>;
 		reset-gpios = <&gpio4 28 GPIO_ACTIVE_LOW>;
 		ai3x-gpio-func = <0xd 0x0>;
+		ai3x-micbias-vg = <2>;
 	};
 
 	eeprom@57 {
