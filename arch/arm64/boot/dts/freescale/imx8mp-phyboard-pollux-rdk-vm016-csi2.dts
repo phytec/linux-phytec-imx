@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mp-phycore-som.dtsi"
+#include "imx8mp-phyboard-pollux.dtsi"
+#include "imx8mp-phyboard-pollux-peb-av-010.dtsi"
+#include "imx8mp-phyboard-pollux-peb-wlbt-05.dtsi"
+#include "imx8mp-phyboard-pollux-phycam.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Pollux i.MX8MP with VM-016 on CSI2";
+	compatible = "phytec,imx8mp-phyboard-pollux-rdk",
+		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
+
+	cam2_clk: cam2-clk {
+		#clock-cells = <0>;
+
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+	};
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&flash0 {
+	status = "okay";
+};
+
+&i2c2 {
+	cam2: camera2@10 {
+		compatible = "onsemi,ar0144";
+		reg = <0x10>;
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		clocks = <&cam2_clk>;
+		clock-names = "ext";
+
+		port@0 {
+			reg = <0>;
+
+			cam2_mipi_ep: endpoint {
+				remote-endpoint = <&mipi_csi1_ep>;
+				bus-type = <4>; /* MIPI CSI-2 D-PHY */
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+				onsemi,t-hs-prep = <1>;
+				onsemi,t-clk-post = <9>;
+			};
+		};
+	};
+};
+
+&isi_1 {
+	status = "okay";
+
+	cap_device {
+		status = "okay";
+	};
+};
+
+&mipi_csi_1 {
+	status = "okay";
+};
+
+&mipi_csi1_ep {
+	remote-endpoint = <&cam2_mipi_ep>;
+	data-lanes = <2>;
+	csis-hs-settle = <13>;
+	csis-clk-settle = <2>;
+	csis-wclk;
+};
