@@ -10,12 +10,19 @@
 #include "imx8mp-phyboard-pollux.dtsi"
 #include "imx8mp-phyboard-pollux-peb-av-010.dtsi"
 #include "imx8mp-phyboard-pollux-peb-wlbt-05.dtsi"
+#include "imx8mp-phyboard-pollux-phycam.dtsi"
 
 / {
 	model = "PHYTEC phyBOARD-Pollux i.MX8MP";
 	compatible = "phytec,imx8mp-phyboard-pollux-rdk",
 		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
 
+	cam1_clk: cam1-clk {
+		#clock-cells = <0>;
+
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+	};
 };
 
 &cameradev {
@@ -26,6 +33,47 @@
 	status = "okay";
 };
 
-&vm016 {
+&i2c3 {
+	cam1: camera1@10 {
+		compatible = "onsemi,ar0144";
+		reg = <0x10>;
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		clocks = <&cam1_clk>;
+		clock-names = "ext";
+
+		port@0 {
+			reg = <0>;
+
+			cam1_mipi_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				bus-type = <4>; /* MIPI CSI-2 D-PHY */
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+				onsemi,t-hs-prep = <1>;
+				onsemi,t-clk-post = <9>;
+			};
+		};
+	};
+};
+
+&isi_0 {
 	status = "okay";
+
+	cap_device {
+		status = "okay";
+	};
+};
+
+&mipi_csi_0 {
+	status = "okay";
+};
+
+&mipi_csi0_ep {
+	remote-endpoint = <&cam1_mipi_ep>;
+	data-lanes = <2>;
+	csis-hs-settle = <13>;
+	csis-clk-settle = <2>;
+	csis-wclk;
 };

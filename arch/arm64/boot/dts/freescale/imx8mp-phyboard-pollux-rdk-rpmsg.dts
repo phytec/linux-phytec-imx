@@ -63,10 +63,6 @@
 	};
 };
 
-&cameradev {
-	status = "okay";
-};
-
 &flash0 {
 	status = "okay";
 };
@@ -80,8 +76,4 @@
 	reg = <0x0 0x55000000 0x0 0x10000>;
 	memory-region = <&vdevbuffer>;
 	status = "disabled";
-};
-
-&vm016 {
-	status = "okay";
 };

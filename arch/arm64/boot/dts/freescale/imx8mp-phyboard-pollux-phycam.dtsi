@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+&isi_0 {
+	dma-coherent;
+};
+
+&isi_1 {
+	dma-coherent;
+};
+
+&mipi_csi_0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	port@0 {
+		reg = <0>;
+		mipi_csi0_ep: endpoint {};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	port@1 {
+		reg = <1>;
+		mipi_csi1_ep: endpoint {};
+	};
+};
