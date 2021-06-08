@@ -135,7 +135,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eqos>;
 	phy-mode = "rgmii-id";
-	phy-handle = <&ethphy0>;
+	phy-handle = <&ethphy1>;
 	status = "okay";
 
 	mdio {
@@ -143,7 +143,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		ethphy0: ethernet-phy@1 {
+		ethphy1: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <0x1>;
 			ti,rx-internal-delay = <DP83867_RGMIIDCTL_1_50_NS>;
