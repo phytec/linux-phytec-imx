@@ -38,12 +38,12 @@
 	cpu-supply = <&buck2>;
 };
 
-/* ethernet 1 */
+/* ethernet on module */
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec>;
 	phy-mode = "rgmii-id";
-	phy-handle = <&ethphy1>;
+	phy-handle = <&ethphy0>;
 	fsl,magic-packet;
 	status = "okay";
 
@@ -51,7 +51,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		ethphy1: ethernet-phy@0 {
+		ethphy0: ethernet-phy@0 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <0>;
 			interrupt-parent = <&gpio1>;
