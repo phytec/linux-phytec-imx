@@ -120,6 +120,7 @@ imx8mp_ldb_encoder_atomic_mode_set(struct drm_encoder *encoder,
 		dev_warn(ldb->dev,
 			 "%s: mode exceeds 160 MHz pixel clock\n", __func__);
 	}
+
 	if (mode->clock > 80000 && !ldb->dual) {
 		dev_warn(ldb->dev,
 			 "%s: mode exceeds 80 MHz pixel clock\n", __func__);
@@ -169,10 +170,15 @@ imx8mp_ldb_encoder_atomic_check(struct drm_encoder *encoder,
 						enc_to_imx8mp_ldb_ch(encoder);
 	struct ldb_channel *ldb_ch = &imx8mp_ldb_ch->base;
 	struct imx8mp_ldb *imx8mp_ldb = imx8mp_ldb_ch->imx8mp_ldb;
-	struct ldb *ldb = &imx8mp_ldb->base;
 	struct drm_display_info *di = &conn_state->connector->display_info;
-	struct drm_display_mode *mode = &crtc_state->adjusted_mode;
+	struct drm_display_mode *adjusted_mode = &crtc_state->adjusted_mode;
 	u32 bus_format = ldb_ch->bus_format;
+
+	/* set LVDS pixel clock from panel settings to a clock rate that can
+	 * be derived from video_pll
+	 */
+	adjusted_mode->clock = clk_round_rate(imx8mp_ldb->clk_root,
+				     adjusted_mode->clock * 7000) / 7000;
 
 	/* Bus format description in DT overrides connector display info. */
 	if (!bus_format && di->num_bus_formats) {
@@ -194,15 +200,6 @@ imx8mp_ldb_encoder_atomic_check(struct drm_encoder *encoder,
 		return -EINVAL;
 	}
 
-	/*
-	 * Due to limited video PLL frequency points on i.MX8mp,
-	 * we do mode fixup here in case any mode is unsupported.
-	 */
-	if (ldb->dual)
-		mode->clock = mode->clock > 100000 ? 148500 : 74250;
-	else
-		mode->clock = 74250;
-
 	return 0;
 }
 
@@ -213,22 +210,10 @@ imx8mp_ldb_encoder_mode_valid(struct drm_encoder *encoder,
 	struct imx8mp_ldb_channel *imx8mp_ldb_ch =
 						enc_to_imx8mp_ldb_ch(encoder);
 	struct ldb_channel *ldb_ch = &imx8mp_ldb_ch->base;
-	struct imx8mp_ldb *imx8mp_ldb = imx8mp_ldb_ch->imx8mp_ldb;
-	struct ldb *ldb = &imx8mp_ldb->base;
 
 	/* it should be okay with a panel */
 	if (ldb_ch->panel)
 		return MODE_OK;
-
-	/*
-	 * Due to limited video PLL frequency points on i.MX8mp,
-	 * we do mode valid check here.
-	 */
-	if (ldb->dual && mode->clock != 74250 && mode->clock != 148500)
-		return MODE_NOCLOCK;
-
-	if (!ldb->dual && mode->clock != 74250)
-		return MODE_NOCLOCK;
 
 	return MODE_OK;
 }
