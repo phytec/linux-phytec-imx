@@ -248,6 +248,11 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	/* disable the monitor for config */
+	val = readl_relaxed(tmu->base + TER);
+	val &= ~TER_EN;
+	writel_relaxed(val, tmu->base + TER);
+
 	for (i = 0; i < num_sensors; i++) {
 		tmu->sensors[i].priv = tmu;
 		tmu->sensors[i].tzd = devm_thermal_zone_of_sensor_register(
@@ -308,11 +313,6 @@ static int imx8mm_tmu_probe(struct platform_device *pdev)
 		if (ret)
 			return ret;
 	}
-
-	/* disable the monitor for config */
-	val = readl_relaxed(tmu->base + TER);
-	val &= ~TER_EN;
-	writel_relaxed(val, tmu->base + TER);
 
 	/* enable all the probes for V2 TMU */
 	if (tmu->socdata->flags == FLAGS_TMU_VER2) {
