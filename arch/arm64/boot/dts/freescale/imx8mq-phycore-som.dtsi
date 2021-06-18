@@ -207,6 +207,9 @@
 		wakeup-source;
 		trickle-resistor-ohms = <3000>;
 		enable-level-switching-mode;
+		#clock-cells = <0>;
+		clock-frequency = <32768>;
+		clock-output-names = "rv3028-clkout";
 	};
 
 	eepromid@58 {

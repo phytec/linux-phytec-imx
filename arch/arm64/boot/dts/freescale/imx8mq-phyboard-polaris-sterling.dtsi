@@ -5,25 +5,11 @@
  */
 
 / {
-	reg_bt_en: bt_en {
-		compatible = "regulator-fixed";
-		regulator-name = "bt_en";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio1 11 GPIO_ACTIVE_HIGH>;
-		startup-delay-us = <100>;
-		enable-active-high;
-		regulator-always-on;
-	};
-
-	reg_wlan_en: wlan_en {
-		compatible = "regulator-fixed";
-		regulator-name = "wlan_en";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio1 10 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
+	usdhc2_pwrseq: pwr_seq {
+		compatible = "mmc-pwrseq-simple";
+		reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+		post-power-on-delay-ms = <100>;
+		power-off-delay-us = <60>;
 	};
 };
 
@@ -35,20 +21,51 @@
 	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
 	uart-has-rtscts;
 	fsl,dte-mode;
-	status = "disabled";
+	/delete-property/ dma-names;
+	/delete-property/ dmas;
+
+	bluetooth {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt>;
+		clocks = <&i2c_rtc>;
+		clock-names = "rv3028-clkout";
+		compatible = "brcm,bcm43438-bt";
+		max-speed = <2000000>;
+		shutdown-gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		device-wakeup-gpios = <&gpio1 9 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 /* WLAN */
 &usdhc2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc2_wlan>, <&pinctrl_wlan>;
 	bus-width = <4>;
 	non-removable;
 	no-1-8-v;
-	status = "disabled";
+	mmc-pwrseq = <&usdhc2_pwrseq>;
+	wifi-host;
+
+	brcmf: wifi@1 {
+		reg = <1>;
+		compatible = "brcm,bcm4329-fmac";
+		clocks = <&i2c_rtc>;
+		clock-names = "rv3028-clkout";
+	};
 };
 
 &iomuxc {
+	pinctrl_bt: btgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x41
+			MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x41
+			MX8MQ_IOMUXC_GPIO1_IO11_GPIO1_IO11	0x41
+		>;
+	};
+
 	pinctrl_uart2_bt: uart2btgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_UART4_RXD_UART2_DTE_RTS_B	0x49
