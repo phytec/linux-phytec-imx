@@ -79,6 +79,10 @@ static int tmu_get_temp(void *data, int *temp)
 	bool ready;
 	u32 val;
 
+	val = readl_relaxed(tmu->base + TER);
+	if (!(val & TER_EN))
+		return -EAGAIN;
+
 	/* the temp sensor need about 1ms to finish the measurement */
 	usleep_range(1000, 2000);
 
