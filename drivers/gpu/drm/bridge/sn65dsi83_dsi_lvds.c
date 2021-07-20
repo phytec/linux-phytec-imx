@@ -155,7 +155,7 @@ static int sn65dsi83_get_modes(struct drm_connector *connector)
 					struct sn65dsi83, connector);
 
 	if (sn_bridge->panel)
-		return drm_panel_get_modes(sn_bridge->panel);
+		return drm_panel_get_modes(sn_bridge->panel, connector);
 
 	DRM_ERROR("no panel found\n");
 	return -ENODEV;
@@ -310,7 +310,8 @@ static void sn65dsi83_pre_enable(struct drm_bridge *bridge)
 
 }
 
-static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
+static int sn65dsi83_bridge_attach(struct drm_bridge *bridge,
+				enum drm_bridge_attach_flags flags)
 {
 	struct sn65dsi83 *sn_bridge = bridge_to_sn65dsi83(bridge);
 	struct mipi_dsi_host *host;
@@ -365,12 +366,6 @@ static int sn65dsi83_bridge_attach(struct drm_bridge *bridge)
 	}
 
 	sn_bridge->dsi = dsi;
-
-	ret = drm_panel_attach(sn_bridge->panel, &sn_bridge->connector);
-	if (ret) {
-		DRM_ERROR("failed to attach panel\n");
-		goto err_dsi_attach;
-	}
 
 	return 0;
 
