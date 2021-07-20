@@ -8,8 +8,10 @@
 #include <linux/platform_device.h>
 #include <linux/err.h>
 #include <linux/io.h>
+#include <linux/mfd/syscon.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
+#include <linux/regmap.h>
 #include <linux/thermal.h>
 
 #include "thermal_core.h"
@@ -203,6 +205,56 @@ static const struct thermal_zone_of_device_ops tmu_tz_ops = {
 	.set_trip_temp = tmu_set_trip_temp,
 };
 
+/* Register definition for the temperature grade */
+#define IMX8_OCOTP_TESTER3     0x0440
+
+/* IMX8MQ use OCOTP_TESTER3[7:6] */
+#define IMX8MQ_TESTER3_SHIFT	6
+
+static int imx_init_temp_grade(struct platform_device *pdev, int id)
+{
+	struct qoriq_tmu_data *qdata = platform_get_drvdata(pdev);
+	struct regmap *map;
+	int ret, temp_max;
+	u32 val;
+
+	map = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
+					      "fsl,tempmon-data");
+	if (IS_ERR(map)) {
+		ret = PTR_ERR(map);
+		dev_err(&pdev->dev, "failed to get sensor regmap: %d\n", ret);
+		return ret;
+	}
+
+	ret = regmap_read(map, IMX8_OCOTP_TESTER3, &val);
+	if (ret) {
+		dev_err(&pdev->dev, "failed to read sensor data: %d\n", ret);
+		return ret;
+	}
+
+	val >>= IMX8MQ_TESTER3_SHIFT;
+
+	switch (val & 0x3) {
+	case 0: /* Commercial (0 to 95 °C) */
+		temp_max = 95000;
+		break;
+	case 2: /* Industrial (-40 °C to 105 °C) */
+		temp_max = 105000;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	/*
+	 * Set the critical trip point at 5 °C under max
+	 * Set the passive trip point at 10 °C under max (changeable via sysfs)
+	 */
+	qdata->sensor[id]->temp_passive = temp_max - (1000 * 10);
+	qdata->sensor[id]->temp_critical = temp_max - (1000 * 5);
+
+	return ret;
+}
+
 static int qoriq_tmu_register_tmu_zone(struct platform_device *pdev)
 {
 	struct qoriq_tmu_data *qdata = platform_get_drvdata(pdev);
@@ -251,9 +303,27 @@ static int qoriq_tmu_register_tmu_zone(struct platform_device *pdev)
 				return ret;
 			}
 
-			trip = of_thermal_get_trip_points(qdata->sensor[id]->tzd);
-			qdata->sensor[id]->temp_passive = trip[0].temperature;
-			qdata->sensor[id]->temp_critical = trip[1].temperature;
+			ret = imx_init_temp_grade(pdev, id);
+			if (ret) {
+				 dev_info(&pdev->dev,
+ 					  "failed to init from fuses using temp from DT\n");
+
+				trip = of_thermal_get_trip_points(
+						qdata->sensor[id]->tzd);
+				qdata->sensor[id]->temp_passive =
+					trip[0].temperature;
+				qdata->sensor[id]->temp_critical =
+					trip[1].temperature;
+			} else {
+				qdata->sensor[id]->tzd->ops->set_trip_temp(
+						qdata->sensor[id]->tzd,
+						TMU_TRIP_PASSIVE,
+						qdata->sensor[id]->temp_passive);
+				qdata->sensor[id]->tzd->ops->set_trip_temp(
+						qdata->sensor[id]->tzd,
+						TMU_TRIP_CRITICAL,
+						qdata->sensor[id]->temp_critical);
+			}
 		}
 
 		if (qdata->ver == TMU_VER1)
