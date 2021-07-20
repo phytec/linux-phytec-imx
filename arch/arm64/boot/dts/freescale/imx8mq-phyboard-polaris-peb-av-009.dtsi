@@ -79,17 +79,6 @@
 				 <&clk IMX8MQ_CLK_27M>;
 	assigned-clock-rate = <126000000>, <0>, <0>, <1134000000>;
 	status = "okay";
-
-	ports {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		port@0 {
-			lcdif_mipi_dsi: endpoint {
-				remote-endpoint = <&mipi_dsi_in>;
-			};
-		};
-	};
 };
 
 &mipi_dsi {
@@ -98,14 +87,6 @@
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
-
-		port@0 {
-			reg = <0>;
-
-			mipi_dsi_in: endpoint {
-				remote-endpoint = <&lcdif_mipi_dsi>;
-			};
-		};
 
 		port@1 {
 			reg = <1>;
