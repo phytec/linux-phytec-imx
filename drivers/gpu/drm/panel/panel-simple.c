@@ -1864,7 +1864,6 @@ static const struct drm_display_mode edt_etml1010g0dka_mode = {
 	.vsync_start = 800 + 4,
 	.vsync_end = 800 + 4 + 4,
 	.vtotal = 800 + 4 + 4 + 15,
-	.vrefresh = 60,
 	.flags = DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC,
 };
 
