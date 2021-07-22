@@ -25,7 +25,12 @@
 		states = <900000 0x1 1000000 0x0>;
 	};
 
-	reserved-memory {
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0x00000000 0x40000000 0 0xc0000000>;
+	};
+
+	resmem: reserved-memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
 		ranges;
@@ -34,7 +39,7 @@
 			compatible = "shared-dma-pool";
 			reusable;
 			size = <0 0x3c000000>;
-			alloc-ranges = <0 0x4000000 0 0x40000000>;
+			alloc-ranges = <0 0x40000000 0 0x40000000>;
 			linux,cma-default;
 		};
 	};
