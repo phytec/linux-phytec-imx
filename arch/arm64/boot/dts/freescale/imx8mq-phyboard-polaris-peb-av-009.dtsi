@@ -93,9 +93,6 @@
 };
 
 &mipi_dsi {
-	as_bridge;
-	sync-pol = <1>;
-	pwr-delay = <10>;
 	status = "okay";
 
 	ports {
