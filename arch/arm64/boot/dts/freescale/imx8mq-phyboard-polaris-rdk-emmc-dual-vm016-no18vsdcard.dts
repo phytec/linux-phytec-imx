@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Dominik Haller <d.haller@phytec.de>
+ */
+
+/dts-v1/;
+
+#include "imx8mq-phycore-som.dtsi"
+#include "imx8mq-phyboard-polaris.dtsi"
+#include "imx8mq-phyboard-polaris-sdcard.dtsi"
+#include "imx8mq-phyboard-polaris-peb-av-009.dtsi"
+#include "imx8mq-phyboard-polaris-peb-eval-01.dtsi"
+#include "imx8mq-phyboard-polaris-phycam.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Polaris with dual VM-016 without 1.8v sdcard support";
+	compatible = "phytec,imx8mq-pbacd12-emmc", "phytec,imx8mq-pbacd12",
+		     "phytec,imx8mq-pcl066", "fsl,imx8mq";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+};
+
+&csi1_bridge {
+	status = "okay";
+};
+
+&csi2_bridge {
+	status = "okay";
+};
+
+&mipi_csi_1 {
+	status = "okay";
+};
+
+&mipi_csi_2 {
+	status = "okay";
+};
+
+&usdhc1 {
+	status = "okay";
+};
+
+&usdhc2 {
+	status = "okay";
+	no-1-8-v;
+};
+
+&vm016_1 {
+	status = "okay";
+};
+
+&vm016_2 {
+	status = "okay";
+};
