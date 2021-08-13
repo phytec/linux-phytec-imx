@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2019 PHYTEC Messtechnik GmbH
- * Author: Janine Hagemann <j.hagemann@phytec.de>
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
  */
 
 /dts-v1/;
 
 #include "imx8mq-phycore-som.dtsi"
 #include "imx8mq-phyboard-polaris.dtsi"
+#include "imx8mq-phyboard-polaris-sdcard.dtsi"
 #include "imx8mq-phyboard-polaris-peb-av-009.dtsi"
-#include "imx8mq-phyboard-polaris-sterling.dtsi"
+#include "imx8mq-phyboard-polaris-peb-eval-01.dtsi"
 #include "imx8mq-phyboard-polaris-phycam.dtsi"
 
 / {
-	model = "PHYTEC phyBOARD-Polaris carrier board with wifi";
+	model = "PHYTEC phyBOARD-Polaris with VM-016 on CSI2";
 	compatible = "phytec,imx8mq-pbacd12-emmc", "phytec,imx8mq-pbacd12",
 		     "phytec,imx8mq-pcl066", "fsl,imx8mq";
 
@@ -22,11 +23,11 @@
 	};
 };
 
-&csi1_bridge {
+&csi2_bridge {
 	status = "okay";
 };
 
-&mipi_csi_1 {
+&mipi_csi_2 {
 	status = "okay";
 };
 
@@ -38,10 +39,6 @@
 	status = "okay";
 };
 
-&uart2 {
-	status = "okay";
-};
-
-&vm016_1 {
+&vm016_2 {
 	status = "okay";
 };

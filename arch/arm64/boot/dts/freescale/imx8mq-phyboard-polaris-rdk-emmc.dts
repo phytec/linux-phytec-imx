@@ -11,6 +11,7 @@
 #include "imx8mq-phyboard-polaris-sdcard.dtsi"
 #include "imx8mq-phyboard-polaris-peb-av-009.dtsi"
 #include "imx8mq-phyboard-polaris-peb-eval-01.dtsi"
+#include "imx8mq-phyboard-polaris-phycam.dtsi"
 
 / {
 	model = "PHYTEC phyBOARD-Polaris carrier board";
@@ -22,10 +23,22 @@
 	};
 };
 
+&csi1_bridge {
+	status = "okay";
+};
+
+&mipi_csi_1 {
+	status = "okay";
+};
+
 &usdhc1 {
 	status = "okay";
 };
 
 &usdhc2 {
+	status = "okay";
+};
+
+&vm016_1 {
 	status = "okay";
 };
