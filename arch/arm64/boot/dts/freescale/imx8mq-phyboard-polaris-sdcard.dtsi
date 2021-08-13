@@ -4,6 +4,20 @@
  * Author: Janine Hagemann <j.hagemann@phytec.de>
  */
 
+/ {
+	reg_usdhc2_vmmc: regulator-usdhc2-vmmc {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usdhc2_vmmc>;
+		regulator-name = "VSD_3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 18 GPIO_ACTIVE_HIGH>;
+		off-on-delay-us = <20000>;
+		enable-active-high;
+	};
+};
+
 &usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
@@ -11,7 +25,7 @@
 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
 	bus-width = <4>;
 	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
-	vmmc-supply = <&reg_vcc3v3>;
+	vmmc-supply = <&reg_usdhc2_vmmc>;
 	status = "disabled";
 };
 
@@ -19,6 +33,12 @@
 	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_SD2_CD_B_GPIO2_IO12	0x41
+		>;
+	};
+
+	pinctrl_usdhc2_vmmc: usdhc2vmmcgpiogrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SAI1_TXD6_GPIO4_IO18	0x41
 		>;
 	};
 
