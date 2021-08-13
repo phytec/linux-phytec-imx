@@ -21,6 +21,11 @@
 	chosen {
 		stdout-path = &uart1;
 	};
+	/delete-node/ regulator-usdhc2-vmmc;
+};
+
+&iomuxc {
+	/delete-node/ usdhc2vmmcgpiogrp;
 };
 
 &usdhc1 {
@@ -28,6 +33,7 @@
 };
 
 &usdhc2 {
-	status = "okay";
+	vmmc-supply = <&reg_vcc3v3>;
 	no-1-8-v;
+	status = "okay";
 };

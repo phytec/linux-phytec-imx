@@ -21,6 +21,7 @@
 	chosen {
 		stdout-path = &uart1;
 	};
+	/delete-node/ regulator-usdhc2-vmmc;
 };
 
 &csi1_bridge {
@@ -29,6 +30,10 @@
 
 &csi2_bridge {
 	status = "okay";
+};
+
+&iomuxc {
+	/delete-node/ usdhc2vmmcgpiogrp;
 };
 
 &mipi_csi_1 {
@@ -44,8 +49,9 @@
 };
 
 &usdhc2 {
-	status = "okay";
+	vmmc-supply = <&reg_vcc3v3>;
 	no-1-8-v;
+	status = "okay";
 };
 
 &vm016_1 {
