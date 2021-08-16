@@ -5,6 +5,10 @@
  */
 
 / {
+	chosen {
+		stdout-path = &uart1;
+	};
+
 	fan: gpio_fan {
 		compatible = "gpio-fan";
 		pinctrl-0 = <&pinctrl_fan>;

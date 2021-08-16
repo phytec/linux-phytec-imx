@@ -18,9 +18,6 @@
 	compatible = "phytec,imx8mq-pbacd12-emmc", "phytec,imx8mq-pbacd12",
 		     "phytec,imx8mq-pcl066", "fsl,imx8mq";
 
-	chosen {
-		stdout-path = &uart1;
-	};
 	/delete-node/ regulator-usdhc2-vmmc;
 };
 
