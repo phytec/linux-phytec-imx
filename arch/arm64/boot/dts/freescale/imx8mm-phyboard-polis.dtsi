@@ -5,6 +5,10 @@
  */
 
 / {
+	chosen {
+		stdout-path = &uart3;
+	};
+
 	clocks {
 		#address-cells = <1>;
 		#size-cells = <0>;
