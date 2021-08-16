@@ -16,10 +16,6 @@
 		rtc1 = &snvs_rtc;
 	};
 
-	chosen {
-		stdout-path = &uart3;
-	};
-
 	rtcclkout: rv3028-clkout {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
