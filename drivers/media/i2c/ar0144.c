@@ -1483,9 +1483,14 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	fmt = ar0144_get_pad_fmt(sensor, cfg, format->pad, format->which);
 	crop = ar0144_get_pad_crop(sensor, cfg, format->pad, format->which);
 
+	if (sensor->model == AR0144_MODEL_COLOR)
+		fmt->colorspace = V4L2_COLORSPACE_RAW;
+	else
+		fmt->colorspace = V4L2_COLORSPACE_SRGB;
+
 	fmt->field = V4L2_FIELD_NONE;
-	fmt->colorspace = V4L2_COLORSPACE_RAW;
-	fmt->xfer_func = V4L2_XFER_FUNC_NONE;
+	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
+	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
 
 	sensor_format = ar0144_find_format(sensor, format->format.code);
 	fmt->code = sensor_format->code;
