@@ -1612,6 +1612,13 @@ static int ar0144_get_selection(struct v4l2_subdev *sd,
 		mutex_unlock(&sensor->lock);
 		break;
 
+	case V4L2_SEL_TGT_CROP_DEFAULT:
+		sel->r.left = 4;
+		sel->r.top = 4;
+		sel->r.width = AR0144_DEF_WIDTH;
+		sel->r.height = AR0144_DEF_HEIGHT;
+		break;
+
 	case V4L2_SEL_TGT_CROP_BOUNDS:
 		sel->r.left = x_min;
 		sel->r.top = y_min;
