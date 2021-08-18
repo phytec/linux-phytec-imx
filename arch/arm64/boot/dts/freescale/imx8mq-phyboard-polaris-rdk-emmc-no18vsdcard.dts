@@ -21,8 +21,16 @@
 	/delete-node/ regulator-usdhc2-vmmc;
 };
 
+&csi1_bridge {
+	status = "okay";
+};
+
 &iomuxc {
 	/delete-node/ usdhc2vmmcgpiogrp;
+};
+
+&mipi_csi_1 {
+	status = "okay";
 };
 
 &usdhc1 {
@@ -32,5 +40,9 @@
 &usdhc2 {
 	vmmc-supply = <&reg_vcc3v3>;
 	no-1-8-v;
+	status = "okay";
+};
+
+&vm016_1 {
 	status = "okay";
 };
