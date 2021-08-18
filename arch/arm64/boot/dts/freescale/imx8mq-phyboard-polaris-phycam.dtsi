@@ -44,8 +44,8 @@
 
 &i2c4 {
 	vm016_1: camera@10 {
-		#address-cells = <0x1>;
-		#size-cells = <0x0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 
 		compatible = "onsemi,ar0144";
 		reg = <0x10>;
@@ -70,8 +70,8 @@
 	};
 
 	vm016_2: camera@18 {
-		#address-cells = <0x1>;
-		#size-cells = <0x0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 
 		compatible = "onsemi,ar0144";
 		reg = <0x18>;
