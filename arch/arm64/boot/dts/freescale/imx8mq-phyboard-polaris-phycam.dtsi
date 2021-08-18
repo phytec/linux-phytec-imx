@@ -102,6 +102,9 @@
 	status = "disabled";
 
 	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
 		mipi1_csi_sensor_ep: endpoint@0 {
 			reg = <0>;
 			remote-endpoint = <&vm016_1_ep>;
@@ -121,6 +124,9 @@
 	status = "disabled";
 
 	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
 		mipi2_csi_sensor_ep: endpoint@0 {
 			reg = <0>;
 			remote-endpoint = <&vm016_2_ep>;
