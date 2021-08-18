@@ -12,9 +12,8 @@
 		regulator-name = "VSD_3V3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio4 18 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio4 18 GPIO_ACTIVE_LOW>;
 		off-on-delay-us = <20000>;
-		enable-active-high;
 	};
 };
 
