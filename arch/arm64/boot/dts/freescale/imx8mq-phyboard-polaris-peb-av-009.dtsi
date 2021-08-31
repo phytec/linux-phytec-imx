@@ -76,7 +76,7 @@
 			  <&clk IMX8MQ_VIDEO_PLL1>;
 	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
 				 <&clk IMX8MQ_VIDEO_PLL1>,
-				 <&clk IMX8MQ_CLK_27M>;
+				 <&clk IMX8MQ_CLK_25M>;
 	assigned-clock-rate = <126000000>, <0>, <0>, <1134000000>;
 	status = "okay";
 
