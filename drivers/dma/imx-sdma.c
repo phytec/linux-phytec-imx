@@ -2592,6 +2592,8 @@ static int sdma_probe(struct platform_device *pdev)
 	}
 
 	pm_runtime_enable(&pdev->dev);
+	if (!sdma->drvdata->pm_runtime)
+		pm_runtime_get_sync(&pdev->dev);
 
 	return 0;
 
