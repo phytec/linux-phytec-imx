@@ -84,10 +84,12 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk.dtb \
 			  imx8mp-phyboard-pollux-rdk-rpmsg.dtb \
 			  imx8mp-phyboard-pollux-rdk-vm016-csi2.dtb \
 			  imx8mp-phyboard-pollux-rdk-dual-vm016.dtb \
+			  imx8mp-phyboard-pollux-rdk-lvds0.dtb \
 			  imx8mp-phyboard-pollux-rdk-rev1.dtb \
 			  imx8mp-phyboard-pollux-rdk-rev1-rpmsg.dtb \
 			  imx8mp-phyboard-pollux-rdk-rev1-vm016-csi2.dtb \
-			  imx8mp-phyboard-pollux-rdk-rev1-dual-vm016.dtb
+			  imx8mp-phyboard-pollux-rdk-rev1-dual-vm016.dtb \
+			  imx8mp-phyboard-pollux-rdk-rev1-lvds0.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mq-evk.dtb imx8mq-evk-rpmsg.dtb imx8mq-evk-pcie1-m2.dtb imx8mq-evk-usd-wifi.dtb \
 			  imx8mq-evk-usdhc2-m2.dtb imx8mq-evk-pcie-ep.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mq-evk-ak4497.dtb imx8mq-evk-audio-tdm.dtb imx8mq-evk-pdm.dtb
