@@ -299,61 +299,6 @@ static inline struct mxc_isi_buffer *to_isi_buffer(struct vb2_v4l2_buffer *v4l2_
 	return container_of(v4l2_buf, struct mxc_isi_buffer, v4l2_buf);
 }
 
-/*
- * mxc_isi_pipeline_enable() - Enable streaming on a pipeline
- */
-static int mxc_isi_pipeline_enable(struct mxc_isi_cap_dev *isi_cap, bool enable)
-{
-	struct device *dev = &isi_cap->pdev->dev;
-	struct media_entity *entity = &isi_cap->vdev.entity;
-	struct media_device *mdev = entity->graph_obj.mdev;
-	struct media_graph graph;
-	struct v4l2_subdev *subdev;
-	int ret = 0;
-
-	mutex_lock(&mdev->graph_mutex);
-
-	ret = media_graph_walk_init(&graph, entity->graph_obj.mdev);
-	if (ret) {
-		mutex_unlock(&mdev->graph_mutex);
-		return ret;
-	}
-	media_graph_walk_start(&graph, entity);
-
-	while ((entity = media_graph_walk_next(&graph))) {
-		if (!entity) {
-			dev_dbg(dev, "entity is NULL\n");
-			continue;
-		}
-
-		if (!is_media_entity_v4l2_subdev(entity)) {
-			dev_dbg(dev, "%s is no v4l2 subdev\n", entity->name);
-			continue;
-		}
-
-		subdev = media_entity_to_v4l2_subdev(entity);
-		if (!subdev) {
-			dev_dbg(dev, "%s subdev is NULL\n", entity->name);
-			continue;
-		}
-
-		if (subdev->entity.function == MEDIA_ENT_F_CAM_SENSOR) {
-			dev_dbg(dev, "%s subdev is sensor\n", entity->name);
-			continue;
-		}
-
-		ret = v4l2_subdev_call(subdev, video, s_stream, enable);
-		if (ret < 0 && ret != -ENOIOCTLCMD) {
-			dev_err(dev, "subdev %s s_stream failed\n", subdev->name);
-			break;
-		}
-	}
-	mutex_unlock(&mdev->graph_mutex);
-	media_graph_walk_cleanup(&graph);
-
-	return ret;
-}
-
 static int mxc_isi_update_buf_paddr(struct mxc_isi_buffer *buf, int memplanes)
 {
 	struct frame_addr *paddr = &buf->paddr;
@@ -1199,19 +1144,29 @@ static int mxc_isi_cap_streamon(struct file *file, void *priv,
 {
 	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
+	struct v4l2_subdev *subdev;
+	struct device *dev = &isi_cap->pdev->dev;
 	int ret;
 
-	dev_dbg(&isi_cap->pdev->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 
 	ret = mxc_isi_config_parm(isi_cap);
 	if (ret < 0)
 		return ret;
 
 	ret = vb2_ioctl_streamon(file, priv, type);
-	mxc_isi_channel_enable(mxc_isi, mxc_isi->m2m_enabled);
-	ret = mxc_isi_pipeline_enable(isi_cap, 1);
-	if (ret < 0 && ret != -ENOIOCTLCMD)
+	if (ret)
 		return ret;
+
+	mxc_isi_channel_enable(mxc_isi, mxc_isi->m2m_enabled);
+
+	subdev = mxc_get_remote_subdev(&isi_cap->sd, __func__);
+
+	ret = v4l2_subdev_call(subdev, video, s_stream, 1);
+	if (ret < 0 && ret != -ENOIOCTLCMD) {
+		dev_err(dev, "subdev %s s_stream failed\n", subdev->name);
+		return ret;
+	}
 
 	mxc_isi->is_streaming = 1;
 
@@ -1223,11 +1178,14 @@ static int mxc_isi_cap_streamoff(struct file *file, void *priv,
 {
 	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
+	struct v4l2_subdev *subdev;
 	int ret;
 
 	dev_dbg(&isi_cap->pdev->dev, "%s\n", __func__);
 
-	mxc_isi_pipeline_enable(isi_cap, 0);
+	subdev = mxc_get_remote_subdev(&isi_cap->sd, __func__);
+
+	v4l2_subdev_call(subdev, video, s_stream, 0);
 	mxc_isi_channel_disable(mxc_isi);
 	ret = vb2_ioctl_streamoff(file, priv, type);
 
