@@ -1708,7 +1708,6 @@ static int ar0144_subdev_registered(struct v4l2_subdev *sd)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 
-	ar0144_reset(sensor);
 	v4l2_ctrl_handler_setup(&sensor->ctrls);
 	return 0;
 }
@@ -2889,6 +2888,8 @@ static int ar0144_probe(struct i2c_client *i2c,
 	ret = media_entity_pads_init(&sd->entity, AR0144_NUM_PADS, sensor->pad);
 	if (ret)
 		goto out_media;
+
+	ar0144_reset(sensor);
 
 	ret = ar0144_check_chip_id(sensor);
 	if (ret)
