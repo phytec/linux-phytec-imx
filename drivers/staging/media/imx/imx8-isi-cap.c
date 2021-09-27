@@ -461,14 +461,20 @@ static void cap_vb2_buffer_queue(struct vb2_buffer *vb2)
 	spin_unlock_irqrestore(&isi_cap->slock, flags);
 }
 
+static int mxc_isi_config_parm(struct mxc_isi_cap_dev *isi_cap);
+static struct v4l2_subdev *mxc_get_remote_subdev(struct v4l2_subdev *subdev,
+						 const char * const label);
+
 static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 {
 	struct mxc_isi_cap_dev *isi_cap = vb2_get_drv_priv(q);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
 	struct mxc_isi_buffer *buf;
 	struct vb2_buffer *vb2;
+	struct v4l2_subdev *subdev;
 	unsigned long flags;
 	int i, j;
+	int ret;
 
 	dev_dbg(&isi_cap->pdev->dev, "%s\n", __func__);
 
@@ -477,6 +483,10 @@ static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 
 	if (!mxc_isi)
 		return -EINVAL;
+
+	ret = mxc_isi_config_parm(isi_cap);
+	if (ret < 0)
+		return ret;
 
 	/* Create a buffer for discard operation */
 	for (i = 0; i < isi_cap->pix.num_planes; i++) {
@@ -533,6 +543,54 @@ static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 	isi_cap->frame_count = 1;
 	spin_unlock_irqrestore(&isi_cap->slock, flags);
 
+	mxc_isi_channel_enable(mxc_isi, mxc_isi->m2m_enabled);
+
+	subdev = mxc_get_remote_subdev(&isi_cap->sd, __func__);
+	ret = v4l2_subdev_call(subdev, video, s_stream, 1);
+
+	if (ret) {
+		mxc_isi_channel_disable(mxc_isi);
+		spin_lock_irqsave(&isi_cap->slock, flags);
+
+		while (!list_empty(&isi_cap->out_active)) {
+			buf = list_entry(isi_cap->out_active.next,
+					 struct mxc_isi_buffer, list);
+			list_del_init(&buf->list);
+			if (buf->discard)
+				continue;
+
+			vb2_buffer_done(&buf->v4l2_buf.vb2_buf,
+					VB2_BUF_STATE_ERROR);
+		}
+
+		while (!list_empty(&isi_cap->out_pending)) {
+			buf = list_entry(isi_cap->out_pending.next,
+					 struct mxc_isi_buffer, list);
+			list_del_init(&buf->list);
+			vb2_buffer_done(&buf->v4l2_buf.vb2_buf,
+					VB2_BUF_STATE_ERROR);
+		}
+
+		while (!list_empty(&isi_cap->out_discard)) {
+			buf = list_entry(isi_cap->out_discard.next,
+					 struct mxc_isi_buffer, list);
+			list_del_init(&buf->list);
+		}
+
+		INIT_LIST_HEAD(&isi_cap->out_active);
+		INIT_LIST_HEAD(&isi_cap->out_pending);
+		INIT_LIST_HEAD(&isi_cap->out_discard);
+
+		spin_unlock_irqrestore(&isi_cap->slock, flags);
+
+		for (i = 0; i < isi_cap->pix.num_planes; i++)
+			dma_free_coherent(&isi_cap->pdev->dev,
+					  PAGE_ALIGN(isi_cap->discard_size[i]),
+					  isi_cap->discard_buffer[i],
+					  isi_cap->discard_buffer_dma[i]);
+		return ret;
+	}
+
 	return 0;
 }
 
@@ -541,12 +599,16 @@ static void cap_vb2_stop_streaming(struct vb2_queue *q)
 	struct mxc_isi_cap_dev *isi_cap = vb2_get_drv_priv(q);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
 	struct mxc_isi_buffer *buf;
+	struct v4l2_subdev *subdev;
 	unsigned long flags;
 	int i;
 
 	dev_dbg(&isi_cap->pdev->dev, "%s\n", __func__);
 
 	mxc_isi_channel_disable(mxc_isi);
+
+	subdev = mxc_get_remote_subdev(&isi_cap->sd, __func__);
+	v4l2_subdev_call(subdev, video, s_stream, 0);
 
 	spin_lock_irqsave(&isi_cap->slock, flags);
 
@@ -1138,62 +1200,6 @@ static int mxc_isi_cap_s_parm(struct file *file, void *fh,
 	return v4l2_s_parm_cap(video_devdata(file), sd, a);
 }
 
-
-static int mxc_isi_cap_streamon(struct file *file, void *priv,
-				enum v4l2_buf_type type)
-{
-	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
-	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
-	struct v4l2_subdev *subdev;
-	struct device *dev = &isi_cap->pdev->dev;
-	int ret;
-
-	dev_dbg(dev, "%s\n", __func__);
-
-	ret = mxc_isi_config_parm(isi_cap);
-	if (ret < 0)
-		return ret;
-
-	ret = vb2_ioctl_streamon(file, priv, type);
-	if (ret)
-		return ret;
-
-	mxc_isi_channel_enable(mxc_isi, mxc_isi->m2m_enabled);
-
-	subdev = mxc_get_remote_subdev(&isi_cap->sd, __func__);
-
-	ret = v4l2_subdev_call(subdev, video, s_stream, 1);
-	if (ret < 0 && ret != -ENOIOCTLCMD) {
-		dev_err(dev, "subdev %s s_stream failed\n", subdev->name);
-		return ret;
-	}
-
-	mxc_isi->is_streaming = 1;
-
-	return 0;
-}
-
-static int mxc_isi_cap_streamoff(struct file *file, void *priv,
-				 enum v4l2_buf_type type)
-{
-	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
-	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
-	struct v4l2_subdev *subdev;
-	int ret;
-
-	dev_dbg(&isi_cap->pdev->dev, "%s\n", __func__);
-
-	subdev = mxc_get_remote_subdev(&isi_cap->sd, __func__);
-
-	v4l2_subdev_call(subdev, video, s_stream, 0);
-	mxc_isi_channel_disable(mxc_isi);
-	ret = vb2_ioctl_streamoff(file, priv, type);
-
-	mxc_isi->is_streaming = 0;
-
-	return ret;
-}
-
 static int mxc_isi_cap_g_selection(struct file *file, void *fh,
 				   struct v4l2_selection *s)
 {
@@ -1393,8 +1399,8 @@ static const struct v4l2_ioctl_ops mxc_isi_capture_ioctl_ops = {
 	.vidioc_g_parm			= mxc_isi_cap_g_parm,
 	.vidioc_s_parm			= mxc_isi_cap_s_parm,
 
-	.vidioc_streamon		= mxc_isi_cap_streamon,
-	.vidioc_streamoff		= mxc_isi_cap_streamoff,
+	.vidioc_streamon		= vb2_ioctl_streamon,
+	.vidioc_streamoff		= vb2_ioctl_streamoff,
 
 	.vidioc_g_selection		= mxc_isi_cap_g_selection,
 	.vidioc_s_selection		= mxc_isi_cap_s_selection,
