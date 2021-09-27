@@ -1015,19 +1015,6 @@ static int mxc_md_probe(struct platform_device *pdev)
 			dev_warn(&mxc_md->pdev->dev, "Sensor register failed\n");
 			return ret;
 		}
-
-		if (!mxc_md->link_status) {
-			if (mxc_md->valid_num_sensors > 0) {
-				ret = subdev_notifier_complete(&mxc_md->subdev_notifier);
-				if (ret < 0)
-					goto clean_ents;
-
-				mxc_md_clean_unlink_channels(mxc_md);
-			} else {
-				/* no sensors connected */
-				mxc_md_unregister_all(mxc_md);
-			}
-		}
 	}
 
 	return 0;
