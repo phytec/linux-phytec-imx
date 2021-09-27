@@ -497,7 +497,9 @@ static int mxc_md_create_links(struct mxc_md *mxc_md)
 
 			source = &sensor->sd->entity;
 			sink = find_entity_by_name(mxc_md, mipi_csi2->sd_name);
-			source_pad = 0;
+			source_pad = media_entity_get_fwnode_pad(source,
+								 NULL,
+								 MEDIA_PAD_FL_SOURCE);
 			sink_pad = source_pad;
 
 			mipi_vc = (mipi_csi2->vchannel) ? 4 : 1;
