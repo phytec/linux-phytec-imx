@@ -129,3 +129,7 @@
 	csis-clk-settle = <2>;
 	csis-wclk;
 };
+
+&tpm {
+	status = "okay";
+};

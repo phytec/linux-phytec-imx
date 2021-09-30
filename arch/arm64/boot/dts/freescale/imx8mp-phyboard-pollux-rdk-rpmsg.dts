@@ -77,3 +77,7 @@
 	memory-region = <&vdevbuffer>;
 	status = "disabled";
 };
+
+&tpm {
+	status = "okay";
+};
