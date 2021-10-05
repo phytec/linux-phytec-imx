@@ -679,7 +679,16 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-zii-rpu2.dtb \
 	imx7s-colibri-eval-v3.dtb \
 	imx7s-mba7.dtb \
-	imx7s-warp.dtb
+	imx7s-warp.dtb \
+	imx7d-phyboard-zeta-kit-m4.dtb \
+	imx7d-phyboard-zeta-kit-mipi.dtb \
+	imx7d-phyboard-zeta-kit.dtb \
+	imx7d-pcm-061-1110110c.dtb \
+	imx7d-pcm-061-2111101e.dtb \
+	imx7d-pcm-061-2111111e.dtb \
+	imx7d-pcm-061-2211101e.dtb \
+	imx7d-pcm-061-2211111e.dtb \
+	imx7s-pcm-061-0502100e.dtb
 dtb-$(CONFIG_SOC_IMX7ULP) += \
 	imx7ulp-evk.dtb \
 	imx7ulp-evk-ft5416.dtb \

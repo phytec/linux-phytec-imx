@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2019-2021 PHYTEC America, LLC
+ *
+ * DTS for PHYTEC SOM PCM-061-0502100E and Carrier Board PBA-C-09.
+ */
+
+/dts-v1/;
+
+#include "imx7s.dtsi"			/* Solo Processor */
+#include "imx7-phycore-som.dtsi"	/* Enable all SOM population options */
+#include "imx7s-pba-c-09.dtsi"		/* Carrier board */
+#include "imx7-peb-d-rpi.dtsi"		/* PEB-D-RPI module */
+
+/ {
+	model = "PHYTEC phyCORE-i.MX7 Solo, 256MiB DDR3, NAND, Extended Temp";
+	compatible = "phytec,imx7s-pcm-061-0502100e",
+		     "phytec,imx7-phycore-som",
+		     "fsl,imx7d";
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x80000000 0x10000000>;	/* 256MB */
+	};
+};
+
+/* No PHY on SOM */
+&fec1 {
+	status = "disabled";
+};
+
+/* NAND populated */
+&gpmi {
+	status = "okay";
+};
+
+/* No external RTC */
+&i2c_rtc {
+	status = "disabled";
+};
+
+/* No SPI NOR */
+&qflash0 {
+	status = "disabled";
+};
+
+&qspi1 {
+	status = "disabled";
+};
+
+/* eMMC not populated */
+&usdhc3 {
+	status = "disabled";
+};
