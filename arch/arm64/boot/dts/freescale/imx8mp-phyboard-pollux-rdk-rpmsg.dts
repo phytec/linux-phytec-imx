@@ -12,7 +12,7 @@
 #include "imx8mp-phyboard-pollux-peb-wlbt-05.dtsi"
 
 / {
-	model = "PHYTEC phyBOARD-Pollux i.MX8MP rpmsg";
+	model = "PHYTEC phyBOARD-Pollux i.MX8MP rpoc";
 	compatible = "phytec,imx8mp-phyboard-pollux-rdk",
 		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
 
@@ -27,13 +27,11 @@
 		};
 
 		vdev0vring0: vdev0vring0@55000000 {
-			compatible = "shared-dma-pool";
 			reg = <0 0x55000000 0 0x8000>;
 			no-map;
 		};
 
 		vdev0vring1: vdev0vring1@55008000 {
-			compatible = "shared-dma-pool";
 			reg = <0 0x55008000 0 0x8000>;
 			no-map;
 		};
@@ -44,8 +42,8 @@
 			no-map;
 		};
 
-		rsc-table {
-			reg = <0x0 0x550ff000 0x0 0x1000>;
+		rsc_table: rsc_table@550ff000 {
+			reg = <0 0x550ff000 0 0x1000>;
 			no-map;
 		};
 	};
@@ -58,22 +56,11 @@
 		mboxes = <&mu 0 1
 			&mu 1 1
 			&mu 3 1>;
-		memory-region = <&vdev0vring0>, <&vdev0vring1>, <&vdevbuffer>;
+		memory-region = <&vdevbuffer>, <&vdev0vring0>, <&vdev0vring1>, <&rsc_table>;
 		status = "okay";
 	};
 };
 
 &som_flash {
 	status = "okay";
-};
-
-&rpmsg{
-	/*
-	 * 64K for one rpmsg instance:
-	 * --0x55000000~0x5500ffff: pingpong
-	 */
-	vdev-nums = <1>;
-	reg = <0x0 0x55000000 0x0 0x10000>;
-	memory-region = <&vdevbuffer>;
-	status = "disabled";
 };
