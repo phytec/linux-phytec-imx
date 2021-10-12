@@ -112,7 +112,6 @@
 };
 
 &lcdif {
-	max-res = <1920>, <1080>;
 	status = "okay";
 };
 
