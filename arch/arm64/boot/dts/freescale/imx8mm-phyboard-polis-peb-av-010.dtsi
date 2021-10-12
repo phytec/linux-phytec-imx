@@ -99,11 +99,13 @@
 
 	eeprom@57 {
 		compatible = "atmel,24c32";
+		pagesize = <32>;
 		reg = <0x57>;
 	};
 
 	eepromid@5f {
 		compatible = "atmel,24c32";
+		pagesize = <32>;
 		reg = <0x5f>;
 		size = <32>;
 	};
