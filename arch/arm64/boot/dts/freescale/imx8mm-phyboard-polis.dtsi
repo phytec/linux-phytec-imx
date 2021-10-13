@@ -218,7 +218,6 @@
 	non-removable;
 	no-1-8-v;
 	mmc-pwrseq = <&usdhc1_pwrseq>;
-	wifi-host;
 	status = "okay";
 
 	brcmf: wifi@1 {
