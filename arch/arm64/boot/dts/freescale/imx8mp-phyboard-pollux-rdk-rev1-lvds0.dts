@@ -15,7 +15,6 @@
 	model = "PHYTEC phyBOARD-Pollux i.MX8MP rev1";
 	compatible = "phytec,imx8mp-phyboard-pollux-rdk",
 		     "phytec,imx8mp-phycore-som", "fsl,imx8mp";
-	};
 };
 
 &backlight1 {
