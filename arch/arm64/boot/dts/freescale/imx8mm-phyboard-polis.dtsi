@@ -135,7 +135,7 @@
 		<&clk IMX8MM_CLK_PCIE1_AUX>,
 		<&clk IMX8MM_CLK_PCIE1_PHY>,
 		<&clk IMX8MM_CLK_DUMMY>;
-	clock-names = "pcie", "pcie_bus", "pcie_phy", "pcie_aux";
+	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
 	assigned-clocks = <&clk IMX8MM_CLK_PCIE1_AUX>,
 			  <&clk IMX8MM_CLK_PCIE1_PHY>,
 			  <&clk IMX8MM_CLK_PCIE1_CTRL>;
