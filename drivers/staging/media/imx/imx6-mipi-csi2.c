@@ -545,7 +545,7 @@ static int csi2_notify_bound(struct v4l2_async_notifier *notifier,
 	struct csi2_dev *csi2 = notifier_to_dev(notifier);
 	struct media_pad *sink = &csi2->sd.entity.pads[CSI2_SINK_PAD];
 
-	return v4l2_create_fwnode_links_to_pad(sd, sink);
+	return v4l2_create_fwnode_links_to_pad(sd, sink, 0);
 }
 
 static const struct v4l2_async_notifier_operations csi2_notify_ops = {
