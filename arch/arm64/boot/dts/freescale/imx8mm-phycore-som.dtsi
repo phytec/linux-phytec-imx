@@ -171,14 +171,14 @@
 
 			reg_buck2: buck2 {
 				regulator-name = "VDD_GPU_DRAM";
-				regulator-min-microvolt = <400000>;
+				regulator-min-microvolt = <1000000>;
 				regulator-max-microvolt = <1000000>;
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-state-mem {
 					regulator-on-in-suspend;
-					regulator-suspend-min-microvolt = <400000>;
-					regulator-suspend-max-microvolt = <400000>;
+					regulator-suspend-min-microvolt = <1000000>;
+					regulator-suspend-max-microvolt = <1000000>;
 				};
 			};
 
