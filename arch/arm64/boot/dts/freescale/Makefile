@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
+DTC_FLAGS += -@
+subdir-y += overlays
 
 dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frdm.dtb
 dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1012a-frwy.dtb
