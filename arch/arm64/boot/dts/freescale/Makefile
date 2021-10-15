@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
+DTC_FLAGS += -@
+subdir-y += overlays
 
 # required for overlay support
 DTC_FLAGS_fsl-ls1028a-qds := -@
