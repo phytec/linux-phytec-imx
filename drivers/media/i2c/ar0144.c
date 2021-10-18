@@ -1141,14 +1141,15 @@ static struct v4l2_mbus_framefmt *ar0144_get_pad_fmt(struct ar0144 *sensor,
 	}
 }
 
-static unsigned int ar0144_find_skipfactor(unsigned int reduced,
-					   unsigned int orig)
+static unsigned int ar0144_find_skipfactor(unsigned int input,
+					   unsigned int output)
 {
-	unsigned int factor;
-	unsigned int lower, upper, half;
 	int i;
 
-	/* We need to determine the closest supported skipfactor.
+	/*
+	 * We need to determine a matching supported power-of-two skip
+	 * factor. If no exact match is found. the next bigger matching
+	 * factor is returned.
 	 * Supported factors are:
 	 * No Skip
 	 * Skip 2
@@ -1156,21 +1157,12 @@ static unsigned int ar0144_find_skipfactor(unsigned int reduced,
 	 * Skip 8
 	 * Skip 16
 	 */
-	factor = DIV_ROUND_CLOSEST(orig, reduced);
 
-	for (i = 0; i <= 4; i++) {
-		if ((1 << i) > factor)
+	for (i = 0; i < 4; i++)
+		if ((input >> i) <= output)
 			break;
-	}
 
-	lower = (1 << (i - 1));
-	upper = (1 << i);
-	half = lower + ((upper - lower) / 2);
-
-	if (factor <= half)
-		return lower;
-	else
-		return upper;
+	return (1 << i);
 }
 
 /* V4L2 subdev pad ops */
@@ -1260,8 +1252,8 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	height = clamp_t(unsigned int, format->format.height,
 			 1, crop->height);
 
-	w_scale = ar0144_find_skipfactor(width, crop->width);
-	h_scale = ar0144_find_skipfactor(height, crop->height);
+	w_scale = ar0144_find_skipfactor(crop->width, width);
+	h_scale = ar0144_find_skipfactor(crop->height, height);
 
 	fmt->width = crop->width / w_scale;
 	fmt->height = crop->height / h_scale;
