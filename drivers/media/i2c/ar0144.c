@@ -1975,12 +1975,6 @@ static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 	mutex_unlock(&sensor->lock);
 
 	switch (ctrl->id) {
-	case V4L2_CID_VBLANK:
-		ctrl->val = sensor->vblank;
-		break;
-	case V4L2_CID_HBLANK:
-		ctrl->val = sensor->hblank;
-		break;
 	case V4L2_CID_X_AUTO_EXPOSURE_CUR:
 		ret = ar0144_read(sensor, AR0144_AE_COARSE_INT_TIME, &val);
 		if (ret)
@@ -2409,10 +2403,6 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		}
 
 		switch (ctrl->id) {
-		case V4L2_CID_HBLANK:
-		case V4L2_CID_VBLANK:
-			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-			break;
 		case V4L2_CID_PIXEL_RATE:
 			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY |
 				       V4L2_CTRL_FLAG_VOLATILE;
