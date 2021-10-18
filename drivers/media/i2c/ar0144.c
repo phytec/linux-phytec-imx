@@ -214,6 +214,7 @@ enum {
 	V4L2_CID_X_BLACK_LEVEL_AUTO,
 	V4L2_CID_X_FLASH_DELAY,
 	V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION,
+	V4L2_CID_X_TRIGGER_MODE,
 };
 
 enum {
@@ -426,6 +427,7 @@ struct ar0144 {
 
 	int power_user;
 	bool is_streaming;
+	bool trigger;
 };
 
 static inline struct ar0144 *to_ar0144(struct v4l2_subdev *sd)
@@ -572,6 +574,23 @@ static const unsigned int ar0144_match_col_format(struct ar0144 *sensor,
 	return sensor->formats[sensor->num_fmts - 1].code;
 }
 
+static int ar0144_start_stream(struct ar0144 *sensor)
+{
+	return ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
+				  BIT_STREAM | BIT_MASK_BAD |
+				  BIT_GPI_EN | BIT_FORCED_PLL_ON,
+				  BIT_STREAM | BIT_MASK_BAD);
+}
+
+static int ar0144_start_trigger(struct ar0144 *sensor)
+{
+	return ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
+				  BIT_STREAM | BIT_MASK_BAD |
+				  BIT_GPI_EN | BIT_FORCED_PLL_ON,
+				  BIT_MASK_BAD |
+				  BIT_GPI_EN | BIT_FORCED_PLL_ON);
+}
+
 static int ar0144_enter_standby(struct ar0144 *sensor)
 {
 	unsigned int timeout = 1000;
@@ -579,7 +598,7 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 	u16 val;
 
 	ret = ar0144_clear_bits(sensor, AR0144_RESET_REGISTER,
-				BIT_STREAM | BIT_GPI_EN);
+				BIT_STREAM | BIT_GPI_EN | BIT_FORCED_PLL_ON);
 	if (ret)
 		return ret;
 
@@ -1054,8 +1073,10 @@ static int ar0144_config_parallel(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	ret = ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
-			      BIT_STREAM | BIT_MASK_BAD);
+	if (sensor->trigger)
+		ret = ar0144_start_trigger(sensor);
+	else
+		ret = ar0144_start_stream(sensor);
 
 	return ret;
 }
@@ -1139,8 +1160,10 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	ret = ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
-			      BIT_STREAM | BIT_MASK_BAD);
+	if (sensor->trigger)
+		ret = ar0144_start_trigger(sensor);
+	else
+		ret = ar0144_start_stream(sensor);
 	if (ret)
 		return ret;
 
@@ -1913,6 +1936,22 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		ret = ar0144_update_bits(sensor, AR0144_PIX_DEF_ID,
 					 BIT_PIX_DEF_1D_DDC_EN, val);
 		break;
+	case V4L2_CID_X_TRIGGER_MODE:
+		mutex_lock(&sensor->lock);
+		sensor->trigger = ctrl->val ? true : false;
+
+		if (!sensor->is_streaming) {
+			mutex_unlock(&sensor->lock);
+			break;
+		}
+
+		if (sensor->trigger)
+			ret = ar0144_start_trigger(sensor);
+		else
+			ret = ar0144_start_stream(sensor);
+
+		mutex_unlock(&sensor->lock);
+		break;
 	default:
 		ret = -EINVAL;
 		break;
@@ -2292,6 +2331,15 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.id		= V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION,
 		.type		= V4L2_CTRL_TYPE_BOOLEAN,
 		.name		= "Dynamic Defect Pixel Correction",
+		.min		= 0,
+		.max		= 1,
+		.step		= 1,
+		.def		= 0,
+	}, {
+		.ops		= &ar0144_ctrl_ops,
+		.id		= V4L2_CID_X_TRIGGER_MODE,
+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+		.name		= "Trigger Mode",
 		.min		= 0,
 		.max		= 1,
 		.step		= 1,
