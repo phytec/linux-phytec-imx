@@ -1313,8 +1313,8 @@ static int ar0144_set_selection(struct v4l2_subdev *sd,
 
 	_crop->top = min_t(unsigned int, sel->r.top, max_h);
 	_crop->left = min_t(unsigned int, sel->r.left, max_w);
-	_crop->width = min_t(unsigned int, sel->r.width, max_w);
-	_crop->height = min_t(unsigned int, sel->r.height, max_h);
+	_crop->width = min_t(unsigned int, sel->r.width, max_w - _crop->left);
+	_crop->height = min_t(unsigned int, sel->r.height, max_h - _crop->top);
 
 	if (sensor->is_streaming) {
 		/* TODO: Add on the fly cropping change */
