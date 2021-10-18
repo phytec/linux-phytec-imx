@@ -1596,7 +1596,6 @@ static int ar0144_subdev_registered(struct v4l2_subdev *sd)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 
-	ar0144_reset(sensor);
 	v4l2_ctrl_handler_setup(&sensor->ctrls);
 	return 0;
 }
@@ -2465,6 +2464,8 @@ static int ar0144_check_chip_id(struct ar0144 *sensor)
 		dev_err(dev, "Failed to power on sensor (%d)\n", ret);
 		return ret;
 	}
+
+	ar0144_reset(sensor);
 
 	ret = ar0144_read(sensor, AR0144_MODEL_ID, &model_id);
 	if (ret) {
