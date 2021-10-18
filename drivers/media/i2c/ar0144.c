@@ -1785,17 +1785,15 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	switch (ctrl->id) {
 	case V4L2_CID_VBLANK:
-		if (sensor->is_streaming) {
-			ret = -EBUSY;
-			goto out;
-		}
+		if (sensor->is_streaming)
+			return -EBUSY;
+
 		sensor->vblank = ctrl->val;
 		break;
 	case V4L2_CID_HBLANK:
-		if (sensor->is_streaming) {
-			ret = -EBUSY;
-			goto out;
-		}
+		if (sensor->is_streaming)
+			return -EBUSY;
+
 		sensor->hblank = ctrl->val;
 		break;
 	case V4L2_CID_HFLIP:
@@ -1857,10 +1855,8 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 					 BIT_MIN_ANA_GAIN(ctrl->val));
 		break;
 	case V4L2_CID_X_EMBEDDED_DATA:
-		if (sensor->is_streaming) {
-			ret = -EBUSY;
-			goto out;
-		}
+		if (sensor->is_streaming)
+			return -EBUSY;
 
 		/*
 		 * Embedded statistics are always enabled but only shown when
@@ -1872,7 +1868,7 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 					 BIT_EMBEDDED_DATA, val);
 
 		if (ret)
-			goto out;
+			return ret;
 
 		sensor->embedded_stat = ctrl->val & V4L2_X_EMBEDDED_STAT ?
 					true : false;
@@ -1884,7 +1880,7 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		ret = ar0144_write(sensor, AR0144_TEST_PATTERN,
 				   ctrl->val < 4 ? ctrl->val : 256);
 		if (ret)
-			goto out;
+			return ret;
 
 		/* This is undocumented but necessary */
 		ret = ar0144_update_bits(sensor, 0x3044, 3u << 4, 0);
@@ -1948,15 +1944,14 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_LINK_FREQ:
 		break;
 	default:
-		ret = -ENOTTY;
+		ret = -EINVAL;
 		break;
 	}
 
-out:
 	return ret;
 }
 
-static int ar0144_g_ctrl(struct v4l2_ctrl *ctrl)
+static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct ar0144 *sensor = ctrl->priv;
 	int ret = 0;
@@ -1977,7 +1972,7 @@ static int ar0144_g_ctrl(struct v4l2_ctrl *ctrl)
 		ctrl->val = val;
 		break;
 	default:
-		ret = -ENOTTY;
+		ret = -EINVAL;
 		break;
 	}
 
@@ -1986,7 +1981,7 @@ static int ar0144_g_ctrl(struct v4l2_ctrl *ctrl)
 
 static const struct v4l2_ctrl_ops ar0144_ctrl_ops = {
 	.s_ctrl			= ar0144_s_ctrl,
-	.g_volatile_ctrl	= ar0144_g_ctrl,
+	.g_volatile_ctrl	= ar0144_g_volatile_ctrl,
 };
 
 static const char * const ar0144_test_pattern_menu[] = {
