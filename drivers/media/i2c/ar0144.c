@@ -1585,18 +1585,6 @@ static const struct media_entity_operations ar0144_entity_ops = {
 	.get_fwnode_pad		= v4l2_subdev_get_fwnode_pad_1_to_1,
 };
 
-static int ar0144_subdev_registered(struct v4l2_subdev *sd)
-{
-	struct ar0144 *sensor = to_ar0144(sd);
-
-	v4l2_ctrl_handler_setup(&sensor->ctrls);
-	return 0;
-}
-
-static const struct v4l2_subdev_internal_ops ar0144_subdev_internal_ops = {
-	.registered		= ar0144_subdev_registered,
-};
-
 static int ar0144_set_analogue_gain(struct ar0144 *sensor, unsigned int val)
 {
 	unsigned int coarse, fine;
@@ -2487,6 +2475,30 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 	sensor->vblank = sensor->limits.vblank.min;
 }
 
+static int ar0144_subdev_registered(struct v4l2_subdev *sd)
+{
+	struct ar0144 *sensor = to_ar0144(sd);
+	int ret;
+
+	ar0144_set_defaults(sensor);
+
+	ret = ar0144_calculate_pll(sensor);
+	if (ret)
+		return ret;
+
+	ret = ar0144_create_ctrls(sensor);
+	if (ret)
+		return ret;
+
+	v4l2_ctrl_handler_setup(&sensor->ctrls);
+
+	return 0;
+}
+
+static const struct v4l2_subdev_internal_ops ar0144_subdev_internal_ops = {
+	.registered		= ar0144_subdev_registered,
+};
+
 static int ar0144_check_chip_id(struct ar0144 *sensor)
 {
 	struct device *dev = sensor->dev;
@@ -2763,16 +2775,6 @@ static int ar0144_probe(struct i2c_client *i2c,
 	ret = ar0144_check_chip_id(sensor);
 	if (ret)
 		goto out_media;
-
-	ar0144_set_defaults(sensor);
-
-	ret = ar0144_calculate_pll(sensor);
-	if (ret)
-		return ret;
-
-	ret = ar0144_create_ctrls(sensor);
-	if (ret)
-		goto out;
 
 	ret = v4l2_async_register_subdev(&sensor->subdev);
 	if (ret)
