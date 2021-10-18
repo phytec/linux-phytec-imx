@@ -183,6 +183,10 @@
 #define AR0144_DEF_WIDTH		1280
 #define AR0144_DEF_HEIGHT		800
 
+#define AR0144_FREQ_MENU_8BIT		0
+#define AR0144_FREQ_MENU_10BIT		1
+#define AR0144_FREQ_MENU_12BIT		2
+
 
 enum {
 	V4L2_CID_USER_BASE_AR0144		= V4L2_CID_USER_BASE + 0x2500,
@@ -340,7 +344,8 @@ struct ar0144_sensor_limits {
 struct ar0144_businfo {
 	enum v4l2_mbus_type bus_type;
 	unsigned int flags;
-	unsigned long link_freq;
+	const s64 *link_freqs;
+	unsigned int num_freqs;
 
 	unsigned int slew_rate_dat;
 	unsigned int slew_rate_clk;
@@ -412,7 +417,6 @@ struct ar0144 {
 	const struct ar0144_format *formats;
 	unsigned int num_fmts;
 
-	struct v4l2_ctrl *link_freq_ctrl;
 	struct ar0144_gains gains;
 
 	struct clk *extclk;
@@ -683,7 +687,6 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 	int ret = 0;
-	int link_freq;
 
 	dev_dbg(sd->dev, "%s on: %d\n", __func__, on);
 
@@ -704,23 +707,6 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 		    !sensor->is_streaming) {
 			ret = ar0144_mipi_enter_lp11(sensor);
 			if (ret) {
-				ar0144_power_off(sensor);
-				goto out;
-			}
-
-			/* Select the correct link frequency depending on
-			 * bits per pixel
-			 */
-			/* TODO: Can we remove these magic values here? */
-			link_freq = (sensor->bpp - 8) / 2;
-			if (sensor->info.num_lanes == 1)
-				link_freq += 3;
-
-			ret = v4l2_ctrl_s_ctrl(sensor->link_freq_ctrl,
-					       link_freq);
-			if (ret) {
-				v4l2_err(&sensor->subdev,
-					 "Failed to set link freq ctrl\n");
 				ar0144_power_off(sensor);
 				goto out;
 			}
@@ -814,7 +800,7 @@ static int ar0144_calculate_pll(struct ar0144 *sensor)
 	dev_dbg(sd->dev, "%s: lanes: %d bpp: %d\n", __func__, lanes, bpp);
 
 	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL) {
-		pix_clk_target = sensor->info.link_freq;
+		pix_clk_target = sensor->info.link_freqs[0];
 		lanes = 1;
 	} else {
 		pix_clk_target = 74250000;
@@ -1940,8 +1926,6 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		ret = ar0144_update_bits(sensor, AR0144_PIX_DEF_ID,
 					 BIT_PIX_DEF_1D_DDC_EN, val);
 		break;
-	case V4L2_CID_LINK_FREQ:
-		break;
 	default:
 		ret = -EINVAL;
 		break;
@@ -1953,8 +1937,15 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct ar0144 *sensor = ctrl->priv;
+	unsigned long pix_freq;
+	unsigned int bpp;
 	int ret = 0;
 	u16 val;
+
+	mutex_lock(&sensor->lock);
+	bpp = sensor->bpp;
+	pix_freq = sensor->pll.pix_freq;
+	mutex_unlock(&sensor->lock);
 
 	switch (ctrl->id) {
 	case V4L2_CID_VBLANK:
@@ -1969,6 +1960,25 @@ static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 			return ret;
 
 		ctrl->val = val;
+		break;
+	case V4L2_CID_LINK_FREQ:
+		if (sensor->info.bus_type == V4L2_MBUS_PARALLEL)
+			break;
+
+		switch (bpp) {
+		case 8:
+			ctrl->val = AR0144_FREQ_MENU_8BIT;
+			break;
+		case 10:
+			ctrl->val = AR0144_FREQ_MENU_10BIT;
+			break;
+		case 12:
+			ctrl->val = AR0144_FREQ_MENU_12BIT;
+			break;
+		}
+		break;
+	case V4L2_CID_PIXEL_RATE:
+		*ctrl->p_new.p_s64 = pix_freq;
 		break;
 	default:
 		ret = -EINVAL;
@@ -2009,15 +2019,6 @@ static const char * const ar0144_ana_gain_min_menu[] = {
 	"2x",
 	"4x",
 	"8x",
-};
-
-static const s64 ar0144_link_freq[] = {
-	148500000,
-	185625000,
-	222750000,
-	297000000,
-	371250000,
-	445500000,
 };
 
 static const struct v4l2_ctrl_config ar0144_ctrls[] = {
@@ -2265,9 +2266,14 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.id		= V4L2_CID_LINK_FREQ,
 		.type		= V4L2_CTRL_TYPE_INTEGER_MENU,
 		.min		= 0,
-		.max		= ARRAY_SIZE(ar0144_link_freq) - 1,
 		.def		= 0,
-		.qmenu_int	= ar0144_link_freq,
+	}, {
+		.ops		= &ar0144_ctrl_ops,
+		.id		= V4L2_CID_PIXEL_RATE,
+		.type		= V4L2_CTRL_TYPE_INTEGER64,
+		.min		= 0,
+		.max		= INT_MAX,
+		.step		= 1,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_X_BLACK_LEVEL_AUTO,
@@ -2344,6 +2350,10 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 			ctrl_cfg.min = sensor->limits.vblank.min;
 			ctrl_cfg.def = ctrl_cfg.min;
 			break;
+		case V4L2_CID_LINK_FREQ:
+			ctrl_cfg.qmenu_int = sensor->info.link_freqs;
+			ctrl_cfg.max = sensor->info.num_freqs - 1;
+			break;
 		default:
 			break;
 		}
@@ -2367,9 +2377,14 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		case V4L2_CID_VBLANK:
 			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
 			break;
+		case V4L2_CID_PIXEL_RATE:
+			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY |
+				       V4L2_CTRL_FLAG_VOLATILE;
+			break;
 		case V4L2_CID_LINK_FREQ:
-			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-			sensor->link_freq_ctrl = ctrl;
+			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY |
+				       V4L2_CTRL_FLAG_VOLATILE;
+			ctrl->val = AR0144_FREQ_MENU_12BIT;
 			break;
 		case V4L2_CID_DIGITAL_GAIN:
 			ctrl->flags |= V4L2_CTRL_FLAG_EXECUTE_ON_WRITE |
@@ -2448,9 +2463,6 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 	sensor->h_scale = 1;
 	sensor->hblank = sensor->limits.hblank.min;
 	sensor->vblank = sensor->limits.vblank.min;
-
-	if (sensor->info.link_freq == 0)
-		sensor->info.link_freq = sensor->limits.pix_clk.max;
 }
 
 static int ar0144_check_chip_id(struct ar0144 *sensor)
@@ -2610,6 +2622,8 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 	struct v4l2_fwnode_endpoint bus_cfg = {
 		.bus_type = V4L2_MBUS_UNKNOWN,
 	};
+	u64 *link_freqs;
+	int i;
 	int ret;
 
 	clk = devm_clk_get(dev, "ext");
@@ -2642,9 +2656,32 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 		goto out_put;
 	}
 
-	if (bus_cfg.nr_of_link_frequencies)
-		info->link_freq = bus_cfg.link_frequencies[0];
+	info->num_freqs = bus_cfg.nr_of_link_frequencies;
+	if (bus_cfg.bus_type == V4L2_MBUS_PARALLEL &&
+	    info->num_freqs != 1) {
+		dev_err(dev, "Parallel link expects one frequency\n");
+		ret = -EINVAL;
+		goto out_put;
+	}
 
+	if (bus_cfg.bus_type == V4L2_MBUS_CSI2_DPHY &&
+	    info->num_freqs != 3) {
+		dev_err(dev, "MIPI link expects three frequencies\n");
+		ret = -EINVAL;
+		goto out_put;
+	}
+
+	link_freqs = devm_kcalloc(dev, info->num_freqs,
+					sizeof(*info->link_freqs), GFP_KERNEL);
+	if (!link_freqs) {
+		ret = -ENOMEM;
+		goto out_put;
+	}
+
+	for (i = 0; i < info->num_freqs; i++)
+		link_freqs[i] = bus_cfg.link_frequencies[i];
+
+	info->link_freqs = link_freqs;
 	info->bus_type = bus_cfg.bus_type;
 
 	switch (info->bus_type) {
@@ -2706,6 +2743,10 @@ static int ar0144_probe(struct i2c_client *i2c,
 		goto out_media;
 
 	ar0144_set_defaults(sensor);
+
+	ret = ar0144_calculate_pll(sensor);
+	if (ret)
+		return ret;
 
 	ret = ar0144_create_ctrls(sensor);
 	if (ret)
