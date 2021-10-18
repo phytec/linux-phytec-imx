@@ -339,6 +339,7 @@ struct ar0144_sensor_limits {
 
 struct ar0144_businfo {
 	enum v4l2_mbus_type bus_type;
+	unsigned int flags;
 	unsigned long link_freq;
 
 	unsigned int slew_rate_dat;
@@ -1549,6 +1550,18 @@ static int ar0144_get_selection(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static int ar0144_get_mbus_config(struct v4l2_subdev *sd, unsigned int pad,
+				  struct v4l2_mbus_config *cfg)
+{
+	struct ar0144 *sensor = to_ar0144(sd);
+	struct ar0144_businfo *info = &sensor->info;
+
+	cfg->flags = info->flags;
+	cfg->type = info->bus_type;
+
+	return 0;
+}
+
 static const struct v4l2_subdev_core_ops ar0144_subdev_core_ops = {
 	.s_power		= ar0144_s_power,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
@@ -1569,6 +1582,7 @@ static const struct v4l2_subdev_pad_ops ar0144_subdev_pad_ops = {
 	.get_fmt		= ar0144_get_fmt,
 	.set_selection		= ar0144_set_selection,
 	.get_selection		= ar0144_get_selection,
+	.get_mbus_config	= ar0144_get_mbus_config,
 };
 
 static const struct v4l2_subdev_ops ar0144_subdev_ops = {
@@ -2538,6 +2552,7 @@ static int ar0144_parse_parallel_props(struct ar0144 *sensor,
 {
 	unsigned int tmp;
 
+	sensor->info.flags = bus_cfg->bus.parallel.flags;
 
 	tmp = AR0144_NO_SLEW_RATE;
 	fwnode_property_read_u32(ep, "onsemi,slew-rate-dat", &tmp);
@@ -2561,6 +2576,13 @@ static int ar0144_parse_mipi_props(struct ar0144 *sensor,
 		dev_err(sensor->dev, "Wrong number of lanes configured");
 		return -EINVAL;
 	}
+
+	sensor->info.flags = bus_cfg->bus.mipi_csi2.flags;
+	sensor->info.flags |= V4L2_MBUS_CSI2_CHANNEL_0;
+	if (sensor->info.num_lanes == 1)
+		sensor->info.flags |= V4L2_MBUS_CSI2_1_LANE;
+	else
+		sensor->info.flags |= V4L2_MBUS_CSI2_2_LANE;
 
 	tmp = 2;
 	fwnode_property_read_u32(ep, "onsemi,t-hs-prep", &tmp);
