@@ -639,7 +639,7 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 
 static int ar0144_mipi_enter_lp11(struct ar0144 *sensor)
 {
-	int ret = 0;
+	int ret;
 	u16 val;
 
 	val = AR0144_TEST_MODE_LP11 | AR0144_TEST_LANE_0;
@@ -748,20 +748,16 @@ static int ar0144_s_register(struct v4l2_subdev *sd,
 			     const struct v4l2_dbg_register *reg)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
-	int ret;
 
-	ret = ar0144_write(sensor, reg->reg, reg->val);
-	return ret;
+	return ar0144_write(sensor, reg->reg, reg->val);
 }
 
 static int ar0144_g_register(struct v4l2_subdev *sd,
 			     struct v4l2_dbg_register *reg)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
-	int ret;
 
-	ret = ar0144_read(sensor, reg->reg, (u16 *)&reg->val);
-	return ret;
+	return ar0144_read(sensor, reg->reg, (u16 *)&reg->val);
 }
 #endif
 
@@ -817,11 +813,11 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 
 	ret = ar0144_write(sensor, AR0144_Y_ADDR_START, sensor->crop.top);
 	if (ret)
-		goto out;
+		return ret;
 
 	ret = ar0144_write(sensor, AR0144_X_ADDR_START, sensor->crop.left);
 	if (ret)
-		goto out;
+		return ret;
 
 	y_end = sensor->crop.top + height - 1;
 
@@ -832,12 +828,12 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 
 	ret = ar0144_write(sensor, AR0144_Y_ADRR_END, y_end);
 	if (ret)
-		goto out;
+		return ret;
 
 	x_end = sensor->crop.left + width - 1;
 	ret = ar0144_write(sensor, AR0144_X_ADRR_END, x_end);
 	if (ret)
-		goto out;
+		return ret;
 
 	hlength = sensor->fmt.width;
 	hlength += sensor->hblank;
@@ -851,21 +847,21 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 
 	ret = ar0144_write(sensor, AR0144_FRAME_LENGTH_LINES, vlength);
 	if (ret)
-		goto out;
+		return ret;
 
 	ret = ar0144_write(sensor, AR0144_LINE_LENGTH_PCK, hlength);
 	if (ret)
-		goto out;
+		return ret;
 
 	ret = ar0144_write(sensor, AR0144_X_ODD_INC,
 			   (sensor->w_scale << 1) - 1);
 	if (ret)
-		goto out;
+		return ret;
 
 	ret = ar0144_write(sensor, AR0144_Y_ODD_INC,
 			   (sensor->h_scale << 1) - 1);
 	if (ret)
-		goto out;
+		return ret;
 
 
 	/* Enable embedded statistics for Auto Exposure to work
@@ -874,7 +870,6 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 	 */
 	ret = ar0144_set_bits(sensor, AR0144_SMIA_TEST, BIT_EMBEDDED_STATS_EN);
 
-out:
 	return ret;
 }
 
@@ -884,7 +879,7 @@ static int ar0144_config_parallel(struct ar0144 *sensor)
 	unsigned int slew_rate_clk = sensor->info.slew_rate_clk;
 	u16 val = 0;
 	u16 mask = 0;
-	int ret = 0;
+	int ret;
 
 	if (slew_rate_dat != AR0144_NO_SLEW_RATE) {
 		val |= BIT_SLEW_RATE_DAT(slew_rate_dat);
@@ -930,7 +925,7 @@ static int ar0144_config_parallel(struct ar0144 *sensor)
 
 static int ar0144_config_mipi(struct ar0144 *sensor)
 {
-	int ret = 0;
+	int ret;
 	u16 val;
 
 	switch (sensor->bpp) {
@@ -1064,7 +1059,7 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 
 static int ar0144_stream_off(struct ar0144 *sensor)
 {
-	int ret = 0;
+	int ret;
 
 	ret = ar0144_enter_standby(sensor);
 	sensor->is_streaming = false;
@@ -1215,11 +1210,8 @@ static int ar0144_enum_frame_size(struct v4l2_subdev *sd,
 	fse->min_height = crop->height / (1u << fse->index);
 	fse->max_height = fse->min_height;
 
-	if (fse->min_width > 1 && fse->min_height > 1)
-		ret = 0;
-	else
+	if (fse->min_width <= 1 || fse->min_height <= 1)
 		ret = -EINVAL;
-
 out:
 	mutex_unlock(&sensor->lock);
 	return ret;
@@ -1472,7 +1464,7 @@ static int ar0144_set_digital_gain(struct ar0144 *sensor,
 {
 	unsigned int coarse, fine;
 	unsigned int gain, gain_min, gain_factor;
-	int ret = 0;
+	int ret;
 
 	coarse = ctrl->val / 1000;
 	fine = (ctrl->val % 1000) * 128 / 1000;
@@ -1791,7 +1783,7 @@ static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct ar0144 *sensor = ctrl->priv;
 	int index;
-	int ret = 0;
+	int ret;
 	u16 val;
 
 	mutex_lock(&sensor->lock);
@@ -1816,11 +1808,10 @@ static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 		*ctrl->p_new.p_s64 = sensor->pll[index].pix_freq;
 		break;
 	default:
-		ret = -EINVAL;
-		break;
+		return -EINVAL;
 	}
 
-	return ret;
+	return 0;
 }
 
 static const struct v4l2_ctrl_ops ar0144_ctrl_ops = {
@@ -2165,7 +2156,7 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 	int ret;
 
 	ret = v4l2_ctrl_handler_init(&sensor->ctrls, 10);
-	if (ret < 0)
+	if (ret)
 		return ret;
 
 	sensor->subdev.ctrl_handler = &sensor->ctrls;
@@ -2319,7 +2310,7 @@ static int ar0144_check_chip_id(struct ar0144 *sensor)
 {
 	struct device *dev = sensor->dev;
 	u16 model_id, customer_rev;
-	int ret = 0;
+	int ret;
 
 	ret = ar0144_power_on(sensor);
 	if (ret) {
@@ -2689,7 +2680,7 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 					   ext_freq,
 					   bus_cfg.link_frequencies[0],
 					   index_to_bpp(i));
-		if (ret < 0)
+		if (ret)
 			goto out_put;
 
 		link_freqs[i] = sensor->pll[i].ser_freq;;
