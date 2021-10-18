@@ -1369,8 +1369,6 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	struct v4l2_rect *crop;
 	unsigned int width, height;
 	unsigned int w_scale, h_scale;
-	int ret = 0;
-
 
 	if (sensor->is_streaming && format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
 		return -EBUSY;
@@ -1393,20 +1391,10 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	sensor_format = ar0144_find_format(sensor, format->format.code);
 	fmt->code = sensor_format->code;
 
-	if (sensor_format->bpp != 8 &&
-	    sensor_format->bpp != 10 &&
-	    sensor_format->bpp != 12) {
-		v4l2_err(sd,
-			 "Something went wrong bpp is neither 8, 10 nor 12\n");
-		ret = -EINVAL;
-		goto out;
-	}
-
-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-		if (sensor->bpp != sensor_format->bpp) {
-			sensor->bpp = sensor_format->bpp;
-			sensor->pll.update = true;
-		}
+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
+	    sensor->bpp != sensor_format->bpp) {
+		sensor->bpp = sensor_format->bpp;
+		sensor->pll.update = true;
 	}
 
 	if (sensor->model == AR0144_MODEL_COLOR)
@@ -1430,9 +1418,8 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 
 	format->format = *fmt;
 
-out:
 	mutex_unlock(&sensor->lock);
-	return ret;
+	return 0;
 }
 
 static int ar0144_get_fmt(struct v4l2_subdev *sd,
