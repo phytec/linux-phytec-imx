@@ -938,6 +938,8 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 	case 12:
 		val = AR0144_CSI2_DATA_RAW12;
 		break;
+	default:
+		return -EINVAL;
 	}
 
 	ret = ar0144_write(sensor, AR0144_MIPI_CNTRL, val);
@@ -1586,6 +1588,8 @@ static int ar0144_set_digital_gain(struct ar0144 *sensor,
 		if (!ret)
 			sensor->gains.blue_clip = 0;
 		break;
+	default: /* Should not end up here, ctrl id was validated by caller */
+		return -EINVAL;
 	}
 
 	return ret;
