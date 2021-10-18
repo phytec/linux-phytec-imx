@@ -35,18 +35,18 @@
 #define	AR0144_COARSE_INT_TIME				0x3012
 #define	AR0144_FINE_INT_TIME				0x3014
 #define AR0144_RESET_REGISTER				0x301a
-#define		AR0144_FLD_GROUPED_PARAM_HOLD		BIT(15)
-#define		AR0144_FLD_SMIA_SER_DIS			BIT(12)
-#define		AR0144_FLD_FORCED_PLL_ON		BIT(11)
-#define		AR0144_FLD_RESTART_BAD			BIT(10)
-#define		AR0144_FLD_MASK_BAD			BIT(9)
-#define		AR0144_FLD_GPI_EN			BIT(8)
-#define		AR0144_FLD_PARALLEL_EN			BIT(7)
-#define		AR0144_FLD_DRIVE_PINS			BIT(6)
-#define		AR0144_FLD_LOCK_REG			BIT(3)
-#define		AR0144_FLD_STREAM			BIT(2)
-#define		AR0144_FLD_RESTART			BIT(1)
-#define		AR0144_FLD_RESET			BIT(0)
+#define		BIT_GROUPED_PARAM_HOLD			BIT(15)
+#define		BIT_SMIA_SER_DIS			BIT(12)
+#define		BIT_FORCED_PLL_ON			BIT(11)
+#define		BIT_RESTART_BAD				BIT(10)
+#define		BIT_MASK_BAD				BIT(9)
+#define		BIT_GPI_EN				BIT(8)
+#define		BIT_PARALLEL_EN				BIT(7)
+#define		BIT_DRIVE_PINS				BIT(6)
+#define		BIT_LOCK_REG				BIT(3)
+#define		BIT_STREAM				BIT(2)
+#define		BIT_RESTART				BIT(1)
+#define		BIT_RESET				BIT(0)
 #define	AR0144_DATA_PEDESTAL				0x301e
 #define	AR0144_VT_PIX_CLK_DIV				0x302a
 #define	AR0144_VT_SYS_CLK_DIV				0x302c
@@ -56,42 +56,37 @@
 #define	AR0144_OP_SYS_CLK_DIV				0x3038
 #define AR0144_FRAME_COUNT				0x303a
 #define AR0144_FRAME_STATUS				0x303c
-#define		AR0144_FLD_PLL_LOCKED			BIT(3)
-#define		AR0144_FLD_FRAME_START_DURING_GPH	BIT(2)
-#define		AR0144_FLD_STANDBY_STATUS		BIT(1)
-#define		AR0144_FLD_FRAMESYNC			BIT(0)
+#define		BIT_PLL_LOCKED				BIT(3)
+#define		BIT_FRAME_START_DURING_GPH		BIT(2)
+#define		BIT_STANDBY_STATUS			BIT(1)
+#define		BIT_FRAMESYNC				BIT(0)
 #define	AR0144_READ_MODE				0x3040
-#define		AR0144_FLD_VERT_FLIP			BIT(15)
-#define		AR0144_FLD_HORIZ_MIRROR			BIT(14)
-#define		AR0144_FLD_RM_COL_BIN			BIT(13)
-#define		AR0144_FLD_RM_ROW_BIN			BIT(12)
-#define		AR0144_FLD_RM_COL_SF_BIN		BIT(9)
-#define		AR0144_FLD_RM_COL_SF_BIN_MONO		BIT(7)
-#define		AR0144_FLD_RM_COL_SUM			BIT(5)
+#define		BIT_VERT_FLIP				BIT(15)
+#define		BIT_HORIZ_MIRROR			BIT(14)
+#define		BIT_RM_COL_BIN				BIT(13)
+#define		BIT_RM_ROW_BIN				BIT(12)
+#define		BIT_RM_COL_SF_BIN			BIT(9)
+#define		BIT_RM_COL_SF_BIN_MONO			BIT(7)
+#define		BIT_RM_COL_SUM				BIT(5)
 #define	AR0144_GREENR_GAIN				0x3056
 #define	AR0144_BLUE_GAIN				0x3058
 #define	AR0144_RED_GAIN					0x305a
 #define	AR0144_GREENB_GAIN				0x305c
 #define	AR0144_GLOBAL_GAIN				0x305e
-#define	AR0144_ANALOGUE_GAIN				0x3060
-#define		AR0144_FLD_COARSE_GAIN_MASK		0x70
-#define		AR0144_FLD_COARSE_GAIN_SHIFT		4
-#define		AR0144_FLD_FINE_GAIN_MASK		0xf
-#define		AR0144_FLD_FINE_GAIN_SHIFT		0
+#define	AR0144_ANALOG_GAIN				0x3060
+#define		BIT_COARSE_GAIN(n)			((n) << 4)
+#define		BIT_COARSE_GAIN_MASK			GENMASK(6, 4)
+#define		BIT_FINE_GAIN(n)			(n)
+#define		BIT_FINE_GAIN_MASK			0xf
 #define AR0144_SMIA_TEST				0x3064
-#define		AR0144_FLD_EMBEDDED_DATA		BIT(8)
-#define		AR0144_FLD_EMBEDDED_STATS_EN		BIT(7)
+#define		BIT_EMBEDDED_DATA			BIT(8)
+#define		BIT_EMBEDDED_STATS_EN			BIT(7)
 #define	AR0144_DATAPATH_SEL				0x306e
-#define		AR0144_FLD_SLEW_RATE_DAT_MASK		0xe000
-#define		AR0144_FLD_SLEW_RATE_DAT_SHIFT		13
-#define		AR0144_FLD_SLEW_RATE_CLK_MASK		0x1c00
-#define		AR0144_FLD_SLEW_RATE_CLK_SHIFT		10
+#define		BIT_SLEW_RATE_DAT(n)			((n) << 13)
+#define		BIT_SLEW_RATE_DAT_MASK			GENMASK(15, 13)
+#define		BIT_SLEW_RATE_CLK(n)			((n) << 10)
+#define		BIT_SLEW_RATE_CLK_MASK			GENMASK(12, 10)
 #define	AR0144_TEST_PATTERN				0x3070
-#define		AR0144_FLD_NO_TESTPATTERN		0
-#define		AR0144_FLD_SOLIDCOLOR			1
-#define		AR0144_FLD_FULL_COLOR_BAR		2
-#define		AR0144_FLD_FADE_TO_GRAY			3
-#define		AR0144_FLD_WALKING_ONES			256
 #define	AR0144_TEST_DATA_RED				0x3072
 #define	AR0144_TEST_DATA_GREENR				0x3074
 #define	AR0144_TEST_DATA_BLUE				0x3076
@@ -99,105 +94,88 @@
 #define	AR0144_X_ODD_INC				0x30a2
 #define	AR0144_Y_ODD_INC				0x30a6
 #define	AR0144_DIGITAL_TEST				0x30b0
-#define		AR0144_FLD_PLL_BYPASS			BIT(14)
-#define		AR0144_FLD_PIXCLK_ON			BIT(8)
-#define		AR0144_FLD_MONOCHROME_OP		BIT(7)
+#define		BIT_PLL_BYPASS				BIT(14)
+#define		BIT_PIXCLK_ON				BIT(8)
+#define		BIT_MONOCHROME_OP			BIT(7)
 #define AR0144_TEMPSENS_DATA				0x30b2
 #define AR0144_TEMPSENS_CTRL				0x30b4
-#define		AR0144_FLD_RETRIG_THRESHOLD_MASK	0xfc
-#define		AR0144_FLD_RETRIG_THRESHOLD_SHIFT	6
-#define		AR0144_FLD_TEMP_CLEAR			BIT(5)
-#define		AR0144_FLD_TEMP_START_CONV		BIT(4)
-#define		AR0144_FLD_TEMPSENS_PWRON		BIT(0)
+#define		BIT_RETRIG_THRESHOLD(n)			((n) << 6)
+#define		BIT_RETRIG_THRESHOLD_MASK		GENMASK(15, 6)
+#define		BIT_TEMP_CLEAR				BIT(5)
+#define		BIT_TEMP_START_CONV			BIT(4)
+#define		BIT_TEMPSENS_PWRON			BIT(0)
 #define AR0144_TEMPSENS_CALIB1				0x30c6
 #define AR0144_TEMPSENS_CALIB2				0x30c8
 
 #define AR0144_AECTRL					0x3100
-#define		AR0144_FLD_MIN_ANA_GAIN_MASK		0x60
-#define		AR0144_FLD_MIN_ANA_GAIN_SHIFT		5
-#define		AR0144_FLD_AUTO_DG_EN			BIT(4)
-#define		AR0144_FLD_AUTO_AG_EN			BIT(1)
-#define		AR0144_FLD_AE_EN			BIT(0)
+#define		BIT_MIN_ANA_GAIN(n)			((n) << 5)
+#define		BIT_MIN_ANA_GAIN_MASK			GENMASK(6, 5)
+#define		BIT_AUTO_DG_EN				BIT(4)
+#define		BIT_AUTO_AG_EN				BIT(1)
+#define		BIT_AE_EN				BIT(0)
 #define	AR0144_AE_LUMA_TGT				0x3102
 #define AR0144_AE_MAX_EXPOSURE				0x311c
 #define	AR0144_AE_MIN_EXPOSURE				0x311e
 #define	AR0144_AE_COARSE_INT_TIME			0x3164
 #define	AR0144_DELTA_DK_CTRL				0x3180
-#define		AR0144_FLD_DK_SUB_EN			BIT(15)
-#define		AR0144_FLD_DK_EVERY_FRAME		BIT(14)
-#define		AR0144_FLD_DK_RECALC			BIT(13)
+#define		BIT_DK_SUB_EN				BIT(15)
+#define		BIT_DK_EVERY_FRAME			BIT(14)
+#define		BIT_DK_RECALC				BIT(13)
 #define	AR0144_DATA_FORMAT_BITS				0x31ac
-#define		AR0144_FLD_DATA_FMT_IN_MASK		0x1f00
-#define		AR0144_FLD_DATA_FMT_IN_SHIFT		8
-#define		AR0144_FLD_DATA_FMT_OUT_MASK		0x1f
-#define		AR0144_FLD_DATA_FMT_OUT_SHIFT		0
+#define		BIT_DATA_FMT_IN(n)			((n) << 8)
+#define		BIT_DATA_FMT_OUT(n)			(n)
 #define	AR0144_SERIAL_FORMAT				0x31ae
-#define		AR0144_FLD_DUAL_LANE			BIT(1)
-#define		AR0144_FLD_SINGLE_LANE			BIT(0)
+#define		BIT_DUAL_LANE				BIT(1)
+#define		BIT_SINGLE_LANE				BIT(0)
 #define AR0144_MIPI_TIMING_0				0x31b4
-#define		AR0144_FLD_HS_PREP_MASK			0xf000
-#define		AR0144_FLD_HS_PREP_SHIFT		12
-#define		AR0144_FLD_HS_ZERO_MASK			0xf00
-#define		AR0144_FLD_HS_ZERO_SHIFT		8
-#define		AR0144_FLD_HS_TRAIL_MASK		0xf0
-#define		AR0144_FLD_HS_TRAIL_SHIFT		4
-#define		AR0144_FLD_CLK_TRAIL_MASK		0xf
-#define		AR0144_FLD_CLK_TRAIL_SHIFT		0
+#define		BIT_HS_PREP(n)				((n) << 12)
+#define		BIT_HS_ZERO(n)				((n) << 8)
+#define		BIT_HS_TRAIL(n)				((n) << 4)
+#define		BIT_CLK_TRAIL(n)			(n)
 #define AR0144_MIPI_TIMING_1				0x31b6
-#define		AR0144_FLD_CLK_PREP_MASK		0xf000
-#define		AR0144_FLD_CLK_PREP_SHIFT		12
-#define		AR0144_FLD_HS_EXIT_MASK			0xfc0
-#define		AR0144_FLD_HS_EXIT_SHIFT		6
-#define		AR0144_FLD_CLK_ZERO_MASK		0x1f
-#define		AR0144_FLD_CLK_ZERO_SHIFT		0
+#define		BIT_CLK_PREP(n)				((n) << 12)
+#define		BIT_HS_EXIT(n)				((n) << 6)
+#define		BIT_CLK_ZERO(n)				(n)
 #define AR0144_MIPI_TIMING_2				0x31b8
-#define		AR0144_FLD_BGAP_MASK			0xf000
-#define		AR0144_FLD_BGAP_SHIFT			12
-#define		AR0144_FLD_CLK_PRE_MASK			0xfc0
-#define		AR0144_FLD_CLK_PRE_SHIFT		6
-#define		AR0144_FLD_CLK_POST_MASK		0x1f
-#define		AR0144_FLD_CLK_POST_SHIFT		0
+#define		BIT_BGAP(n)				((n) << 12)
+#define		BIT_CLK_PRE(n)				((n) << 6)
+#define		BIT_CLK_POST(n)				(n)
 #define AR0144_MIPI_TIMING_3				0x31ba
-#define		AR0144_FLD_LPX_MASK			0x1f80
-#define		AR0144_FLD_LPX_SHIFT			7
-#define		AR0144_FLD_WAKE_UP_MASK			0x7f
-#define		AR0144_FLD_WAKE_UP_SHIFT		0
+#define		BIT_LPX(n)				((n) << 7)
+#define		BIT_WAKE_UP(n)				(n)
 #define AR0144_MIPI_TIMING_4				0x31bc
-#define		AR0144_FLD_CONT_TX_CLK			BIT(15)
-#define		AR0144_FLD_HEAVY_LP_LOAD		BIT(14)
-#define		AR0144_FLD_INIT_MASK			0x7f
-#define		AR0144_FLD_INIT_SHIFT			0
+#define		BIT_CONT_TX_CLK				BIT(15)
+#define		BIT_HEAVY_LP_LOAD			BIT(14)
+#define		BIT_INIT(n)				(n)
 #define AR0144_SER_CTRL_STAT				0x31c6
-#define		AR0144_FLD_FRAMER_TEST_MODE		BIT(7)
+#define		BIT_FRAMER_TEST_MODE			BIT(7)
 #define	AR0144_COMPANDING				0x31d0
-#define		AR0144_FLD_COMPAND_EN			BIT(0)
+#define		BIT_COMPAND_EN				BIT(0)
 #define AR0144_SERIAL_TEST				0x31d8
-#define		AR0144_FLD_TEST_LANE_EN_MASK		0xf00
-#define		AR0144_FLD_TEST_LANE_EN_SHIFT		8
-#define		AR0144_FLD_TEST_LANE_0			0x1
-#define		AR0144_FLD_TEST_LANE_1			0x2
-#define		AR0144_FLD_TEST_LANE_2			0x4
-#define		AR0144_FLD_TEST_LANE_3			0x8
-#define		AR0144_FLD_TEST_MODE_MASK		0xf0
-#define		AR0144_FLD_TEST_MODE_SHIFT		4
-#define		AR0144_FLD_TEST_MODE_LP11		0x1
 #define	AR0144_PIX_DEF_ID				0x31e0
-#define		AR0144_FLD_PIX_DEF_1D_DDC_EN		BIT(3)
+#define		BIT_PIX_DEF_1D_DDC_EN			BIT(3)
 #define AR0144_CUSTOMER_REV				0x31fe
 
 #define	AR0144_FLASH_CTRL				0x3270
-#define		AR0144_FLD_LED_FLASH_EN			BIT(8)
-#define		AR0144_FLD_LED_DELAY_MASK		0xff
-#define		AR0144_FLD_LED_DELAY_SHIFT		0
+#define		BIT_LED_FLASH_EN			BIT(8)
+#define		BIT_LED_DELAY(n)			(n)
+#define		BIT_LED_DELAY_MASK			0xff
 
 #define AR0144_MIPI_CNTRL				0x3354
-#define		AR0144_FLD_CHAN_NUM_MASK		0xc0
-#define		AR0144_FLD_CHAN_NUM_SHIFT		6
-#define		AR0144_FLD_DATA_TYPE_MASK		0x3f
-#define		AR0144_FLD_DATA_TYPE_SHIFT		0
-#define		AR0144_FLD_CSI2_DT_RAW8			0x2a
-#define		AR0144_FLD_CSI2_DT_RAW10		0x2b
-#define		AR0144_FLD_CSI2_DT_RAW12		0x2c
+
+#define	AR0144_TP_NO_TESTPATTERN	0
+#define	AR0144_TP_SOLIDCOLOR		1
+#define	AR0144_TP_FULL_COLOR_BAR	2
+#define	AR0144_TP_FADE_TO_GRAY		3
+#define	AR0144_TP_WALKING_ONES		256
+
+#define	AR0144_TEST_LANE_0		(0x1 << 8)
+#define	AR0144_TEST_LANE_1		(0x2 << 8)
+#define	AR0144_TEST_MODE_LP11		(0x1 << 4)
+
+#define	AR0144_CSI2_DATA_RAW8		0x2a
+#define	AR0144_CSI2_DATA_RAW10		0x2b
+#define	AR0144_CSI2_DATA_RAW12		0x2c
 
 #define AR0144_NO_SLEW_RATE		(~0u)
 
@@ -560,6 +538,16 @@ static int ar0144_update_bits(struct ar0144 *sensor, u16 reg,
 	return ret;
 }
 
+static int ar0144_set_bits(struct ar0144 *sensor, u16 reg, u16 val)
+{
+	return ar0144_update_bits(sensor, reg, val, val);
+}
+
+static int ar0144_clear_bits(struct ar0144 *sensor, u16 reg, u16 val)
+{
+	return ar0144_update_bits(sensor, reg, val, 0);
+}
+
 static const struct ar0144_format *ar0144_find_format(struct ar0144 *sensor,
 						      u32 code)
 {
@@ -612,15 +600,15 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 	int ret;
 	u16 val;
 
-	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				 AR0144_FLD_STREAM | AR0144_FLD_GPI_EN, 0);
+	ret = ar0144_clear_bits(sensor, AR0144_RESET_REGISTER,
+				BIT_STREAM | BIT_GPI_EN);
 	if (ret)
 		return ret;
 
 	while (timeout) {
 		ar0144_read(sensor, AR0144_FRAME_STATUS, &val);
 
-		if (val & AR0144_FLD_STANDBY_STATUS) {
+		if (val & BIT_STANDBY_STATUS) {
 			dev_dbg(sensor->dev, "reached standby state\n");
 			break;
 		}
@@ -638,12 +626,11 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 
 	ar0144_read(sensor, AR0144_RESET_REGISTER, &val);
 
-	if ((val & AR0144_FLD_SMIA_SER_DIS) == 0) {
+	if ((val & BIT_SMIA_SER_DIS) == 0) {
 		/* TODO: Calculate frametime and use it for this wait period */
 		msleep(100);
-		ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-					 AR0144_FLD_SMIA_SER_DIS,
-					 AR0144_FLD_SMIA_SER_DIS);
+		ret = ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
+				      BIT_SMIA_SER_DIS);
 		if (ret)
 			return ret;
 	}
@@ -652,8 +639,8 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 	 * to disable it.
 	 */
 	if (sensor->active_bus == AR0144_BUS_MIPI)
-		ret = ar0144_update_bits(sensor, AR0144_SER_CTRL_STAT,
-					 AR0144_FLD_FRAMER_TEST_MODE, 0);
+		ret = ar0144_clear_bits(sensor, AR0144_SER_CTRL_STAT,
+					BIT_FRAMER_TEST_MODE);
 
 	return ret;
 }
@@ -667,28 +654,23 @@ static int ar0144_mipi_enter_lp11(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	val = AR0144_FLD_TEST_MODE_LP11 << AR0144_FLD_TEST_MODE_SHIFT |
-	      AR0144_FLD_TEST_LANE_0 << AR0144_FLD_TEST_LANE_EN_SHIFT;
+	val = AR0144_TEST_MODE_LP11 | AR0144_TEST_LANE_0;
 
 	if (sensor->minfo.num_lanes == 2)
-		val |= AR0144_FLD_TEST_LANE_1 << AR0144_FLD_TEST_LANE_EN_SHIFT;
+		val |= AR0144_TEST_LANE_1;
 
 	ret = ar0144_write(sensor, AR0144_SERIAL_TEST, val);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor,
-				 AR0144_SER_CTRL_STAT,
-				 AR0144_FLD_FRAMER_TEST_MODE,
-				 AR0144_FLD_FRAMER_TEST_MODE);
+	ret = ar0144_set_bits(sensor, AR0144_SER_CTRL_STAT,
+			      BIT_FRAMER_TEST_MODE);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor,
-				 AR0144_RESET_REGISTER,
-				 AR0144_FLD_STREAM |
-				 AR0144_FLD_SMIA_SER_DIS,
-				 AR0144_FLD_STREAM);
+	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
+				 BIT_STREAM | BIT_SMIA_SER_DIS,
+				 BIT_STREAM);
 	return ret;
 }
 
@@ -703,8 +685,7 @@ static void ar0144_reset(struct ar0144 *sensor)
 		usleep_range(1000, 1100);
 		gpiod_set_value_cansleep(sensor->reset_gpio, 0);
 	} else {
-		ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				   AR0144_FLD_RESET, AR0144_FLD_RESET);
+		ar0144_set_bits(sensor, AR0144_RESET_REGISTER, BIT_RESET);
 	}
 
 	wait_usecs = 160000 / ext_freq_mhz;
@@ -1082,9 +1063,7 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 	 * Since it is embedded after the active frame there is no issue
 	 * enabling it all the time.
 	 */
-	ret = ar0144_update_bits(sensor, AR0144_SMIA_TEST,
-				 AR0144_FLD_EMBEDDED_STATS_EN,
-				 AR0144_FLD_EMBEDDED_STATS_EN);
+	ret = ar0144_set_bits(sensor, AR0144_SMIA_TEST, BIT_EMBEDDED_STATS_EN);
 
 out:
 	return ret;
@@ -1099,13 +1078,13 @@ static int ar0144_config_parallel(struct ar0144 *sensor)
 	int ret = 0;
 
 	if (slew_rate_dat != AR0144_NO_SLEW_RATE) {
-		val |= slew_rate_dat << AR0144_FLD_SLEW_RATE_DAT_SHIFT;
-		mask |= AR0144_FLD_SLEW_RATE_DAT_MASK;
+		val |= BIT_SLEW_RATE_DAT(slew_rate_dat);
+		mask |= BIT_SLEW_RATE_DAT_MASK;
 	}
 
 	if (slew_rate_clk != AR0144_NO_SLEW_RATE) {
-		val |= slew_rate_clk << AR0144_FLD_SLEW_RATE_CLK_SHIFT;
-		mask |= AR0144_FLD_SLEW_RATE_CLK_MASK;
+		val |= BIT_SLEW_RATE_CLK(slew_rate_clk);
+		mask |= BIT_SLEW_RATE_CLK_MASK;
 	}
 
 	if (mask) {
@@ -1115,32 +1094,25 @@ static int ar0144_config_parallel(struct ar0144 *sensor)
 			return ret;
 	}
 
-	val = sensor->bpp << AR0144_FLD_DATA_FMT_IN_SHIFT;
-	val |= sensor->bpp << AR0144_FLD_DATA_FMT_OUT_SHIFT;
-	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS, val);
+	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS,
+			   BIT_DATA_FMT_IN(sensor->bpp) |
+			   BIT_DATA_FMT_OUT(sensor->bpp));
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor, AR0144_SERIAL_FORMAT,
-				 AR0144_FLD_DUAL_LANE |
-				 AR0144_FLD_SINGLE_LANE,
-				 0);
+	ret = ar0144_clear_bits(sensor, AR0144_SERIAL_FORMAT,
+				BIT_DUAL_LANE | BIT_SINGLE_LANE);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				 AR0144_FLD_SMIA_SER_DIS |
-				 AR0144_FLD_PARALLEL_EN |
-				 AR0144_FLD_DRIVE_PINS,
-				 AR0144_FLD_SMIA_SER_DIS |
-				 AR0144_FLD_PARALLEL_EN |
-				 AR0144_FLD_DRIVE_PINS);
+	ret = ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
+			      BIT_SMIA_SER_DIS | BIT_PARALLEL_EN |
+			      BIT_DRIVE_PINS);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				 AR0144_FLD_STREAM | AR0144_FLD_MASK_BAD,
-				 AR0144_FLD_STREAM | AR0144_FLD_MASK_BAD);
+	ret = ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
+			      BIT_STREAM | BIT_MASK_BAD);
 
 	return ret;
 }
@@ -1152,13 +1124,13 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 
 	switch (sensor->bpp) {
 	case 8:
-		val = 0x2a;
+		val = AR0144_CSI2_DATA_RAW8;
 		break;
 	case 10:
-		val = 0x2b;
+		val = AR0144_CSI2_DATA_RAW10;
 		break;
 	case 12:
-		val = 0x2c;
+		val = AR0144_CSI2_DATA_RAW12;
 		break;
 	}
 
@@ -1166,80 +1138,71 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	val = (sensor->minfo.t_hs_prep << AR0144_FLD_HS_PREP_SHIFT) |
-	      (sensor->minfo.t_hs_zero << AR0144_FLD_HS_ZERO_SHIFT) |
-	      (sensor->minfo.t_hs_trail << AR0144_FLD_HS_TRAIL_SHIFT) |
-	      (sensor->minfo.t_clk_trail << AR0144_FLD_CLK_TRAIL_SHIFT);
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_0, val);
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_0,
+			   BIT_HS_PREP(sensor->minfo.t_hs_prep) |
+			   BIT_HS_ZERO(sensor->minfo.t_hs_zero) |
+			   BIT_HS_TRAIL(sensor->minfo.t_hs_trail) |
+			   BIT_CLK_TRAIL(sensor->minfo.t_clk_trail));
 	if (ret)
 		return ret;
 
-	val = (sensor->minfo.t_clk_prep << AR0144_FLD_CLK_PREP_SHIFT) |
-	      (sensor->minfo.t_hs_exit << AR0144_FLD_HS_EXIT_SHIFT) |
-	      (sensor->minfo.t_clk_zero << AR0144_FLD_CLK_ZERO_SHIFT);
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_1, val);
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_1,
+			   BIT_CLK_PREP(sensor->minfo.t_clk_prep) |
+			   BIT_HS_EXIT(sensor->minfo.t_hs_exit) |
+			   BIT_CLK_ZERO(sensor->minfo.t_clk_zero));
 	if (ret)
 		return ret;
 
-	val = (sensor->minfo.t_bgap << AR0144_FLD_BGAP_SHIFT) |
-	      (sensor->minfo.t_clk_pre << AR0144_FLD_CLK_PRE_SHIFT) |
-	      (sensor->minfo.t_clk_post << AR0144_FLD_CLK_POST_SHIFT);
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_2, val);
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_2,
+			   BIT_BGAP(sensor->minfo.t_bgap) |
+			   BIT_CLK_PRE(sensor->minfo.t_clk_pre) |
+			   BIT_CLK_POST(sensor->minfo.t_clk_post));
 	if (ret)
 		return ret;
 
-	val = (sensor->minfo.t_lpx << AR0144_FLD_LPX_SHIFT) |
-	      (sensor->minfo.t_wakeup << AR0144_FLD_WAKE_UP_SHIFT);
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_3, val);
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_3,
+			   BIT_LPX(sensor->minfo.t_lpx) |
+			   BIT_WAKE_UP(sensor->minfo.t_wakeup));
 	if (ret)
 		return ret;
 
-	val = (sensor->minfo.t_init << AR0144_FLD_INIT_SHIFT) |
-	      (sensor->minfo.cont_tx_clk ? (u16) AR0144_FLD_CONT_TX_CLK : 0) |
+	val = BIT_INIT(sensor->minfo.t_init) |
+	      (sensor->minfo.cont_tx_clk ? (u16) BIT_CONT_TX_CLK : 0) |
 	      (sensor->minfo.heavy_lp_load ?
-	       (u16) AR0144_FLD_HEAVY_LP_LOAD : 0);
+	       (u16) BIT_HEAVY_LP_LOAD : 0);
 
 	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_4, val);
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS,
-			   sensor->bpp << AR0144_FLD_DATA_FMT_IN_SHIFT |
-			   sensor->bpp << AR0144_FLD_DATA_FMT_OUT_SHIFT);
+			   BIT_DATA_FMT_IN(sensor->bpp) |
+			   BIT_DATA_FMT_OUT(sensor->bpp));
 	if (ret)
 		return ret;
 
 	if (sensor->minfo.num_lanes == 1)
-		val = AR0144_FLD_SINGLE_LANE;
+		val = BIT_SINGLE_LANE;
 	else
-		val = AR0144_FLD_DUAL_LANE;
+		val = BIT_DUAL_LANE;
 
 	ret = ar0144_update_bits(sensor, AR0144_SERIAL_FORMAT,
-				 AR0144_FLD_DUAL_LANE |
-				 AR0144_FLD_SINGLE_LANE,
-				 val);
+				 BIT_DUAL_LANE | BIT_SINGLE_LANE, val);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				 AR0144_FLD_PARALLEL_EN |
-				 AR0144_FLD_DRIVE_PINS,
-				 0);
+	ret = ar0144_clear_bits(sensor, AR0144_RESET_REGISTER,
+				BIT_PARALLEL_EN | BIT_DRIVE_PINS);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				 AR0144_FLD_STREAM | AR0144_FLD_MASK_BAD,
-				 AR0144_FLD_STREAM | AR0144_FLD_MASK_BAD);
+	ret = ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
+			      BIT_STREAM | BIT_MASK_BAD);
 	if (ret)
 		return ret;
 
-	ret = ar0144_update_bits(sensor, AR0144_RESET_REGISTER,
-				 AR0144_FLD_SMIA_SER_DIS, 0);
+	ret = ar0144_clear_bits(sensor, AR0144_RESET_REGISTER,
+				BIT_SMIA_SER_DIS);
 
 	return ret;
 }
@@ -1279,9 +1242,8 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 
 	mono_op = sensor->model == AR0144_MODEL_MONOCHROME;
 
-	ret = ar0144_update_bits(sensor, AR0144_DIGITAL_TEST,
-				 AR0144_FLD_MONOCHROME_OP,
-				 mono_op ? AR0144_FLD_MONOCHROME_OP : 0);
+	ret = ar0144_update_bits(sensor, AR0144_DIGITAL_TEST, BIT_MONOCHROME_OP,
+				 mono_op ? BIT_MONOCHROME_OP : 0);
 	if (ret)
 		return ret;
 
@@ -1732,11 +1694,9 @@ static int ar0144_set_analogue_gain(struct ar0144 *sensor, unsigned int val)
 	if (fine > 15)
 		fine = 15;
 
-	ar0144_update_bits(sensor, AR0144_ANALOGUE_GAIN,
-			   AR0144_FLD_COARSE_GAIN_MASK |
-			   AR0144_FLD_FINE_GAIN_MASK,
-			   (coarse << AR0144_FLD_COARSE_GAIN_SHIFT) |
-			   (fine << AR0144_FLD_FINE_GAIN_SHIFT));
+	ar0144_update_bits(sensor, AR0144_ANALOG_GAIN,
+			   BIT_COARSE_GAIN_MASK | BIT_FINE_GAIN_MASK,
+			   BIT_COARSE_GAIN(coarse) | BIT_FINE_GAIN(fine));
 
 	return 1000 * (1u << coarse) * 32 / (32 - fine);
 }
@@ -1921,15 +1881,14 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_HFLIP:
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
-					 AR0144_FLD_HORIZ_MIRROR,
-					 ctrl->val ?
-					 AR0144_FLD_HORIZ_MIRROR : 0);
+					 BIT_HORIZ_MIRROR,
+					 ctrl->val ? BIT_HORIZ_MIRROR : 0);
 		break;
 
 	case V4L2_CID_VFLIP:
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
-					 AR0144_FLD_VERT_FLIP,
-					 ctrl->val ? AR0144_FLD_VERT_FLIP : 0);
+					 BIT_VERT_FLIP,
+					 ctrl->val ? BIT_VERT_FLIP : 0);
 		break;
 
 	case V4L2_CID_EXPOSURE:
@@ -1961,9 +1920,8 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		break;
 
 	case V4L2_CID_EXPOSURE_AUTO:
-		val = ctrl->val == V4L2_EXPOSURE_AUTO ? AR0144_FLD_AE_EN : 0;
-		ret = ar0144_update_bits(sensor, AR0144_AECTRL,
-					 AR0144_FLD_AE_EN, val);
+		val = ctrl->val == V4L2_EXPOSURE_AUTO ? BIT_AE_EN : 0;
+		ret = ar0144_update_bits(sensor, AR0144_AECTRL, BIT_AE_EN, val);
 		break;
 
 	case V4L2_CID_X_AUTO_EXPOSURE_TGT:
@@ -1979,21 +1937,19 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		break;
 
 	case V4L2_CID_X_AUTOGAIN_ANALOGUE:
-		ret = ar0144_update_bits(sensor, AR0144_AECTRL,
-					 AR0144_FLD_AUTO_AG_EN,
-					 ctrl->val ? AR0144_FLD_AUTO_AG_EN : 0);
+		ret = ar0144_update_bits(sensor, AR0144_AECTRL, BIT_AUTO_AG_EN,
+					 ctrl->val ? BIT_AUTO_AG_EN : 0);
 		break;
 
 	case V4L2_CID_X_AUTOGAIN_DIGITAL:
-		ret = ar0144_update_bits(sensor, AR0144_AECTRL,
-					 AR0144_FLD_AUTO_DG_EN,
-					 ctrl->val ? AR0144_FLD_AUTO_DG_EN : 0);
+		ret = ar0144_update_bits(sensor, AR0144_AECTRL, BIT_AUTO_DG_EN,
+					 ctrl->val ? BIT_AUTO_DG_EN : 0);
 		break;
 
 	case V4L2_CID_X_AUTOGAIN_ANALOGUE_MIN:
-		val = ctrl->val << AR0144_FLD_MIN_ANA_GAIN_SHIFT;
 		ret = ar0144_update_bits(sensor, AR0144_AECTRL,
-					 AR0144_FLD_MIN_ANA_GAIN_MASK, val);
+					 BIT_MIN_ANA_GAIN_MASK,
+					 BIT_MIN_ANA_GAIN(ctrl->val));
 		break;
 
 	case V4L2_CID_X_EMBEDDED_DATA:
@@ -2007,9 +1963,9 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		 * when the corresponding ctrl is set.
 		 */
 		val = ctrl->val & V4L2_X_EMBEDDED_DATA ?
-		       AR0144_FLD_EMBEDDED_DATA : 0;
+		       BIT_EMBEDDED_DATA : 0;
 		ret = ar0144_update_bits(sensor, AR0144_SMIA_TEST,
-					 AR0144_FLD_EMBEDDED_DATA, val);
+					 BIT_EMBEDDED_DATA, val);
 
 		if (ret)
 			goto out;
@@ -2037,29 +1993,26 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 			val = 0;
 			break;
 		case 1:
-			val = AR0144_FLD_RM_COL_BIN;
+			val = BIT_RM_COL_BIN;
 			break;
 		case 2:
-			val = AR0144_FLD_RM_COL_SUM;
+			val = BIT_RM_COL_SUM;
 			break;
 		}
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
-					 AR0144_FLD_RM_COL_BIN |
-					 AR0144_FLD_RM_COL_SUM,
-					 val);
+					 BIT_RM_COL_BIN | BIT_RM_COL_SUM, val);
 		break;
 
 	case V4L2_CID_X_BINNING_ROW:
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
-					 AR0144_FLD_RM_ROW_BIN,
-					 ctrl->val > 0 ?
-					 AR0144_FLD_RM_ROW_BIN : 0);
+					 BIT_RM_ROW_BIN,
+					 ctrl->val > 0 ? BIT_RM_ROW_BIN : 0);
 		break;
 
 	case V4L2_CID_X_COMPANDING:
 		ret = ar0144_update_bits(sensor, AR0144_COMPANDING,
-					 AR0144_FLD_COMPAND_EN,
-					 ctrl->val ? AR0144_FLD_COMPAND_EN : 0);
+					 BIT_COMPAND_EN,
+					 ctrl->val ? BIT_COMPAND_EN : 0);
 		break;
 
 	case V4L2_CID_DIGITAL_GAIN:
@@ -2076,28 +2029,27 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_X_BLACK_LEVEL_AUTO:
 		ret = ar0144_update_bits(sensor, AR0144_DELTA_DK_CTRL,
-					 AR0144_FLD_DK_SUB_EN,
-					 ctrl->val ? AR0144_FLD_DK_SUB_EN : 0);
+					 BIT_DK_SUB_EN,
+					 ctrl->val ? BIT_DK_SUB_EN : 0);
 		break;
 
 	case V4L2_CID_FLASH_LED_MODE:
-		val = ctrl->val ? AR0144_FLD_LED_FLASH_EN : 0;
+		val = ctrl->val ? BIT_LED_FLASH_EN : 0;
 		ret = ar0144_update_bits(sensor, AR0144_FLASH_CTRL,
-					 AR0144_FLD_LED_FLASH_EN, val);
+					 BIT_LED_FLASH_EN, val);
 		break;
 
 	case V4L2_CID_X_FLASH_DELAY:
-		val = ctrl->val << AR0144_FLD_LED_DELAY_SHIFT;
-		val &= AR0144_FLD_LED_DELAY_MASK;
 		ret = ar0144_update_bits(sensor, AR0144_FLASH_CTRL,
-					 AR0144_FLD_LED_DELAY_MASK, val);
+					 BIT_LED_DELAY_MASK,
+					 BIT_LED_DELAY(ctrl->val));
 		break;
 
 	case V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION:
-		val = ctrl->val ? AR0144_FLD_PIX_DEF_1D_DDC_EN : 0;
+		val = ctrl->val ? BIT_PIX_DEF_1D_DDC_EN : 0;
 
 		ret = ar0144_update_bits(sensor, AR0144_PIX_DEF_ID,
-					 AR0144_FLD_PIX_DEF_1D_DDC_EN, val);
+					 BIT_PIX_DEF_1D_DDC_EN, val);
 		break;
 
 	case V4L2_CID_LINK_FREQ:
