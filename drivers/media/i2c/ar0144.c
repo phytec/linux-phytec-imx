@@ -1481,7 +1481,8 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	mutex_lock(&sensor->lock);
 
 	fmt = ar0144_get_pad_fmt(sensor, cfg, format->pad, format->which);
-	crop = ar0144_get_pad_crop(sensor, cfg, format->pad, format->which);
+	crop = ar0144_get_pad_crop(sensor, cfg, format->pad,
+				   V4L2_SUBDEV_FORMAT_ACTIVE);
 
 	if (sensor->model == AR0144_MODEL_COLOR)
 		fmt->colorspace = V4L2_COLORSPACE_RAW;
