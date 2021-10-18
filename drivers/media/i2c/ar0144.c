@@ -173,6 +173,9 @@
 #define	AR0144_TEST_LANE_1		(0x2 << 8)
 #define	AR0144_TEST_MODE_LP11		(0x1 << 4)
 
+#define AR0144_MAX_MIPI_LINK		384000000ULL
+#define AR0144_MAX_PARALLEL_LINK	74250000ULL
+
 #define	AR0144_CSI2_DATA_RAW8		0x2a
 #define	AR0144_CSI2_DATA_RAW10		0x2b
 #define	AR0144_CSI2_DATA_RAW12		0x2c
@@ -322,31 +325,17 @@ struct limit_range {
 struct ar0144_sensor_limits {
 	struct limit_range x;
 	struct limit_range y;
-
 	struct limit_range hlen;
 	struct limit_range vlen;
-
 	struct limit_range hblank;
 	struct limit_range vblank;
-
-	struct limit_range pre_pll_div;
-	struct limit_range pre_pll_mul;
-
-	struct limit_range pll_vt_sys_clk_div;
-	struct limit_range pll_vt_pix_clk_div;
-	struct limit_range pll_op_sys_clk_div;
-	struct limit_range pll_op_pix_clk_div;
-
 	struct limit_range ext_clk;
-	struct limit_range pix_clk;
-	struct limit_range vco;
 };
 
 struct ar0144_businfo {
 	enum v4l2_mbus_type bus_type;
 	unsigned int flags;
 	const s64 *link_freqs;
-	unsigned int num_freqs;
 
 	unsigned int slew_rate_dat;
 	unsigned int slew_rate_clk;
@@ -379,7 +368,6 @@ struct ar0144_pll_config {
 	unsigned long vco_freq;
 	unsigned long pix_freq;
 	unsigned long ser_freq;
-	bool update;
 };
 
 struct ar0144_gains {
@@ -411,7 +399,7 @@ struct ar0144 {
 	bool embedded_stat;
 
 	struct ar0144_businfo info;
-	struct ar0144_pll_config pll;
+	struct ar0144_pll_config pll[3];
 	struct ar0144_sensor_limits limits;
 	enum ar0144_model model;
 
@@ -433,6 +421,16 @@ struct ar0144 {
 static inline struct ar0144 *to_ar0144(struct v4l2_subdev *sd)
 {
 	return container_of(sd, struct ar0144, subdev);
+}
+
+static inline unsigned int index_to_bpp(int index)
+{
+	return index * 2 + 8;
+}
+
+static inline int bpp_to_index(unsigned int bpp)
+{
+	return (bpp - 8) / 2;
 }
 
 static int ar0144_read(struct ar0144 *sensor, u16 reg, u16 *val)
@@ -556,14 +554,15 @@ static const struct ar0144_format *ar0144_find_format(struct ar0144 *sensor,
 }
 
 static const unsigned int ar0144_match_col_format(struct ar0144 *sensor,
-						  struct v4l2_rect *crop)
+						  struct v4l2_rect *crop,
+						  unsigned int bpp)
 {
 	unsigned int x_offset = crop->left % 2;
 	unsigned int y_offset = crop->top % 2;
 	int i;
 
 	for (i = 0; i < sensor->num_fmts; i++) {
-		if (sensor->bpp != sensor->formats[i].bpp)
+		if (bpp != sensor->formats[i].bpp)
 			continue;
 
 		if (sensor->formats[i].x_offset == x_offset &&
@@ -770,183 +769,38 @@ static int ar0144_g_register(struct v4l2_subdev *sd,
 }
 #endif
 
-static unsigned long ar0144_clk_mul_div(unsigned long freq,
-					unsigned int mul,
-					unsigned int div)
-{
-	uint64_t result;
-
-	if (WARN_ON(div == 0))
-		return 0;
-
-	result = freq;
-	result *= mul;
-	result = div_u64(result, div);
-
-	return result;
-}
-
-static int ar0144_calculate_pll(struct ar0144 *sensor)
-{
-	struct ar0144_sensor_limits *limits = &sensor->limits;
-	struct v4l2_subdev *sd = &sensor->subdev;
-	unsigned long ext_freq = clk_get_rate(sensor->extclk);
-	unsigned long op_clk;
-	unsigned long vco;
-	unsigned long pix_clk;
-	unsigned long pix_clk_target;
-	unsigned long link_freq;
-	unsigned int div, mul, op_div;
-	unsigned int bpp = sensor->bpp;
-	unsigned int lanes;
-	long diff, diff_old;
-	bool config_found = false;
-
-	if (!sensor->pll.update)
-		return 0;
-
-	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL) {
-		pix_clk_target = sensor->info.link_freqs[0];
-		lanes = 1;
-	} else {
-		lanes = sensor->info.num_lanes;
-
-		switch (bpp) {
-		case 8:
-			link_freq = sensor->info.link_freqs[0];
-			break;
-		case 10:
-			link_freq = sensor->info.link_freqs[1];
-			break;
-		case 12:
-			link_freq = sensor->info.link_freqs[2];
-			break;
-		}
-
-		pix_clk_target = ar0144_clk_mul_div(link_freq, 2 * lanes, bpp);
-	}
-
-	dev_dbg(sd->dev, "%s: lanes: %d bpp: %d\n", __func__, lanes, bpp);
-
-	/* Init diff value */
-	diff_old = pix_clk_target;
-
-	div = limits->pre_pll_div.min;
-	mul = limits->pre_pll_mul.min;
-	op_div = limits->pll_op_sys_clk_div.min;
-
-	while (div <= limits->pre_pll_div.max) {
-		if (mul % 2 != 0)
-			mul++;
-
-		if (mul > limits->pre_pll_mul.max) {
-			mul = limits->pre_pll_mul.min;
-			op_div = op_div == 1 ? 2 : op_div + 2;
-		}
-
-		if (op_div > limits->pll_op_sys_clk_div.max) {
-			op_div = limits->pll_op_sys_clk_div.min;
-			div++;
-			if (div > limits->pre_pll_div.max)
-				break;
-		}
-
-		vco = ar0144_clk_mul_div(ext_freq, mul, div);
-
-		if (vco < limits->vco.min || vco > limits->vco.max) {
-			mul++;
-			continue;
-		}
-
-		op_clk = ar0144_clk_mul_div(vco, 1, bpp * op_div);
-		pix_clk = op_clk * lanes;
-
-		if (pix_clk > limits->pix_clk.max) {
-			mul++;
-			continue;
-		}
-
-		diff = abs(pix_clk_target - pix_clk);
-		if (diff >= diff_old) {
-			mul++;
-			continue;
-		}
-
-		dev_dbg(sd->dev, "%s: vco: %lu op_clk: %lu\n",
-			__func__, vco, op_clk);
-		dev_dbg(sd->dev, "%s op_div: %d pll_div: %d pll_mul: %d\n",
-			__func__, op_div, div, mul);
-
-		diff_old = diff;
-
-		sensor->pll.pre_pll_div = div;
-		sensor->pll.pre_pll_mul = mul;
-		sensor->pll.op_sys_div = op_div;
-		sensor->pll.vco_freq = vco;
-		sensor->pll.pix_freq = pix_clk;
-		sensor->pll.ser_freq = op_clk * bpp;
-
-		config_found = true;
-
-		mul++;
-	}
-
-	if (!config_found) {
-		v4l2_err(sd, "Unable to find matching pll config\n");
-		return -EINVAL;
-	}
-
-	sensor->pll.op_pix_div = bpp;
-	sensor->pll.vt_sys_div = sensor->pll.op_sys_div;
-	sensor->pll.vt_pix_div = bpp / lanes;
-
-	sensor->pll.update = false;
-
-	dev_dbg(sd->dev, "VCO: %ld PIX: %ld SER: %ld\n",
-		sensor->pll.vco_freq, sensor->pll.pix_freq,
-		sensor->pll.ser_freq);
-
-	dev_dbg(sd->dev, "PLLDIV: %d PLLMUL: %d\n",
-		sensor->pll.pre_pll_div, sensor->pll.pre_pll_mul);
-	dev_dbg(sd->dev, "VTDIV: %d VTDIVPIX: %d\n",
-		sensor->pll.vt_sys_div, sensor->pll.vt_pix_div);
-	dev_dbg(sd->dev, "OPDIV: %d OPDIVPIX: %d\n",
-		sensor->pll.op_sys_div, sensor->pll.op_pix_div);
-
-	return 0;
-}
-
 static int ar0144_config_pll(struct ar0144 *sensor)
 {
+	int index = bpp_to_index(sensor->bpp);
 	int ret;
 
 	ret = ar0144_write(sensor, AR0144_VT_PIX_CLK_DIV,
-			   sensor->pll.vt_pix_div);
+			   sensor->pll[index].vt_pix_div);
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_VT_SYS_CLK_DIV,
-			   sensor->pll.vt_sys_div);
+			   sensor->pll[index].vt_sys_div);
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_PRE_PLL_CLK_DIV,
-			   sensor->pll.pre_pll_div);
+			   sensor->pll[index].pre_pll_div);
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_PLL_MUL,
-			   sensor->pll.pre_pll_mul);
+			   sensor->pll[index].pre_pll_mul);
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_OP_PIX_CLK_DIV,
-			   sensor->pll.op_pix_div);
+			   sensor->pll[index].op_pix_div);
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_OP_SYS_CLK_DIV,
-			   sensor->pll.op_sys_div);
+			   sensor->pll[index].op_sys_div);
 	if (ret)
 		return ret;
 
@@ -1185,10 +1039,6 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 			return ret;
 	}
 
-	ret = ar0144_calculate_pll(sensor);
-	if (ret)
-		return ret;
-
 	ret = ar0144_config_pll(sensor);
 	if (ret)
 		return ret;
@@ -1411,14 +1261,9 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	sensor_format = ar0144_find_format(sensor, format->format.code);
 	fmt->code = sensor_format->code;
 
-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
-	    sensor->bpp != sensor_format->bpp) {
-		sensor->bpp = sensor_format->bpp;
-		sensor->pll.update = true;
-	}
-
 	if (sensor->model == AR0144_MODEL_COLOR)
-		fmt->code = ar0144_match_col_format(sensor, crop);
+		fmt->code = ar0144_match_col_format(sensor, crop,
+						    sensor_format->bpp);
 
 	width = clamp_t(unsigned int, format->format.width,
 			1, crop->width);
@@ -1432,6 +1277,7 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	fmt->height = crop->height / h_scale;
 
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+		sensor->bpp = sensor_format->bpp;
 		sensor->w_scale = w_scale;
 		sensor->h_scale = h_scale;
 	}
@@ -1948,14 +1794,12 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct ar0144 *sensor = ctrl->priv;
-	unsigned long pix_freq;
-	unsigned int bpp;
+	int index;
 	int ret = 0;
 	u16 val;
 
 	mutex_lock(&sensor->lock);
-	bpp = sensor->bpp;
-	pix_freq = sensor->pll.pix_freq;
+	index = bpp_to_index(sensor->bpp);
 	mutex_unlock(&sensor->lock);
 
 	switch (ctrl->id) {
@@ -1970,20 +1814,10 @@ static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 		if (sensor->info.bus_type == V4L2_MBUS_PARALLEL)
 			break;
 
-		switch (bpp) {
-		case 8:
-			ctrl->val = AR0144_FREQ_MENU_8BIT;
-			break;
-		case 10:
-			ctrl->val = AR0144_FREQ_MENU_10BIT;
-			break;
-		case 12:
-			ctrl->val = AR0144_FREQ_MENU_12BIT;
-			break;
-		}
+		ctrl->val = index;
 		break;
 	case V4L2_CID_PIXEL_RATE:
-		*ctrl->p_new.p_s64 = pix_freq;
+		*ctrl->p_new.p_s64 = sensor->pll[index].pix_freq;
 		break;
 	default:
 		ret = -EINVAL;
@@ -2270,8 +2104,9 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_LINK_FREQ,
 		.type		= V4L2_CTRL_TYPE_INTEGER_MENU,
-		.min		= 0,
-		.def		= 0,
+		.min		= AR0144_FREQ_MENU_8BIT,
+		.max		= AR0144_FREQ_MENU_12BIT,
+		.def		= AR0144_FREQ_MENU_12BIT,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_PIXEL_RATE,
@@ -2366,7 +2201,6 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 			break;
 		case V4L2_CID_LINK_FREQ:
 			ctrl_cfg.qmenu_int = sensor->info.link_freqs;
-			ctrl_cfg.max = sensor->info.num_freqs - 1;
 			break;
 		default:
 			break;
@@ -2394,7 +2228,6 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		case V4L2_CID_LINK_FREQ:
 			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY |
 				       V4L2_CTRL_FLAG_VOLATILE;
-			ctrl->val = AR0144_FREQ_MENU_12BIT;
 			break;
 		case V4L2_CID_DIGITAL_GAIN:
 			ctrl->flags |= V4L2_CTRL_FLAG_EXECUTE_ON_WRITE |
@@ -2434,15 +2267,7 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 		.vlen			= {29,		65535     },
 		.hblank			= {208,		65535     },
 		.vblank			= {22,		65535     },
-		.pre_pll_div		= {1,		63        },
-		.pre_pll_mul		= {32,		255       },
-		.pll_vt_sys_clk_div	= {1,		16        },
-		.pll_vt_pix_clk_div	= {4,		16        },
-		.pll_op_sys_clk_div	= {1,		16        },
-		.pll_op_pix_clk_div	= {8,		12        },
 		.ext_clk		= {6000000,	48000000  },
-		.pix_clk		= {0,		74250000  },
-		.vco			= {384000000,	768000000 },
 	};
 
 	sensor->crop.left = 4;
@@ -2467,7 +2292,6 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 
 	sensor->fmt.code = sensor->formats[sensor->num_fmts - 1].code;
 	sensor->bpp = sensor->formats[sensor->num_fmts - 1].bpp;
-	sensor->pll.update = true;
 
 	sensor->w_scale = 1;
 	sensor->h_scale = 1;
@@ -2481,10 +2305,6 @@ static int ar0144_subdev_registered(struct v4l2_subdev *sd)
 	int ret;
 
 	ar0144_set_defaults(sensor);
-
-	ret = ar0144_calculate_pll(sensor);
-	if (ret)
-		return ret;
 
 	ret = ar0144_create_ctrls(sensor);
 	if (ret)
@@ -2545,6 +2365,135 @@ out:
 	return ret;
 }
 
+static unsigned long ar0144_clk_mul_div(unsigned long freq,
+					unsigned int mul,
+					unsigned int div)
+{
+	uint64_t result;
+
+	if (WARN_ON(div == 0))
+		return 0;
+
+	result = freq;
+	result *= mul;
+	result = div_u64(result, div);
+
+	return result;
+}
+
+static int ar0144_calculate_pll(struct ar0144 *sensor, struct device *dev,
+				struct ar0144_pll_config *pll,
+				unsigned long ext_freq,
+				u64 link_freq,
+				unsigned int bpp)
+{
+	unsigned long op_clk;
+	unsigned long vco;
+	unsigned long pix_clk;
+	unsigned long pix_target;
+	unsigned long diff, diff_old;
+	unsigned int lanes = sensor->info.num_lanes;
+	unsigned int div, mul, op_div;
+	const struct limit_range div_lim = {.min = 1, .max = 63};
+	const struct limit_range mul_lim = {.min = 32, .max = 254};
+	const struct limit_range op_div_lim = {.min = 1, .max = 16};
+	const struct limit_range pix_lim = {.min = 0, .max = 74250000};
+	const struct limit_range vco_lim = {.min = 384000000, .max = 768000000};
+
+	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL)
+		pix_target = link_freq;
+	else
+		pix_target = ar0144_clk_mul_div(link_freq, 2 * lanes, bpp);
+
+	diff_old = pix_target;
+
+	pll->pre_pll_div = 1;
+	pll->pre_pll_mul = 0;
+	pll->op_sys_div = 1;
+	pll->op_pix_div = bpp;
+	pll->vt_sys_div = 1;
+	pll->vt_pix_div = bpp / lanes;
+
+	div = div_lim.min;
+	mul = mul_lim.min;
+	op_div = op_div_lim.min;
+
+	while (div <= div_lim.max) {
+		if (mul % 2 != 0)
+			mul++;
+
+		if (mul > mul_lim.max) {
+			mul = mul_lim.min;
+			op_div = op_div == 1 ? 2 : op_div + 2;
+		}
+
+		if (op_div > op_div_lim.max) {
+			op_div = op_div_lim.min;
+			div++;
+			if (div > div_lim.max)
+				break;
+		}
+
+		vco = ar0144_clk_mul_div(ext_freq, mul, div);
+
+		if (vco < vco_lim.min || vco > vco_lim.max) {
+			mul++;
+			continue;
+		}
+
+		op_clk = ar0144_clk_mul_div(vco, 1, bpp * op_div);
+		pix_clk = op_clk * lanes;
+
+		if (pix_clk > pix_lim.max) {
+			mul++;
+			continue;
+		}
+
+		if (pix_clk > pix_target) {
+			mul++;
+			continue;
+		}
+
+		diff = pix_target - pix_clk;
+		if (diff >= diff_old) {
+			mul++;
+			continue;
+		}
+
+		dev_dbg(dev, "%s: vco: %lu pix_clk: %lu\n",
+			__func__, vco, pix_clk);
+		dev_dbg(dev, "%s op_div: %d pll_div: %d pll_mul: %d\n",
+			__func__, op_div, div, mul);
+
+		diff_old = diff;
+
+		pll->pre_pll_div = div;
+		pll->pre_pll_mul = mul;
+		pll->op_sys_div = op_div;
+		pll->vt_sys_div = op_div;
+		pll->vco_freq = vco;
+		pll->pix_freq = pix_clk;
+
+		if (sensor->info.bus_type == V4L2_MBUS_PARALLEL)
+			pll->ser_freq = pix_clk;
+		else
+			pll->ser_freq = ar0144_clk_mul_div(pix_clk, bpp,
+							   2 * lanes);
+
+		mul++;
+	}
+
+	if (pll->pre_pll_mul == 0) {
+		dev_err(dev, "Unable to find matching pll config\n");
+		return -EINVAL;
+	}
+
+	dev_dbg(dev, "PLL: bpp: %u VCO: %lu, PIX: %lu, SER: %lu\n",
+		bpp, pll->vco_freq, pll->pix_freq, pll->ser_freq);
+
+	return 0;
+}
+
 static int ar0144_parse_parallel_props(struct ar0144 *sensor,
 				       struct fwnode_handle *ep,
 				       struct v4l2_fwnode_endpoint *bus_cfg)
@@ -2552,6 +2501,8 @@ static int ar0144_parse_parallel_props(struct ar0144 *sensor,
 	unsigned int tmp;
 
 	sensor->info.flags = bus_cfg->bus.parallel.flags;
+	/* Required for PLL calculation */
+	sensor->info.num_lanes = 1;
 
 	tmp = AR0144_NO_SLEW_RATE;
 	fwnode_property_read_u32(ep, "onsemi,slew-rate-dat", &tmp);
@@ -2656,6 +2607,7 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 	struct v4l2_fwnode_endpoint bus_cfg = {
 		.bus_type = V4L2_MBUS_UNKNOWN,
 	};
+	unsigned long ext_freq;
 	u64 *link_freqs;
 	int i;
 	int ret;
@@ -2690,33 +2642,27 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 		goto out_put;
 	}
 
-	info->num_freqs = bus_cfg.nr_of_link_frequencies;
-	if (bus_cfg.bus_type == V4L2_MBUS_PARALLEL &&
-	    info->num_freqs != 1) {
-		dev_err(dev, "Parallel link expects one frequency\n");
-		ret = -EINVAL;
-		goto out_put;
-	}
-
-	if (bus_cfg.bus_type == V4L2_MBUS_CSI2_DPHY &&
-	    info->num_freqs != 3) {
-		dev_err(dev, "MIPI link expects three frequencies\n");
-		ret = -EINVAL;
-		goto out_put;
-	}
-
-	link_freqs = devm_kcalloc(dev, info->num_freqs,
-					sizeof(*info->link_freqs), GFP_KERNEL);
-	if (!link_freqs) {
-		ret = -ENOMEM;
-		goto out_put;
-	}
-
-	for (i = 0; i < info->num_freqs; i++)
-		link_freqs[i] = bus_cfg.link_frequencies[i];
-
-	info->link_freqs = link_freqs;
 	info->bus_type = bus_cfg.bus_type;
+
+	if (bus_cfg.nr_of_link_frequencies != 1) {
+		dev_err(dev, "Link frequency required\n");
+		ret = -EINVAL;
+		goto out_put;
+	}
+
+	if (info->bus_type == V4L2_MBUS_PARALLEL &&
+	    bus_cfg.link_frequencies[0] > AR0144_MAX_PARALLEL_LINK) {
+		dev_err(dev, "Parallel Link frequency exceeds maximum\n");
+		ret = -EINVAL;
+		goto out_put;
+	}
+
+	if (info->bus_type == V4L2_MBUS_CSI2_DPHY &&
+	    bus_cfg.link_frequencies[0] > AR0144_MAX_MIPI_LINK) {
+		dev_err(dev, "MIPI Link frequency exceeds maximum\n");
+		ret = -EINVAL;
+		goto out_put;
+	}
 
 	switch (info->bus_type) {
 	case V4L2_MBUS_PARALLEL:
@@ -2729,6 +2675,31 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 		dev_err(dev, "Invalid bus type\n");
 		ret = -EINVAL;
 	}
+
+	if (ret)
+		goto out_put;
+
+	link_freqs = devm_kcalloc(dev, 3, sizeof(*info->link_freqs),
+				  GFP_KERNEL);
+	if (!link_freqs) {
+		ret = -ENOMEM;
+		goto out_put;
+	}
+
+	ext_freq = clk_get_rate(sensor->extclk);
+
+	for (i = 0; i < 3; i++) {
+		ret = ar0144_calculate_pll(sensor, dev, &sensor->pll[i],
+					   ext_freq,
+					   bus_cfg.link_frequencies[0],
+					   index_to_bpp(i));
+		if (ret < 0)
+			goto out_put;
+
+		link_freqs[i] = sensor->pll[i].ser_freq;;
+	}
+
+	info->link_freqs = link_freqs;
 
 out_put:
 	v4l2_fwnode_endpoint_free(&bus_cfg);
