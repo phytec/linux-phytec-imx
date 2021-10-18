@@ -129,7 +129,9 @@ struct rtc_param {
 #define RTC_FEATURE_ALARM		0
 #define RTC_FEATURE_ALARM_RES_MINUTE	1
 #define RTC_FEATURE_NEED_WEEK_DAY	2
-#define RTC_FEATURE_CNT			3
+#define RTC_FEATURE_ALARM_RES_2S	3
+#define RTC_FEATURE_UPDATE_INTERRUPT	4
+#define RTC_FEATURE_CNT			5
 
 /* parameter list */
 #define RTC_PARAM_FEATURES		0
