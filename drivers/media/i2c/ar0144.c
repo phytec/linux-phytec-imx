@@ -2031,7 +2031,6 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_VBLANK,
 		.type		= V4L2_CTRL_TYPE_INTEGER,
-		.flags		= V4L2_CTRL_FLAG_VOLATILE,
 		.min		= 22,
 		.max		= 65535,
 		.step		= 1,
@@ -2040,7 +2039,6 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_HBLANK,
 		.type		= V4L2_CTRL_TYPE_INTEGER,
-		.flags		= V4L2_CTRL_FLAG_VOLATILE,
 		.min		= 208,
 		.max		= 65535,
 		.step		= 1,
@@ -2220,8 +2218,6 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_DIGITAL_GAIN,
 		.type		= V4L2_CTRL_TYPE_INTEGER,
-		.flags		= (V4L2_CTRL_FLAG_EXECUTE_ON_WRITE |
-				   V4L2_CTRL_FLAG_UPDATE),
 		.min		= 1000,
 		.step		= 1,
 		.max		= 15999,
@@ -2274,7 +2270,6 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_LINK_FREQ,
 		.type		= V4L2_CTRL_TYPE_INTEGER_MENU,
-		.flags		= V4L2_CTRL_FLAG_READ_ONLY,
 		.min		= 0,
 		.max		= ARRAY_SIZE(ar0144_link_freq) - 1,
 		.def		= 0,
@@ -2374,8 +2369,17 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		}
 
 		switch (ctrl->id) {
+		case V4L2_CID_HBLANK:
+		case V4L2_CID_VBLANK:
+			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
+			break;
 		case V4L2_CID_LINK_FREQ:
+			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 			sensor->link_freq_ctrl = ctrl;
+			break;
+		case V4L2_CID_DIGITAL_GAIN:
+			ctrl->flags |= V4L2_CTRL_FLAG_EXECUTE_ON_WRITE |
+				       V4L2_CTRL_FLAG_UPDATE;
 			break;
 		case V4L2_CID_X_DIGITAL_GAIN_RED:
 			if (sensor->model == AR0144_MODEL_COLOR)
