@@ -2664,7 +2664,7 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 	sensor->extclk = clk;
 
 	gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
-	ret = PTR_ERR_OR_ZERO(clk);
+	ret = PTR_ERR_OR_ZERO(gpio);
 	if (ret < 0) {
 		dev_err(dev, "Failed to get reset gpio (%d)\n", ret);
 		return ret;
