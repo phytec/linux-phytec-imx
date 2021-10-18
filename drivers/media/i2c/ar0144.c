@@ -183,9 +183,6 @@
 #define AR0144_DEF_WIDTH		1280
 #define AR0144_DEF_HEIGHT		800
 
-#define AR0144_MIPI_SINK		0
-#define AR0144_PAR_SINK			1
-#define AR0144_NUM_PADS			2
 
 enum {
 	V4L2_CID_USER_BASE_AR0144		= V4L2_CID_USER_BASE + 0x2500,
@@ -226,12 +223,6 @@ enum ar0144_model {
 	AR0144_MODEL_UNKNOWN,
 	AR0144_MODEL_COLOR,
 	AR0144_MODEL_MONOCHROME,
-};
-
-enum ar0144_bus {
-	AR0144_BUS_UNKNOWN,
-	AR0144_BUS_PARALLEL,
-	AR0144_BUS_MIPI,
 };
 
 struct ar0144_format {
@@ -346,15 +337,14 @@ struct ar0144_sensor_limits {
 	struct limit_range vco;
 };
 
-struct ar0144_parallel_businfo {
+struct ar0144_businfo {
+	enum v4l2_mbus_type bus_type;
 	unsigned long link_freq;
+
 	unsigned int slew_rate_dat;
 	unsigned int slew_rate_clk;
-};
 
-struct ar0144_mipi_businfo {
 	unsigned int num_lanes;
-
 	u16 t_hs_prep;
 	u16 t_hs_zero;
 	u16 t_hs_trail;
@@ -400,7 +390,7 @@ struct ar0144 {
 	struct v4l2_subdev subdev;
 	struct device *dev;
 	struct v4l2_ctrl_handler ctrls;
-	struct media_pad pad[2];
+	struct media_pad pad;
 
 	struct v4l2_mbus_framefmt fmt;
 	struct v4l2_rect crop;
@@ -413,11 +403,9 @@ struct ar0144 {
 	bool embedded_data;
 	bool embedded_stat;
 
-	struct ar0144_parallel_businfo pinfo;
-	struct ar0144_mipi_businfo minfo;
+	struct ar0144_businfo info;
 	struct ar0144_pll_config pll;
 	struct ar0144_sensor_limits limits;
-	enum ar0144_bus active_bus;
 	enum ar0144_model model;
 
 	const struct ar0144_format *formats;
@@ -579,21 +567,6 @@ static const unsigned int ar0144_match_col_format(struct ar0144 *sensor,
 	return sensor->formats[sensor->num_fmts - 1].code;
 }
 
-static int ar0144_find_active_pad(struct ar0144 *sensor)
-{
-	struct media_pad *remote;
-	int i;
-
-	for (i = 0; i < AR0144_NUM_PADS; i++) {
-		remote = media_entity_remote_pad(&sensor->pad[i]);
-		if (remote)
-			return i;
-	}
-
-	v4l2_warn(&sensor->subdev, "No active pad found during stream on\n");
-	return -1;
-}
-
 static int ar0144_enter_standby(struct ar0144 *sensor)
 {
 	unsigned int timeout = 1000;
@@ -638,7 +611,7 @@ static int ar0144_enter_standby(struct ar0144 *sensor)
 	/* In MIPI mode the sensor might be in LP-11 test mode so make sure
 	 * to disable it.
 	 */
-	if (sensor->active_bus == AR0144_BUS_MIPI)
+	if (sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY)
 		ret = ar0144_clear_bits(sensor, AR0144_SER_CTRL_STAT,
 					BIT_FRAMER_TEST_MODE);
 
@@ -656,7 +629,7 @@ static int ar0144_mipi_enter_lp11(struct ar0144 *sensor)
 
 	val = AR0144_TEST_MODE_LP11 | AR0144_TEST_LANE_0;
 
-	if (sensor->minfo.num_lanes == 2)
+	if (sensor->info.num_lanes == 2)
 		val |= AR0144_TEST_LANE_1;
 
 	ret = ar0144_write(sensor, AR0144_SERIAL_TEST, val);
@@ -708,30 +681,12 @@ static void ar0144_power_off(struct ar0144 *sensor)
 static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
-	unsigned int active_pad;
 	int ret = 0;
 	int link_freq;
 
 	dev_dbg(sd->dev, "%s on: %d\n", __func__, on);
 
 	mutex_lock(&sensor->lock);
-
-	if (sensor->active_bus == AR0144_BUS_UNKNOWN) {
-		active_pad = ar0144_find_active_pad(sensor);
-
-		switch (active_pad) {
-		case AR0144_PAR_SINK:
-			sensor->active_bus = AR0144_BUS_PARALLEL;
-			break;
-
-		case AR0144_MIPI_SINK:
-			sensor->active_bus = AR0144_BUS_MIPI;
-			break;
-
-		default:
-			break;
-		}
-	}
 
 	if (on) {
 		if (sensor->power_user > 0) {
@@ -744,7 +699,7 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 			goto out;
 
 		/* Enable MIPI LP-11 test mode as required by e.g. i.MX 6 */
-		if (sensor->active_bus == AR0144_BUS_MIPI &&
+		if (sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY &&
 		    !sensor->is_streaming) {
 			ret = ar0144_mipi_enter_lp11(sensor);
 			if (ret) {
@@ -757,7 +712,7 @@ static int ar0144_s_power(struct v4l2_subdev *sd, int on)
 			 */
 			/* TODO: Can we remove these magic values here? */
 			link_freq = (sensor->bpp - 8) / 2;
-			if (sensor->minfo.num_lanes == 1)
+			if (sensor->info.num_lanes == 1)
 				link_freq += 3;
 
 			ret = v4l2_ctrl_s_ctrl(sensor->link_freq_ctrl,
@@ -842,22 +797,23 @@ static int ar0144_calculate_pll(struct ar0144 *sensor)
 	unsigned int pll_mul, pll_mul_min, pll_mul_max;
 	unsigned int op_div, op_div_min, op_div_max;
 	unsigned int bpp = sensor->bpp;
-	unsigned int lanes = sensor->minfo.num_lanes;
+	unsigned int lanes = sensor->info.num_lanes;
 	long diff, diff_old;
 	bool config_found = false;
 
 	if (!sensor->pll.update)
 		return 0;
 
-	if (bpp == 12 && lanes < 2 && sensor->active_bus == AR0144_BUS_MIPI) {
+	if (bpp == 12 && lanes < 2 &&
+	    sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY) {
 		v4l2_err(sd, "PLL config: 12 bpp require at least 2 lanes\n");
 		return -EINVAL;
 	}
 
 	dev_dbg(sd->dev, "%s: lanes: %d bpp: %d\n", __func__, lanes, bpp);
 
-	if (sensor->active_bus == AR0144_BUS_PARALLEL) {
-		pix_clk_target = sensor->pinfo.link_freq;
+	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL) {
+		pix_clk_target = sensor->info.link_freq;
 		lanes = 1;
 	} else {
 		pix_clk_target = 74250000;
@@ -1071,8 +1027,8 @@ out:
 
 static int ar0144_config_parallel(struct ar0144 *sensor)
 {
-	unsigned int slew_rate_dat = sensor->pinfo.slew_rate_dat;
-	unsigned int slew_rate_clk = sensor->pinfo.slew_rate_clk;
+	unsigned int slew_rate_dat = sensor->info.slew_rate_dat;
+	unsigned int slew_rate_clk = sensor->info.slew_rate_clk;
 	u16 val = 0;
 	u16 mask = 0;
 	int ret = 0;
@@ -1139,36 +1095,36 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_0,
-			   BIT_HS_PREP(sensor->minfo.t_hs_prep) |
-			   BIT_HS_ZERO(sensor->minfo.t_hs_zero) |
-			   BIT_HS_TRAIL(sensor->minfo.t_hs_trail) |
-			   BIT_CLK_TRAIL(sensor->minfo.t_clk_trail));
+			   BIT_HS_PREP(sensor->info.t_hs_prep) |
+			   BIT_HS_ZERO(sensor->info.t_hs_zero) |
+			   BIT_HS_TRAIL(sensor->info.t_hs_trail) |
+			   BIT_CLK_TRAIL(sensor->info.t_clk_trail));
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_1,
-			   BIT_CLK_PREP(sensor->minfo.t_clk_prep) |
-			   BIT_HS_EXIT(sensor->minfo.t_hs_exit) |
-			   BIT_CLK_ZERO(sensor->minfo.t_clk_zero));
+			   BIT_CLK_PREP(sensor->info.t_clk_prep) |
+			   BIT_HS_EXIT(sensor->info.t_hs_exit) |
+			   BIT_CLK_ZERO(sensor->info.t_clk_zero));
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_2,
-			   BIT_BGAP(sensor->minfo.t_bgap) |
-			   BIT_CLK_PRE(sensor->minfo.t_clk_pre) |
-			   BIT_CLK_POST(sensor->minfo.t_clk_post));
+			   BIT_BGAP(sensor->info.t_bgap) |
+			   BIT_CLK_PRE(sensor->info.t_clk_pre) |
+			   BIT_CLK_POST(sensor->info.t_clk_post));
 	if (ret)
 		return ret;
 
 	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_3,
-			   BIT_LPX(sensor->minfo.t_lpx) |
-			   BIT_WAKE_UP(sensor->minfo.t_wakeup));
+			   BIT_LPX(sensor->info.t_lpx) |
+			   BIT_WAKE_UP(sensor->info.t_wakeup));
 	if (ret)
 		return ret;
 
-	val = BIT_INIT(sensor->minfo.t_init) |
-	      (sensor->minfo.cont_tx_clk ? (u16) BIT_CONT_TX_CLK : 0) |
-	      (sensor->minfo.heavy_lp_load ?
+	val = BIT_INIT(sensor->info.t_init) |
+	      (sensor->info.cont_tx_clk ? (u16) BIT_CONT_TX_CLK : 0) |
+	      (sensor->info.heavy_lp_load ?
 	       (u16) BIT_HEAVY_LP_LOAD : 0);
 
 	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_4, val);
@@ -1181,7 +1137,7 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	if (sensor->minfo.num_lanes == 1)
+	if (sensor->info.num_lanes == 1)
 		val = BIT_SINGLE_LANE;
 	else
 		val = BIT_DUAL_LANE;
@@ -1209,20 +1165,14 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 
 static int ar0144_stream_on(struct ar0144 *sensor)
 {
-	struct v4l2_subdev *sd = &sensor->subdev;
 	u16 mono_op;
 	int ret;
-
-	if (sensor->active_bus == AR0144_BUS_UNKNOWN) {
-		v4l2_warn(sd, "No bus selected for streaming\n");
-		return -EPIPE;
-	}
 
 	/* If the MIPI bus is in use the data and clk lanes are in LP-11 state.
 	 * So we have to unset streaming and disable test mode before
 	 * configuring the sensor.
 	 */
-	if (sensor->active_bus == AR0144_BUS_MIPI) {
+	if (sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY) {
 		ret = ar0144_enter_standby(sensor);
 		if (ret)
 			return ret;
@@ -1247,15 +1197,13 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	if (sensor->active_bus == AR0144_BUS_PARALLEL) {
+	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL)
 		ret = ar0144_config_parallel(sensor);
-		if (ret)
-			return ret;
-	} else {
+	else
 		ret = ar0144_config_mipi(sensor);
-		if (ret)
-			return ret;
-	}
+
+	if (ret)
+		return ret;
 
 	sensor->is_streaming = true;
 	return 0;
@@ -1629,42 +1577,8 @@ static const struct v4l2_subdev_ops ar0144_subdev_ops = {
 	.pad			= &ar0144_subdev_pad_ops,
 };
 
-static int ar0144_link_setup(struct media_entity *entity,
-			     struct media_pad const *local,
-			     struct media_pad const *remote,
-			     u32 flags)
-{
-	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-	struct ar0144 *sensor = to_ar0144(sd);
-	int ret = 0;
-
-	if (sensor->is_streaming)
-		return -EBUSY;
-
-	if (!(flags & MEDIA_LNK_FL_ENABLED))
-		return 0;
-
-	mutex_lock(&sensor->lock);
-
-	switch (local->index) {
-	case AR0144_PAR_SINK:
-		sensor->active_bus = AR0144_BUS_PARALLEL;
-		break;
-
-	case AR0144_MIPI_SINK:
-		sensor->active_bus = AR0144_BUS_MIPI;
-		break;
-
-	default:
-		ret = -EINVAL;
-	}
-
-	mutex_unlock(&sensor->lock);
-	return ret;
-}
-
 static const struct media_entity_operations ar0144_entity_ops = {
-	.link_setup		= ar0144_link_setup,
+	.get_fwnode_pad		= v4l2_subdev_get_fwnode_pad_1_to_1,
 };
 
 static int ar0144_subdev_registered(struct v4l2_subdev *sd)
@@ -2454,7 +2368,7 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 			break;
 
 		case V4L2_CID_X_EMBEDDED_DATA:
-			if (sensor->active_bus == AR0144_BUS_MIPI)
+			if (sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY)
 				continue;
 
 			break;
@@ -2570,8 +2484,8 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 	sensor->hblank = sensor->limits.hblank.min;
 	sensor->vblank = sensor->limits.vblank.min;
 
-	if (sensor->pinfo.link_freq == 0)
-		sensor->pinfo.link_freq = sensor->limits.pix_clk.max;
+	if (sensor->info.link_freq == 0)
+		sensor->info.link_freq = sensor->limits.pix_clk.max;
 }
 
 static int ar0144_check_chip_id(struct ar0144 *sensor)
@@ -2618,131 +2532,95 @@ out:
 	return ret;
 }
 
-static int ar0144_parse_par_ep(struct ar0144 *sensor, struct device_node *ep)
+static int ar0144_parse_parallel_props(struct ar0144 *sensor,
+				       struct fwnode_handle *ep,
+				       struct v4l2_fwnode_endpoint *bus_cfg)
 {
-	struct device *dev = sensor->dev;
-	struct fwnode_handle *fwnode;
-	struct v4l2_fwnode_endpoint endpoint = {
-		.bus_type = V4L2_MBUS_PARALLEL
-	};
-	int ret;
-	int32_t tmp;
+	unsigned int tmp;
 
-	/* Skip parsing if no endpoint was found */
-	if (!ep)
-		return 0;
-
-	fwnode = of_fwnode_handle(ep);
-
-	ret = v4l2_fwnode_endpoint_alloc_parse(fwnode, &endpoint);
-	if (ret) {
-		dev_err(dev, "Failed to parse parallel endpoint (%d)\n", ret);
-		return ret;
-	}
-
-	if (endpoint.nr_of_link_frequencies > 0)
-		sensor->pinfo.link_freq = endpoint.link_frequencies[0];
-	else
-		sensor->pinfo.link_freq = 0;
 
 	tmp = AR0144_NO_SLEW_RATE;
-	of_property_read_s32(ep, "onsemi,slew-rate-dat", &tmp);
-	sensor->pinfo.slew_rate_dat = clamp_t(unsigned int, tmp, 0, 0x7);
+	fwnode_property_read_u32(ep, "onsemi,slew-rate-dat", &tmp);
+	sensor->info.slew_rate_dat = clamp_t(unsigned int, tmp, 0, 0x7);
 
 	tmp = AR0144_NO_SLEW_RATE;
-	of_property_read_s32(ep, "onsemi,slew-rate-clk", &tmp);
-	sensor->pinfo.slew_rate_clk = clamp_t(unsigned int, tmp, 0, 0x7);
+	fwnode_property_read_u32(ep, "onsemi,slew-rate-clk", &tmp);
+	sensor->info.slew_rate_clk = clamp_t(unsigned int, tmp, 0, 0x7);
 
 	return 0;
 }
 
-static int ar0144_parse_mipi_ep(struct ar0144 *sensor, struct device_node *ep)
+static int ar0144_parse_mipi_props(struct ar0144 *sensor,
+				   struct fwnode_handle *ep,
+				   struct v4l2_fwnode_endpoint *bus_cfg)
 {
-	struct device *dev = sensor->dev;
-	struct fwnode_handle *fwnode;
-	struct v4l2_fwnode_endpoint endpoint = {
-		.bus_type = V4L2_MBUS_CSI2_DPHY
-	};
-	int ret;
 	unsigned int tmp;
 
-	/* Skip parsing if no endpoint was found */
-	if (!ep)
-		return 0;
-
-	fwnode = of_fwnode_handle(ep);
-
-	ret = v4l2_fwnode_endpoint_alloc_parse(fwnode, &endpoint);
-	if (ret) {
-		dev_err(dev, "Failed to parse MIPI endpoint (%d)\n", ret);
-		return ret;
-	}
-
-	sensor->minfo.num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
-	if (sensor->minfo.num_lanes < 1 || sensor->minfo.num_lanes > 2) {
-		dev_err(dev, "Wrong number of lanes configured");
+	sensor->info.num_lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
+	if (sensor->info.num_lanes < 1 || sensor->info.num_lanes > 2) {
+		dev_err(sensor->dev, "Wrong number of lanes configured");
 		return -EINVAL;
 	}
 
 	tmp = 2;
-	of_property_read_u32(ep, "onsemi,t-hs-prep", &tmp);
-	sensor->minfo.t_hs_prep = clamp_t(unsigned int, tmp, 0, 0xf);
+	fwnode_property_read_u32(ep, "onsemi,t-hs-prep", &tmp);
+	sensor->info.t_hs_prep = clamp_t(unsigned int, tmp, 0, 0xf);
 
 	tmp = 6;
-	of_property_read_u32(ep, "onsemi,t-hs-zero", &tmp);
-	sensor->minfo.t_hs_zero = clamp_t(unsigned int, tmp, 0, 0xf);
+	fwnode_property_read_u32(ep, "onsemi,t-hs-zero", &tmp);
+	sensor->info.t_hs_zero = clamp_t(unsigned int, tmp, 0, 0xf);
 
 	tmp = 6;
-	of_property_read_u32(ep, "onsemi,t-hs-trail", &tmp);
-	sensor->minfo.t_hs_trail = clamp_t(unsigned int, tmp, 0, 0xf);
+	fwnode_property_read_u32(ep, "onsemi,t-hs-trail", &tmp);
+	sensor->info.t_hs_trail = clamp_t(unsigned int, tmp, 0, 0xf);
 
 	tmp = 5;
-	of_property_read_u32(ep, "onsemi,t-clk-trail", &tmp);
-	sensor->minfo.t_clk_trail = clamp_t(unsigned int, tmp, 0, 0xf);
+	fwnode_property_read_u32(ep, "onsemi,t-clk-trail", &tmp);
+	sensor->info.t_clk_trail = clamp_t(unsigned int, tmp, 0, 0xf);
 
 	tmp = 1;
-	of_property_read_u32(ep, "onsemi,t-clk-prep", &tmp);
-	sensor->minfo.t_clk_prep = clamp_t(unsigned int, tmp, 0, 0xf);
+	fwnode_property_read_u32(ep, "onsemi,t-clk-prep", &tmp);
+	sensor->info.t_clk_prep = clamp_t(unsigned int, tmp, 0, 0xf);
 
 	tmp = 4;
-	of_property_read_u32(ep, "onsemi,t-hs-exit", &tmp);
-	sensor->minfo.t_hs_exit = clamp_t(unsigned int, tmp, 0, 0x3f);
+	fwnode_property_read_u32(ep, "onsemi,t-hs-exit", &tmp);
+	sensor->info.t_hs_exit = clamp_t(unsigned int, tmp, 0, 0x3f);
 
 	tmp = 14;
-	of_property_read_u32(ep, "onsemi,t-clk-zero", &tmp);
-	sensor->minfo.t_clk_zero = clamp_t(unsigned int, tmp, 0, 0x3f);
+	fwnode_property_read_u32(ep, "onsemi,t-clk-zero", &tmp);
+	sensor->info.t_clk_zero = clamp_t(unsigned int, tmp, 0, 0x3f);
 
 	tmp = 2;
-	of_property_read_u32(ep, "onsemi,t-bgap", &tmp);
-	sensor->minfo.t_bgap = clamp_t(unsigned int, tmp, 0, 0xf);
+	fwnode_property_read_u32(ep, "onsemi,t-bgap", &tmp);
+	sensor->info.t_bgap = clamp_t(unsigned int, tmp, 0, 0xf);
 
 	tmp = 1;
-	of_property_read_u32(ep, "onsemi,t-clk-pre", &tmp);
-	sensor->minfo.t_clk_pre = clamp_t(unsigned int, tmp, 0, 0x3f);
+	fwnode_property_read_u32(ep, "onsemi,t-clk-pre", &tmp);
+	sensor->info.t_clk_pre = clamp_t(unsigned int, tmp, 0, 0x3f);
 
 	tmp = 7;
-	of_property_read_u32(ep, "onsemi,t-clk-post", &tmp);
-	sensor->minfo.t_clk_post = clamp_t(unsigned int, tmp, 0, 0x3f);
+	fwnode_property_read_u32(ep, "onsemi,t-clk-post", &tmp);
+	sensor->info.t_clk_post = clamp_t(unsigned int, tmp, 0, 0x3f);
 
 	tmp = 2;
-	of_property_read_u32(ep, "onsemi,t-lpx", &tmp);
-	sensor->minfo.t_lpx = clamp_t(unsigned int, tmp, 0, 0x3f);
+	fwnode_property_read_u32(ep, "onsemi,t-lpx", &tmp);
+	sensor->info.t_lpx = clamp_t(unsigned int, tmp, 0, 0x3f);
 
 	tmp = 5;
-	of_property_read_u32(ep, "onsemi,t-wakeup", &tmp);
-	sensor->minfo.t_wakeup = clamp_t(unsigned int, tmp, 0, 0x7f);
+	fwnode_property_read_u32(ep, "onsemi,t-wakeup", &tmp);
+	sensor->info.t_wakeup = clamp_t(unsigned int, tmp, 0, 0x7f);
 
 	tmp = 0;
-	of_property_read_u32(ep, "onsemi,cont-tx-clk", &tmp);
-	sensor->minfo.cont_tx_clk = tmp ? true : false;
+	fwnode_property_read_u32(ep, "onsemi,cont-tx-clk", &tmp);
+	sensor->info.cont_tx_clk = tmp ? true : false;
 
 	tmp = 0;
-	of_property_read_u32(ep, "onsemi,heavy-lp-load", &tmp);
-	sensor->minfo.heavy_lp_load = tmp ? true : false;
+	fwnode_property_read_u32(ep, "onsemi,heavy-lp-load", &tmp);
+	sensor->info.heavy_lp_load = tmp ? true : false;
 
 	tmp = 4;
-	of_property_read_u32(ep, "onsemi,t-init", &tmp);
-	sensor->minfo.t_init = clamp_t(unsigned int, tmp, 0, 0x7f);
+	fwnode_property_read_u32(ep, "onsemi,t-init", &tmp);
+	sensor->info.t_init = clamp_t(unsigned int, tmp, 0, 0x7f);
 
 	return 0;
 }
@@ -2750,9 +2628,13 @@ static int ar0144_parse_mipi_ep(struct ar0144 *sensor, struct device_node *ep)
 static int ar0144_of_probe(struct ar0144 *sensor)
 {
 	struct device *dev = sensor->dev;
-	struct device_node *mipi_ep, *par_ep;
+	struct ar0144_businfo *info = &sensor->info;
 	struct clk *clk;
 	struct gpio_desc *gpio;
+	struct fwnode_handle *ep;
+	struct v4l2_fwnode_endpoint bus_cfg = {
+		.bus_type = V4L2_MBUS_UNKNOWN,
+	};
 	int ret;
 
 	clk = devm_clk_get(dev, "ext");
@@ -2775,33 +2657,36 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 
 	sensor->reset_gpio = gpio;
 
-	par_ep = of_graph_get_endpoint_by_regs(dev->of_node,
-					       AR0144_PAR_SINK, 0);
-	mipi_ep = of_graph_get_endpoint_by_regs(dev->of_node,
-						AR0144_MIPI_SINK, 0);
+	ep = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);
+	if (!ep)
+		return -EINVAL;
 
-	if (!par_ep && !mipi_ep) {
-		dev_err(dev, "Neither MIPI nor parallel endpoint found\n");
-		return -ENODEV;
+	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
+	if (ret) {
+		dev_err(dev, "Failed to parse bus info (%d)\n", ret);
+		goto out_put;
 	}
 
-	if (par_ep && !mipi_ep)
-		sensor->active_bus = AR0144_BUS_PARALLEL;
-	else if (!par_ep && mipi_ep)
-		sensor->active_bus = AR0144_BUS_MIPI;
-	else
-		sensor->active_bus = AR0144_BUS_UNKNOWN;
+	if (bus_cfg.nr_of_link_frequencies)
+		info->link_freq = bus_cfg.link_frequencies[0];
 
-	ret = ar0144_parse_par_ep(sensor, par_ep);
-	if (ret)
-		goto out;
+	info->bus_type = bus_cfg.bus_type;
 
-	ret = ar0144_parse_mipi_ep(sensor, mipi_ep);
+	switch (info->bus_type) {
+	case V4L2_MBUS_PARALLEL:
+		ret = ar0144_parse_parallel_props(sensor, ep, &bus_cfg);
+		break;
+	case V4L2_MBUS_CSI2_DPHY:
+		ret = ar0144_parse_mipi_props(sensor, ep, &bus_cfg);
+		break;
+	default:
+		dev_err(dev, "Invalid bus type\n");
+		ret = -EINVAL;
+	}
 
-out:
-	of_node_put(par_ep);
-	of_node_put(mipi_ep);
-
+out_put:
+	v4l2_fwnode_endpoint_free(&bus_cfg);
+	fwnode_handle_put(ep);
 	return ret;
 }
 
@@ -2835,10 +2720,9 @@ static int ar0144_probe(struct i2c_client *i2c,
 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	sd->entity.ops = &ar0144_entity_ops;
 
-	sensor->pad[AR0144_PAR_SINK].flags = MEDIA_PAD_FL_SOURCE;
-	sensor->pad[AR0144_MIPI_SINK].flags = MEDIA_PAD_FL_SOURCE;
+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
 
-	ret = media_entity_pads_init(&sd->entity, AR0144_NUM_PADS, sensor->pad);
+	ret = media_entity_pads_init(&sd->entity, 1, &sensor->pad);
 	if (ret)
 		goto out_media;
 
