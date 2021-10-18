@@ -1172,7 +1172,7 @@ static int ar0144_enum_mbus_code(struct v4l2_subdev *sd,
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 
-	if (code->index >= 0 && code->index < sensor->num_fmts) {
+	if (code->index < sensor->num_fmts) {
 		code->code = sensor->formats[code->index].code;
 		return 0;
 	} else {
