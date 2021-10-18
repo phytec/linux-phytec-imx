@@ -647,10 +647,6 @@ static int ar0144_mipi_enter_lp11(struct ar0144 *sensor)
 	int ret = 0;
 	u16 val;
 
-	ret = ar0144_read(sensor, AR0144_SER_CTRL_STAT, &val);
-	if (ret)
-		return ret;
-
 	val = AR0144_TEST_MODE_LP11 | AR0144_TEST_LANE_0;
 
 	if (sensor->info.num_lanes == 2)
