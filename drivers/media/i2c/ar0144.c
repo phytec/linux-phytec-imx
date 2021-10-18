@@ -1528,21 +1528,18 @@ static int ar0144_get_selection(struct v4l2_subdev *sd,
 
 		mutex_unlock(&sensor->lock);
 		break;
-
 	case V4L2_SEL_TGT_CROP_DEFAULT:
 		sel->r.left = 4;
 		sel->r.top = 4;
 		sel->r.width = AR0144_DEF_WIDTH;
 		sel->r.height = AR0144_DEF_HEIGHT;
 		break;
-
 	case V4L2_SEL_TGT_CROP_BOUNDS:
 		sel->r.left = x_min;
 		sel->r.top = y_min;
 		sel->r.width = (x_max - x_min + 1);
 		sel->r.height = (y_max - y_min + 1);
 		break;
-
 	default:
 		return -EINVAL;
 	}
@@ -1751,28 +1748,24 @@ static int ar0144_set_digital_gain(struct ar0144 *sensor,
 		sensor->gains.blue_ctrl->cur.val = gain;
 
 		break;
-
 	case V4L2_CID_X_DIGITAL_GAIN_RED:
 		ret = ar0144_write(sensor, AR0144_RED_GAIN,
 				   (coarse << 7) | fine);
 		if (!ret)
 			sensor->gains.red_clip = 0;
 		break;
-
 	case V4L2_CID_X_DIGITAL_GAIN_GREENR:
 		ret = ar0144_write(sensor, AR0144_GREENR_GAIN,
 				   (coarse << 7) | fine);
 		if (!ret)
 			sensor->gains.greenr_clip = 0;
 		break;
-
 	case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 		ret = ar0144_write(sensor, AR0144_GREENB_GAIN,
 				   (coarse << 7) | fine);
 		if (!ret)
 			sensor->gains.greenb_clip = 0;
 		break;
-
 	case V4L2_CID_X_DIGITAL_GAIN_BLUE:
 		ret = ar0144_write(sensor, AR0144_BLUE_GAIN,
 				   (coarse << 7) | fine);
@@ -1798,7 +1791,6 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		}
 		sensor->vblank = ctrl->val;
 		break;
-
 	case V4L2_CID_HBLANK:
 		if (sensor->is_streaming) {
 			ret = -EBUSY;
@@ -1806,80 +1798,64 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		}
 		sensor->hblank = ctrl->val;
 		break;
-
 	case V4L2_CID_HFLIP:
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
 					 BIT_HORIZ_MIRROR,
 					 ctrl->val ? BIT_HORIZ_MIRROR : 0);
 		break;
-
 	case V4L2_CID_VFLIP:
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
 					 BIT_VERT_FLIP,
 					 ctrl->val ? BIT_VERT_FLIP : 0);
 		break;
-
 	case V4L2_CID_EXPOSURE:
 		/* TODO: implement EXPOSURE -> 100us * conversion and combine
 		 * with V4L2_CID_X_EXPOSURE_FINE
 		 */
 		ret = ar0144_write(sensor, AR0144_COARSE_INT_TIME, ctrl->val);
 		break;
-
 	case V4L2_CID_X_EXPOSURE_FINE:
 		/* TODO: remove me; see V4L2_CID_EXPOSURE */
 		ret = ar0144_write(sensor, AR0144_FINE_INT_TIME, ctrl->val);
 		break;
-
 	case V4L2_CID_TEST_PATTERN_RED:
 		ret = ar0144_write(sensor, AR0144_TEST_DATA_RED, ctrl->val);
 		break;
-
 	case V4L2_CID_TEST_PATTERN_GREENR:
 		ret = ar0144_write(sensor, AR0144_TEST_DATA_GREENR, ctrl->val);
 		break;
-
 	case V4L2_CID_TEST_PATTERN_BLUE:
 		ret = ar0144_write(sensor, AR0144_TEST_DATA_BLUE, ctrl->val);
 		break;
-
 	case V4L2_CID_TEST_PATTERN_GREENB:
 		ret = ar0144_write(sensor, AR0144_TEST_DATA_GREENB, ctrl->val);
 		break;
-
 	case V4L2_CID_EXPOSURE_AUTO:
 		val = ctrl->val == V4L2_EXPOSURE_AUTO ? BIT_AE_EN : 0;
 		ret = ar0144_update_bits(sensor, AR0144_AECTRL, BIT_AE_EN, val);
 		break;
-
 	case V4L2_CID_X_AUTO_EXPOSURE_TGT:
 		ret = ar0144_write(sensor, AR0144_AE_LUMA_TGT, ctrl->val);
 		break;
-
 	case V4L2_CID_X_AUTO_EXPOSURE_MIN:
 		ret = ar0144_write(sensor, AR0144_AE_MIN_EXPOSURE, ctrl->val);
 		break;
-
 	case V4L2_CID_X_AUTO_EXPOSURE_MAX:
 		ret = ar0144_write(sensor, AR0144_AE_MAX_EXPOSURE, ctrl->val);
 		break;
-
 	case V4L2_CID_X_AUTOGAIN_ANALOGUE:
 		ret = ar0144_update_bits(sensor, AR0144_AECTRL, BIT_AUTO_AG_EN,
 					 ctrl->val ? BIT_AUTO_AG_EN : 0);
 		break;
-
 	case V4L2_CID_X_AUTOGAIN_DIGITAL:
 		ret = ar0144_update_bits(sensor, AR0144_AECTRL, BIT_AUTO_DG_EN,
 					 ctrl->val ? BIT_AUTO_DG_EN : 0);
 		break;
-
 	case V4L2_CID_X_AUTOGAIN_ANALOGUE_MIN:
 		ret = ar0144_update_bits(sensor, AR0144_AECTRL,
 					 BIT_MIN_ANA_GAIN_MASK,
 					 BIT_MIN_ANA_GAIN(ctrl->val));
 		break;
-
 	case V4L2_CID_X_EMBEDDED_DATA:
 		if (sensor->is_streaming) {
 			ret = -EBUSY;
@@ -1904,7 +1880,6 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 					true : false;
 
 		break;
-
 	case V4L2_CID_TEST_PATTERN:
 		ret = ar0144_write(sensor, AR0144_TEST_PATTERN,
 				   ctrl->val < 4 ? ctrl->val : 256);
@@ -1914,7 +1889,6 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		/* This is undocumented but necessary */
 		ret = ar0144_update_bits(sensor, 0x3044, 3u << 4, 0);
 		break;
-
 	case V4L2_CID_X_BINNING_COL:
 		switch (ctrl->val) {
 		case 0:
@@ -1930,19 +1904,16 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
 					 BIT_RM_COL_BIN | BIT_RM_COL_SUM, val);
 		break;
-
 	case V4L2_CID_X_BINNING_ROW:
 		ret = ar0144_update_bits(sensor, AR0144_READ_MODE,
 					 BIT_RM_ROW_BIN,
 					 ctrl->val > 0 ? BIT_RM_ROW_BIN : 0);
 		break;
-
 	case V4L2_CID_X_COMPANDING:
 		ret = ar0144_update_bits(sensor, AR0144_COMPANDING,
 					 BIT_COMPAND_EN,
 					 ctrl->val ? BIT_COMPAND_EN : 0);
 		break;
-
 	case V4L2_CID_DIGITAL_GAIN:
 	case V4L2_CID_X_DIGITAL_GAIN_RED:
 	case V4L2_CID_X_DIGITAL_GAIN_GREENR:
@@ -1950,36 +1921,30 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 		ret = ar0144_set_digital_gain(sensor, ctrl);
 		break;
-
 	case V4L2_CID_ANALOGUE_GAIN:
 		ctrl->val = ar0144_set_analogue_gain(sensor, ctrl->val);
 		break;
-
 	case V4L2_CID_X_BLACK_LEVEL_AUTO:
 		ret = ar0144_update_bits(sensor, AR0144_DELTA_DK_CTRL,
 					 BIT_DK_SUB_EN,
 					 ctrl->val ? BIT_DK_SUB_EN : 0);
 		break;
-
 	case V4L2_CID_FLASH_LED_MODE:
 		val = ctrl->val ? BIT_LED_FLASH_EN : 0;
 		ret = ar0144_update_bits(sensor, AR0144_FLASH_CTRL,
 					 BIT_LED_FLASH_EN, val);
 		break;
-
 	case V4L2_CID_X_FLASH_DELAY:
 		ret = ar0144_update_bits(sensor, AR0144_FLASH_CTRL,
 					 BIT_LED_DELAY_MASK,
 					 BIT_LED_DELAY(ctrl->val));
 		break;
-
 	case V4L2_CID_X_DYNAMIC_PIXEL_CORRECTION:
 		val = ctrl->val ? BIT_PIX_DEF_1D_DDC_EN : 0;
 
 		ret = ar0144_update_bits(sensor, AR0144_PIX_DEF_ID,
 					 BIT_PIX_DEF_1D_DDC_EN, val);
 		break;
-
 	case V4L2_CID_LINK_FREQ:
 		break;
 	default:
@@ -2001,11 +1966,9 @@ static int ar0144_g_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_VBLANK:
 		ctrl->val = sensor->vblank;
 		break;
-
 	case V4L2_CID_HBLANK:
 		ctrl->val = sensor->hblank;
 		break;
-
 	case V4L2_CID_X_AUTO_EXPOSURE_CUR:
 		ret = ar0144_read(sensor, AR0144_AE_COARSE_INT_TIME, &val);
 		if (ret)
@@ -2013,7 +1976,6 @@ static int ar0144_g_ctrl(struct v4l2_ctrl *ctrl)
 
 		ctrl->val = val;
 		break;
-
 	default:
 		ret = -ENOTTY;
 		break;
@@ -2380,23 +2342,19 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 				continue;
 
 			break;
-
 		case V4L2_CID_X_EMBEDDED_DATA:
 			if (sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY)
 				continue;
 
 			break;
-
 		case V4L2_CID_HBLANK:
 			ctrl_cfg.min = sensor->limits.hblank.min;
 			ctrl_cfg.def = ctrl_cfg.min;
 			break;
-
 		case V4L2_CID_VBLANK:
 			ctrl_cfg.min = sensor->limits.vblank.min;
 			ctrl_cfg.def = ctrl_cfg.min;
 			break;
-
 		default:
 			break;
 		}
@@ -2419,27 +2377,22 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		case V4L2_CID_LINK_FREQ:
 			sensor->link_freq_ctrl = ctrl;
 			break;
-
 		case V4L2_CID_X_DIGITAL_GAIN_RED:
 			if (sensor->model == AR0144_MODEL_COLOR)
 				sensor->gains.red_ctrl = ctrl;
 			break;
-
 		case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 			if (sensor->model == AR0144_MODEL_COLOR)
 				sensor->gains.greenb_ctrl = ctrl;
 			break;
-
 		case V4L2_CID_X_DIGITAL_GAIN_GREENR:
 			if (sensor->model == AR0144_MODEL_COLOR)
 				sensor->gains.greenr_ctrl = ctrl;
 			break;
-
 		case V4L2_CID_X_DIGITAL_GAIN_BLUE:
 			if (sensor->model == AR0144_MODEL_COLOR)
 				sensor->gains.blue_ctrl = ctrl;
 			break;
-
 		default:
 			break;
 		}
@@ -2802,9 +2755,9 @@ static const struct of_device_id ar0144_of_match[] = {
 MODULE_DEVICE_TABLE(of, ar0144_of_match);
 
 static struct i2c_driver ar0144_i2c_driver = {
-	.driver		= {
-		.name	= "ar0144",
-	.of_match_table	= of_match_ptr(ar0144_of_match),
+	.driver	= {
+		.name = "ar0144",
+		.of_match_table	= of_match_ptr(ar0144_of_match),
 	},
 	.probe		= ar0144_probe,
 	.remove		= ar0144_remove,
