@@ -458,23 +458,20 @@ static int ar0144_read(struct ar0144 *sensor, u16 reg, u16 *val)
 	reg_buf[1] = reg & 0xff;
 
 	ret = i2c_transfer(i2c->adapter, xfer, ARRAY_SIZE(xfer));
-	if (ret == ARRAY_SIZE(xfer))
-		ret = 0;
-	else if (ret >= 0)
+	if (ret >= 0 && ret != ARRAY_SIZE(xfer))
 		ret = -EIO;
 
-	if (ret < 0)
+	if (ret < 0) {
+		dev_err(&i2c->dev, "Failed to read i2c message (%d)\n", ret);
 		return ret;
+	}
 
 	result = read_buf[0] << 8;
 	result |= read_buf[1];
 
 	*val = result;
 
-	if (ret)
-		dev_err(&i2c->dev, "Failed to read i2c message (%d)\n", ret);
-
-	return ret;
+	return 0;
 }
 
 static int ar0144_write(struct ar0144 *sensor, u16 reg, u16 val)
@@ -498,18 +495,17 @@ static int ar0144_write(struct ar0144 *sensor, u16 reg, u16 val)
 	write_buf[3] = val & 0xff;
 
 	ret = i2c_transfer(i2c->adapter, xfer, ARRAY_SIZE(xfer));
-	if (ret == ARRAY_SIZE(xfer))
-		ret = 0;
-	else if (ret >= 0)
+	if (ret >= 0 && ret != ARRAY_SIZE(xfer))
 		ret = -EIO;
 
-	dev_dbg(&i2c->dev, "Wrote i2c message 0x%02x at 0x%02x (%d)\n",
-		val, reg, ret);
-
-	if (ret)
+	if (ret < 0) {
 		dev_err(&i2c->dev, "Failed to write i2c message (%d)\n", ret);
+		return ret;
+	}
 
-	return ret;
+	dev_dbg(&i2c->dev, "Wrote i2c message 0x%02x at 0x%02x\n", val, reg);
+
+	return 0;
 }
 
 static int ar0144_update_bits(struct ar0144 *sensor, u16 reg,
