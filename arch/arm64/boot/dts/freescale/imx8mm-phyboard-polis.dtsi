@@ -186,7 +186,9 @@
 		max-speed = <2000000>;
 		shutdown-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
 		device-wakeup-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
-		host-wakeup-gpios = <&gpio2 9 GPIO_ACTIVE_HIGH>;
+		interrupt-names = "host-wakeup";
+		interrupt-parent = <&gpio2>;
+		interrupts = <9 IRQ_TYPE_EDGE_BOTH>;
 	};
 };
 
