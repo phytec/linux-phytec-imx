@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 dtb-y += imx8mm-vm016.dtbo
+dtb-y += imx8mm-vm017.dtbo
 
 DTC_FLAGS += -@
 
