@@ -6,6 +6,8 @@
  * Author: Teresa Remmet <t.remmet@phytec.de>
  */
 
+#include <dt-bindings/leds/common.h>
+
 / {
 	clocks {
 		#address-cells = <1>;
@@ -25,19 +27,25 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_leds>;
 
-		led-red {
+		led-0 {
 			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "mmc0";
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_DISK;
 		};
 
-		led-blue {
+		led-1 {
 			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "mmc1";
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_DISK;
 		};
 
-		led-green {
+		led-2 {
 			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_CPU;
 		};
 	};
 
