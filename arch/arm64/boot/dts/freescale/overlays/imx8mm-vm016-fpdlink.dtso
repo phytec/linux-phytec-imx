@@ -1,0 +1,154 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "phytec,imx8mm-phyboard-polis";
+
+	fragment@2 {
+		target-path= "/";
+
+		__overlay__ {
+			ser_clk: serializer-clk {
+				#clock-cells = <0>;
+				compatible = "fixed-clock";
+				clock-frequency = <24000000>;
+			};
+		};
+	};
+};
+
+&cam0_i2c {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	status = "okay";
+
+	ds90ub954: deserializer@3d {
+		compatible = "ti,ds90ub954";
+		reg = <0x3d 0x70 0x71>;
+		reg-names = "device_id", "rx0_id", "rx1_id";
+
+		ports {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			port@0 {
+				reg = <0>;
+				des_port0_in: endpoint {
+					remote-endpoint = <&ser_cam0_out>;
+				};
+			};
+
+			port@2 {
+				reg = <2>;
+				des_out: endpoint {
+					remote-endpoint = <&mipi_csi_ep>;
+					link-frequencies = /bits/ 64 <
+						400000000
+					>;
+					data-lanes = <1 2>;
+				};
+			};
+		};
+
+		i2c-mux {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+
+			i2c_port0: i2c@0 {
+				#address-cells = <0x1>;
+				#size-cells = <0x0>;
+				reg = <0>;
+				clock-frequency = <400000>;
+			};
+		};
+	};
+};
+
+&i2c_port0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	ser_cam0: serializer@18 {
+		compatible = "ti,ds90ub953";
+		reg = <0x18>;
+
+		clocks = <&ser_clk>;
+		clock-names = "refclk";
+
+		#clock-cells = <0>;
+		clock-output-names = "clkout_port0";
+		clock-freqeuncy = <27000000>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+
+		ports {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			port@0 {
+				reg = <0>;
+				ser_cam0_in: endpoint {
+					remote-endpoint = <&vm016_ep>;
+					data-lanes = <1 2>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				ser_cam0_out: endpoint {
+					remote-endpoint = <&des_port0_in>;
+				};
+			};
+		};
+	};
+
+	vm016: camera@10 {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		compatible = "onsemi,ar0144";
+		reg = <0x10>;
+		clocks = <&ser_cam0>;
+		clock-names = "ext";
+
+		reset-gpios = <&ser_cam0 3 GPIO_ACTIVE_LOW>;
+
+		port@0 {
+			reg = <0>;
+
+			vm016_ep: endpoint {
+				remote-endpoint = <&ser_cam0_in>;
+				bus-type = <4>; /* MIPI CSI-2 D-PHY */
+				link-frequencies = /bits/ 64 <222750000>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+				onsemi,t-hs-prep = <1>;
+				onsemi,t-clk-post = <9>;
+			};
+		};
+	};
+
+	eeprom@56 {
+		compatible = "atmel,24c02";
+		reg = <0x56>;
+		pagesize = <16>;
+	};
+};
+
+&cam0_mipi_csi {
+	port@0 {
+		mipi_csi_ep: endpoint {
+			remote-endpoint = <&des_out>;
+			data-lanes = <1 2>;
+		};
+	};
+};
