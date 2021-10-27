@@ -2,6 +2,7 @@
 
 dtb-y += imx8mm-vm016.dtbo
 dtb-y += imx8mm-vm017.dtbo
+dtb-y += imx8mm-vm016-fpdlink.dtbo
 dtb-y += imx8mm-vm017-fpdlink.dtbo
 
 DTC_FLAGS += -@
