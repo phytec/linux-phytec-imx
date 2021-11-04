@@ -73,7 +73,6 @@
 		regulator-max-microvolt = <5000000>;
 		gpio = <&gpio1 14 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
-		regulator-always-on;
 	};
 
 	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
@@ -216,7 +215,7 @@
 &usbotg1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usbotg1grp>;
-	vbus-supply = <&reg_usb_otg1_vbus>, <&reg_usb_hub_vbus>;
+	vbus-supply = <&reg_usb_otg1_vbus>;
 	dr_mode = "host";
 	over-current-active-low;
 	picophy,pre-emp-curr-control = <3>;
@@ -225,6 +224,7 @@
 };
 
 &usbotg2 {
+	vbus-supply = <&reg_usb_hub_vbus>;
 	dr_mode = "host";
 	disable-over-current;
 	picophy,pre-emp-curr-control = <3>;
