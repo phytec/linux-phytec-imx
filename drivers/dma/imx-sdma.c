@@ -2614,8 +2614,21 @@ static int sdma_probe(struct platform_device *pdev)
 	}
 
 	pm_runtime_enable(&pdev->dev);
-	if (!sdma->drvdata->pm_runtime)
-		pm_runtime_get_sync(&pdev->dev);
+
+	if (!sdma->drvdata->pm_runtime) {
+		ret = clk_enable(sdma->clk_ipg);
+		if (ret) {
+			dev_err(&pdev->dev, "Failed to prepare/enable ipg clk,err=%d\n",
+				ret);
+			return ret;
+		}
+		ret = clk_enable(sdma->clk_ahb);
+		if (ret) {
+			dev_err(&pdev->dev, "Failed to prepare/enable ahb clk, err=%d\n",
+				ret);
+			goto err_clk;
+		}
+	}
 
 	return 0;
 
