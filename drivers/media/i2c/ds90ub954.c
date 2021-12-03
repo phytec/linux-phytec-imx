@@ -773,6 +773,8 @@ static int ub954_init_serializer(struct ub954 *state)
 			ret = ub954_write(rxport->i2c,
 					  UB954_PR_SLAVE_ID_BASE + index,
 					  addr);
+			if (ret)
+				return ret;
 		}
 
 		if (rxport->num_devs > 0)
