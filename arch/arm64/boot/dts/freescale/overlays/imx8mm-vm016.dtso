@@ -44,7 +44,7 @@
 			vm016_ep: endpoint {
 				remote-endpoint = <&mipi_csi_ep>;
 				bus-type = <4>; /* MIPI CSI-2 D-PHY */
-				link-frequencies = /bits/ 64 <384000000>;
+				link-frequencies = /bits/ 64 <222750000>;
 				data-lanes = <1 2>;
 				clock-lanes = <0>;
 				clock-noncontinuous = <1>;
