@@ -99,7 +99,7 @@
 
 		#clock-cells = <0>;
 		clock-output-names = "clkout_port0";
-		clock-freqeuncy = <27000000>;
+		clock-frequency = <27000000>;
 
 		gpio-controller;
 		#gpio-cells = <2>;
@@ -169,7 +169,7 @@
 
 		#clock-cells = <0>;
 		clock-output-names = "clkout_port1";
-		clock-freqeuncy = <27000000>;
+		clock-frequency = <27000000>;
 
 		gpio-controller;
 		#gpio-cells = <2>;
