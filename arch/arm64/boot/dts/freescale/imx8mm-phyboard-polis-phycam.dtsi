@@ -22,7 +22,7 @@
 };
 
 &aips4 {
-	csi_upstream@32e20000 {
+	csi-upstream@32e20000 {
 		compatible = "fsl,imx8mm-csi", "fsl,imx7-csi";
 		reg = <0x32e20000 0x1000>;
 		interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
@@ -38,7 +38,7 @@
 		};
 	};
 
-	cam0_mipi_csi: mipi_csi_upstream@32e30000 {
+	cam0_mipi_csi: mipi-csi-upstream@32e30000 {
 		compatible = "fsl,imx8mm-mipi-csi2";
 		reg = <0x32e30000 0x1000>;
 		interrupts = <GIC_SPI 17 IRQ_TYPE_LEVEL_HIGH>;
