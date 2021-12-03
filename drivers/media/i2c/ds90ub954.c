@@ -399,12 +399,6 @@ static int ub954_start_stream(struct ub954 *state, int port)
 	if (ret)
 		goto out_abort;
 
-	/* Reset AEQ */
-	ret = ub954_update_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
-				BIT_AEQ_RESTART, BIT_AEQ_RESTART);
-	if (ret)
-		goto out_abort;
-
 	ret = v4l2_subdev_call(rxport->sd, video, s_stream, 1);
 	if (ret)
 		goto out_abort;
@@ -617,6 +611,12 @@ static int ub954_notify_bound(struct v4l2_async_notifier *notifier,
 	};
 
 	rxport->sd = subdev;
+
+	/* Reset AEQ */
+	ret = ub954_update_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
+				BIT_AEQ_RESTART, BIT_AEQ_RESTART);
+	if (ret)
+		return ret;
 
 	dev_dbg(notifier->sd->dev, "Linked %s:%d -> %s:%d\n",
 		subdev->name, src_pad, state->subdev.name, port);
