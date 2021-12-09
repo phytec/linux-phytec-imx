@@ -1033,7 +1033,7 @@
 			};
 
 			i2c1: i2c@30a20000 {
-				compatible = "fsl,imx8mn-i2c", "fsl,imx21-i2c";
+				compatible = "fsl,imx8mn-i2c", "fsl,imx7d-i2c", "fsl,imx21-i2c";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0x30a20000 0x10000>;
@@ -1043,7 +1043,7 @@
 			};
 
 			i2c2: i2c@30a30000 {
-				compatible = "fsl,imx8mn-i2c", "fsl,imx21-i2c";
+				compatible = "fsl,imx8mn-i2c", "fsl,imx7d-i2c", "fsl,imx21-i2c";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0x30a30000 0x10000>;
@@ -1055,7 +1055,7 @@
 			i2c3: i2c@30a40000 {
 				#address-cells = <1>;
 				#size-cells = <0>;
-				compatible = "fsl,imx8mn-i2c", "fsl,imx21-i2c";
+				compatible = "fsl,imx8mn-i2c", "fsl,imx7d-i2c", "fsl,imx21-i2c";
 				reg = <0x30a40000 0x10000>;
 				interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clk IMX8MN_CLK_I2C3_ROOT>;
@@ -1063,7 +1063,7 @@
 			};
 
 			i2c4: i2c@30a50000 {
-				compatible = "fsl,imx8mn-i2c", "fsl,imx21-i2c";
+				compatible = "fsl,imx8mn-i2c", "fsl,imx7d-i2c", "fsl,imx21-i2c";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0x30a50000 0x10000>;
