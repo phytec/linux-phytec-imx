@@ -501,8 +501,7 @@ static int mipi_dsi_disp_init(struct mxc_dispdrv_handle *disp,
 
 	reset = of_reset_control_get(np, NULL);
 	if (IS_ERR(reset))
-		return PTR_ERR(reset);
-
+		dev_dbg(dev, "No reset GPIO found, continuing with dsi_disp_init.\n");
 	ret = mipi_dsi_lcd_init(mipi_dsi, setting);
 	if (ret) {
 		dev_err(dev, "failed to init mipi dsi lcd\n");
@@ -586,9 +585,10 @@ static int mipi_dsi_enable(struct mxc_dispdrv_handle *disp,
 
 		msleep(20);
 		ret = device_reset(&mipi_dsi->pdev->dev);
+
 		if (ret) {
-			dev_err(&mipi_dsi->pdev->dev, "failed to reset device: %d\n", ret);
-			return -EINVAL;
+			dev_dbg(&mipi_dsi->pdev->dev,
+				"failed to reset device: %d\n", ret);
 		}
 		msleep(120);
 
