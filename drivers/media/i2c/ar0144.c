@@ -236,8 +236,6 @@ enum ar0144_model {
 struct ar0144_format {
 	unsigned int code;
 	unsigned int bpp;
-	unsigned int x_offset;
-	unsigned int y_offset;
 };
 
 static const struct ar0144_format ar0144_mono_formats[] = {
@@ -255,65 +253,14 @@ static const struct ar0144_format ar0144_mono_formats[] = {
 
 static const struct ar0144_format ar0144_col_formats[] = {
 	{
-		.code		= MEDIA_BUS_FMT_SGBRG8_1X8,
-		.bpp		= 8,
-		.x_offset	= 1,
-		.y_offset	= 1,
+		.code	= MEDIA_BUS_FMT_SGRBG8_1X8,
+		.bpp	= 8,
 	}, {
-		.code		= MEDIA_BUS_FMT_SBGGR8_1X8,
-		.bpp		= 8,
-		.x_offset	= 0,
-		.y_offset	= 1,
+		.code	= MEDIA_BUS_FMT_SGRBG10_1X10,
+		.bpp	= 10,
 	}, {
-		.code		= MEDIA_BUS_FMT_SRGGB8_1X8,
-		.bpp		= 8,
-		.x_offset	= 1,
-		.y_offset	= 0,
-	}, {
-		.code		= MEDIA_BUS_FMT_SGRBG8_1X8,
-		.bpp		= 8,
-		.x_offset	= 0,
-		.y_offset	= 0,
-	}, {
-		.code		= MEDIA_BUS_FMT_SGBRG10_1X10,
-		.bpp		= 10,
-		.x_offset	= 1,
-		.y_offset	= 1,
-	}, {
-		.code		= MEDIA_BUS_FMT_SBGGR10_1X10,
-		.bpp		= 10,
-		.x_offset	= 0,
-		.y_offset	= 1,
-	}, {
-		.code		= MEDIA_BUS_FMT_SRGGB10_1X10,
-		.bpp		= 10,
-		.x_offset	= 1,
-		.y_offset	= 0,
-	}, {
-		.code		= MEDIA_BUS_FMT_SGRBG10_1X10,
-		.bpp		= 10,
-		.x_offset	= 0,
-		.y_offset	= 0,
-	}, {
-		.code		= MEDIA_BUS_FMT_SGBRG12_1X12,
-		.bpp		= 12,
-		.x_offset	= 1,
-		.y_offset	= 1,
-	}, {
-		.code		= MEDIA_BUS_FMT_SBGGR12_1X12,
-		.bpp		= 12,
-		.x_offset	= 0,
-		.y_offset	= 1,
-	}, {
-		.code		= MEDIA_BUS_FMT_SRGGB12_1X12,
-		.bpp		= 12,
-		.x_offset	= 1,
-		.y_offset	= 0,
-	}, {
-		.code		= MEDIA_BUS_FMT_SGRBG12_1X12,
-		.bpp		= 12,
-		.x_offset	= 0,
-		.y_offset	= 0,
+		.code	= MEDIA_BUS_FMT_SGRBG12_1X12,
+		.bpp	= 12,
 	},
 };
 
@@ -547,26 +494,6 @@ static const struct ar0144_format *ar0144_find_format(struct ar0144 *sensor,
 			return &sensor->formats[i];
 
 	return &sensor->formats[sensor->num_fmts - 1];
-}
-
-static const unsigned int ar0144_match_col_format(struct ar0144 *sensor,
-						  struct v4l2_rect *crop,
-						  unsigned int bpp)
-{
-	unsigned int x_offset = crop->left % 2;
-	unsigned int y_offset = crop->top % 2;
-	int i;
-
-	for (i = 0; i < sensor->num_fmts; i++) {
-		if (bpp != sensor->formats[i].bpp)
-			continue;
-
-		if (sensor->formats[i].x_offset == x_offset &&
-		    sensor->formats[i].y_offset == y_offset)
-			return sensor->formats[i].code;
-	}
-
-	return sensor->formats[sensor->num_fmts - 1].code;
 }
 
 static int ar0144_start_stream(struct ar0144 *sensor)
@@ -1243,10 +1170,6 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	sensor_format = ar0144_find_format(sensor, format->format.code);
 	fmt->code = sensor_format->code;
 
-	if (sensor->model == AR0144_MODEL_COLOR)
-		fmt->code = ar0144_match_col_format(sensor, crop,
-						    sensor_format->bpp);
-
 	width = clamp_t(unsigned int, format->format.width,
 			1, crop->width);
 	height = clamp_t(unsigned int, format->format.height,
@@ -1308,11 +1231,11 @@ static int ar0144_set_selection(struct v4l2_subdev *sd,
 	_crop = ar0144_get_pad_crop(sensor, cfg, sel->pad, sel->which);
 
 	/* Check againts max, min values */
-	max_w = sensor->limits.x.max - sensor->limits.x.min + 1;
-	max_h = sensor->limits.y.max - sensor->limits.y.min + 1;
+	max_w = sensor->limits.x.max - sensor->limits.x.min - 1;
+	max_h = sensor->limits.y.max - sensor->limits.y.min - 1;
 
-	_crop->top = min_t(unsigned int, sel->r.top, max_h);
-	_crop->left = min_t(unsigned int, sel->r.left, max_w);
+	_crop->top = min_t(unsigned int, ALIGN(sel->r.top, 2), max_h);
+	_crop->left = min_t(unsigned int, ALIGN(sel->r.left, 2), max_w);
 	_crop->width = min_t(unsigned int, sel->r.width, max_w - _crop->left);
 	_crop->height = min_t(unsigned int, sel->r.height, max_h - _crop->top);
 
