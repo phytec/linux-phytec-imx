@@ -26,6 +26,10 @@
 	};
 };
 
+&busfreq {
+	fsl,freq_scaling_disabled;
+};
+
 &cpu0 {
 	cpu-supply = <&sw1a_reg>;
 };
