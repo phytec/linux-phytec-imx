@@ -28,7 +28,8 @@
 	pinctrl-0 = <&pinctrl_uart4>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART4>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
-	uart-has-rs485;
+	rts-gpios = <&gpio3 25 GPIO_ACTIVE_HIGH>;
+	linux,rs485-enabled-at-boot-time;
 	status = "okay";
 };
 
@@ -45,6 +46,7 @@
 		fsl,pins = <
 			MX8MM_IOMUXC_UART4_RXD_UART4_DCE_RX	0x49
 			MX8MM_IOMUXC_UART4_TXD_UART4_DCE_TX	0x49
+			MX8MM_IOMUXC_SAI5_MCLK_GPIO3_IO25	0x49
 		>;
 	};
 };
