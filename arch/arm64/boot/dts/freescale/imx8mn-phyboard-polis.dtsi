@@ -179,6 +179,8 @@
 };
 
 &usdhc1 {
+	assigned-clocks = <&clk IMX8MN_CLK_USDHC1>;
+	assigned-clock-rates = <200000000>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
@@ -198,6 +200,8 @@
 
 /* SD-Card */
 &usdhc2 {
+	assigned-clocks = <&clk IMX8MN_CLK_USDHC2>;
+	assigned-clock-rates = <200000000>;
 	vqmmc-supply = <&reg_ldo2>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
