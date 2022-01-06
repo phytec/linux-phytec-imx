@@ -13,6 +13,18 @@
 			"phytec,imx8mm-phycore-som","fsl,imx8mm";
 };
 
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrcl-0 = <&pinctrl_gpio3_hog>;
+
+	uart4-rs485-hog {
+		gpio-hog;
+		gpios = <20 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "uart4-rs485";
+	};
+};
+
 /* UART2 * RS232  */
 &uart2 {
 	pinctrl-names = "default";
@@ -34,6 +46,12 @@
 };
 
 &iomuxc {
+
+	pinctrl_gpio3_hog: gpio3hoggrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI5_RXC_GPIO3_IO20	0x49
+		>;
+	};
 
 	pinctrl_uart2: uart2grp {
 		fsl,pins = <
