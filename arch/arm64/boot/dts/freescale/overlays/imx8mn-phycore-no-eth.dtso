@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx8mn-phycore-som";
+};
+
+&ethphy0 {
+	status = "disabled";
+};
