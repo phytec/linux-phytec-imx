@@ -14,3 +14,7 @@
 	compatible = "phytec,imx8mn-phyboard-polis-dsi",
 		     "phytec,i.mx8mn-phycore-som","fsl,imx8mn";
 };
+
+&flash0 {
+	status = "okay";
+};
