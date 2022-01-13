@@ -13,6 +13,7 @@ dtb-y += imx8mm-phycore-no-spiflash.dtbo
 dtb-y += imx8mn-phyboard-polis-peb-eval-01.dtbo
 dtb-y += imx8mn-phyboard-polis-peb-av-010.dtbo
 dtb-y += imx8mn-phycore-no-spiflash.dtbo
+dtb-y += imx8mn-phycore-no-eth.dtbo
 
 DTC_FLAGS += -@
 
