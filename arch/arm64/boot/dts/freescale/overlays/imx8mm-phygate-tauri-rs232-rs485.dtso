@@ -5,12 +5,14 @@
 */
 
 /dts-v1/;
-#include "imx8mm-phygate-tauri.dtsi"
+/plugin/;
+
+#include <dt-bindings/clock/imx8mm-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "../imx8mm-pinfunc.h"
 
 / {
-	model = "PHYTEC phyGATE-Tauri-imx8mm RS232 RS485";
-	compatible = "phytec,imx8mm-phyboard-tauri",
-			"phytec,imx8mm-phycore-som","fsl,imx8mm";
+	compatible = "phytec,imx8mm-phyboard-tauri";
 };
 
 &gpio3 {
@@ -27,6 +29,9 @@
 
 /* UART2 * RS232  */
 &uart2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART2>;
@@ -36,6 +41,9 @@
 
 /* UART4 * RS485  */
 &uart4 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart4>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART4>;
