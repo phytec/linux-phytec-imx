@@ -183,6 +183,8 @@ static int dma_heap_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 
 	vma->vm_ops = &dma_heap_vm_ops;
 	vma->vm_private_data = buffer;
+	if (buffer->flags & HEAP_HELPER_FLAGS_WC)
+		vma->vm_page_prot = pgprot_dmacoherent(vma->vm_page_prot);
 
 	return 0;
 }

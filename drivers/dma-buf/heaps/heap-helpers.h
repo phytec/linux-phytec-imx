@@ -12,6 +12,8 @@
 #include <linux/dma-heap.h>
 #include <linux/list.h>
 
+#define HEAP_HELPER_FLAGS_WC	1
+
 /**
  * struct heap_helper_buffer - helper buffer metadata
  * @heap:		back pointer to the heap the buffer came from
@@ -19,6 +21,7 @@
  * @size:		size of the buffer
  * @priv_virt		pointer to heap specific private value
  * @lock		mutext to protect the data in this structure
+ * @flags		buffer specific flags
  * @vmap_cnt		count of vmap references on the buffer
  * @vaddr		vmap'ed virtual address
  * @pagecount		number of pages in the buffer
@@ -34,6 +37,7 @@ struct heap_helper_buffer {
 
 	void *priv_virt;
 	struct mutex lock;
+	unsigned int flags;
 	int vmap_cnt;
 	void *vaddr;
 	pgoff_t pagecount;
