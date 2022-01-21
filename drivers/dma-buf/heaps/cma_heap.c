@@ -65,6 +65,7 @@ static int cma_heap_allocate(struct dma_heap *heap,
 	init_heap_helper_buffer(helper_buffer, cma_heap_free);
 	helper_buffer->heap = heap;
 	helper_buffer->size = len;
+	helper_buffer->flags |= HEAP_HELPER_FLAGS_WC;
 
 	cma_pages = cma_alloc(cma_heap->cma, nr_pages, align, false);
 	if (!cma_pages)
