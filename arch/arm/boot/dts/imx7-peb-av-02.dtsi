@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-/* Copyright (C) 2015-2021 PHYTEC America, LLC */
+/*
+ * Copyright (C) 2015-2022 PHYTEC America, LLC
+ *
+ * Support for PEB-AV-02-070W.A1 LCD adapter
+ */
 
 / {
 	backlight: backlight {
@@ -53,20 +57,20 @@
 
 		display-timings {
 			native-mode = <&timing0>;
-			timing0: ETM0700G0DH6 {
-				clock-frequency = <33000000>;
+			timing0: ETM0700G0EDH6 {
+				clock-frequency = <33264000>;
 				hactive = <800>;
 				vactive = <480>;
 				hfront-porch = <40>;
-				hback-porch = <216>;
+				hback-porch = <88>;
 				hsync-len = <128>;
-				vback-porch = <35>;
+				vback-porch = <33>;
 				vfront-porch = <10>;
 				vsync-len = <2>;
 				hsync-active = <0>;
 				vsync-active = <0>;
 				de-active = <1>;
-				pixelclk-active = <1>;
+				pixelclk-active = <0>;
 			};
 		};
 	};
