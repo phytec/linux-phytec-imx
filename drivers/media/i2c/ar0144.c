@@ -24,6 +24,8 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-ctrls.h>
 
+#include "vvsensor.h"
+
 #define AR0144_MODEL_ID					0x3000
 #define AR0144_Y_ADDR_START				0x3002
 #define AR0144_X_ADDR_START				0x3004
@@ -318,6 +320,8 @@ struct ar0144_pll_config {
 };
 
 struct ar0144_gains {
+	struct v4l2_ctrl *dig_ctrl;
+	struct v4l2_ctrl *ana_ctrl;
 	struct v4l2_ctrl *red_ctrl;
 	struct v4l2_ctrl *greenb_ctrl;
 	struct v4l2_ctrl *greenr_ctrl;
@@ -354,7 +358,11 @@ struct ar0144 {
 	const struct ar0144_format *formats;
 	unsigned int num_fmts;
 
+	struct v4l2_ctrl *exp_ctrl;
 	struct ar0144_gains gains;
+
+	struct vvcam_mode_info_s vvcam_mode;
+	unsigned int vvcam_cur_mode_index;
 
 	struct clk *extclk;
 	struct gpio_desc *reset_gpio;
@@ -365,6 +373,426 @@ struct ar0144 {
 	bool is_streaming;
 	bool trigger;
 };
+
+static struct vvcam_mode_info_s ar0144_modes [] = {
+	{
+		.index     = 0,
+		.width    = 1280,
+		.height   = 720,
+		.hdr_mode = SENSOR_MODE_LINEAR,
+		.bit_width = 12,
+		.data_compress = {
+			.enable = 0,
+		},
+		.bayer_pattern = BAYER_GRBG,
+		.ae_info = {
+			.def_frm_len_lines     = 742,
+			.curr_frm_len_lines    = 742,
+			.one_line_exp_time_ns  = 20040,
+
+			.max_integration_line  = 65535,
+			.min_integration_line  = 1,
+
+			.max_again             = 16 * 1024,
+			.min_again             = 1 * 1024,
+			.max_dgain             = 15.9 * 1024,
+			.min_dgain             = 1 * 1024,
+			.gain_step             = 1,
+			.start_exposure        = 2* 800 * 1024,
+			.cur_fps               = 60 * 1024,
+			.max_fps               = 60 * 1024,
+			.min_fps               = 5 * 1024,
+			.min_afps              = 5 * 1024,
+			.int_update_delay_frm  = 1,
+			.gain_update_delay_frm = 1,
+		},
+		.mipi_info = {
+			.mipi_lane = 2,
+		},
+		.preg_data = NULL,
+		.reg_data_count = 0,
+	},
+};
+
+struct priv_ioctl {
+	u32 idx;
+	const char * const name;
+};
+
+struct priv_ioctl priv_ioctls[] = {
+	{ VVSENSORIOC_RESET, "VVSENSORIOC_RESET" },
+	{ VVSENSORIOC_S_POWER, "VVSENSORIOC_S_POWER" },
+	{ VVSENSORIOC_G_POWER, "VVSENSORIOC_G_POWER" },
+	{ VVSENSORIOC_S_CLK, "VVSENSORIOC_S_CLK" },
+	{ VVSENSORIOC_G_CLK, "VVSENSORIOC_G_CLK" },
+	{ VVSENSORIOC_QUERY, "VVSENSORIOC_QUERY" },
+	{ VVSENSORIOC_S_SENSOR_MODE, "VVSENSORIOC_S_SENSOR_MODE" },
+	{ VVSENSORIOC_G_SENSOR_MODE, "VVSENSORIOC_G_SENSOR_MODE" },
+	{ VVSENSORIOC_READ_REG, "VVSENSORIOC_READ_REG" },
+	{ VVSENSORIOC_WRITE_REG, "VVSENSORIOC_WRITE_REG" },
+	{ VVSENSORIOC_READ_ARRAY, "VVSENSORIOC_READ_ARRAY" },
+	{ VVSENSORIOC_WRITE_ARRAY, "VVSENSORIOC_WRITE_ARRAY" },
+	{ VVSENSORIOC_G_NAME, "VVSENSORIOC_G_NAME" },
+	{ VVSENSORIOC_G_RESERVE_ID, "VVSENSORIOC_G_RESERVE_ID" },
+	{ VVSENSORIOC_G_CHIP_ID, "VVSENSORIOC_G_CHIP_ID" },
+	{ VVSENSORIOC_S_INIT, "VVSENSORIOC_S_INIT" },
+	{ VVSENSORIOC_S_STREAM, "VVSENSORIOC_S_STREAM" },
+	{ VVSENSORIOC_S_LONG_EXP, "VVSENSORIOC_S_LONG_EXP" },
+	{ VVSENSORIOC_S_EXP, "VVSENSORIOC_S_EXP" },
+	{ VVSENSORIOC_S_VSEXP, "VVSENSORIOC_S_VSEXP" },
+	{ VVSENSORIOC_S_LONG_GAIN, "VVSENSORIOC_S_LONG_GAIN" },
+	{ VVSENSORIOC_S_GAIN, "VVSENSORIOC_S_GAIN" },
+	{ VVSENSORIOC_S_VSGAIN, "VVSENSORIOC_S_VSGAIN" },
+	{ VVSENSORIOC_S_FPS, "VVSENSORIOC_S_FPS" },
+	{ VVSENSORIOC_G_FPS, "VVSENSORIOC_G_FPS" },
+	{ VVSENSORIOC_S_HDR_RADIO, "VVSENSORIOC_S_HDR_RADIO" },
+	{ VVSENSORIOC_S_WB, "VVSENSORIOC_S_WB" },
+	{ VVSENSORIOC_S_BLC, "VVSENSORIOC_S_BLC" },
+	{ VVSENSORIOC_G_EXPAND_CURVE, "VVSENSORIOC_G_EXPAND_CURVE" },
+	{ VVSENSORIOC_S_TEST_PATTERN, "VVSENSORIOC_S_TEST_PATTERN" },
+	{ VVSENSORIOC_MAX, "VVSENSORIOC_MAX" },
+};
+
+static inline struct ar0144 *to_ar0144(struct v4l2_subdev *sd);
+static inline int bpp_to_index(unsigned int bpp);
+static int ar0144_read(struct ar0144 *sensor, u16 reg, u16 *val);
+static int ar0144_write(struct ar0144 *sensor, u16 reg, u16 val);
+static int ar0144_s_stream(struct v4l2_subdev *sd, int enable);
+static int ar0144_set_selection(struct v4l2_subdev *sd,
+				struct v4l2_subdev_pad_config *cfg,
+				struct v4l2_subdev_selection *sel);
+static int ar0144_set_fmt(struct v4l2_subdev *sd,
+			  struct v4l2_subdev_pad_config *cfg,
+			  struct v4l2_subdev_format *format);
+
+
+static void ar0144_vv_querycap(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	struct v4l2_capability *cap = (struct v4l2_capability *) args;
+	struct i2c_client *i2c = v4l2_get_subdevdata(&sensor->subdev);
+	const char *csi_id;
+	int ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+
+	ret = of_property_read_string(dev->of_node, "isp-bus-info", &csi_id);
+	if (!ret) {
+		strscpy((char *)cap->bus_info, csi_id, sizeof(cap->bus_info));
+	} else {
+		dev_warn(dev, "%s: No isp-bus-info found\n", __func__);
+		strcpy((char *)cap->bus_info, "csi0");
+	}
+
+	strcpy((char *)cap->driver, "phycam");
+	if (i2c->adapter)
+		cap->bus_info[VVCAM_CAP_BUS_INFO_I2C_ADAPTER_NR_POS] =
+			(__u8)i2c->adapter->nr;
+	else
+		cap->bus_info[VVCAM_CAP_BUS_INFO_I2C_ADAPTER_NR_POS] = 0xFF;
+}
+
+static int ar0144_vv_querymode(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	/* TODO: Do we need to fix this into copy_from_user? */
+	struct vvcam_mode_info_array_s *array =
+		(struct vvcam_mode_info_array_s *) args;
+	int copy_ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+
+	array->count = ARRAY_SIZE(ar0144_modes);
+
+	copy_ret = copy_to_user(&array->modes, &ar0144_modes,
+				sizeof(ar0144_modes));
+	return copy_ret;
+}
+
+static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	struct vvcam_ae_info_s *ae_info = &sensor->vvcam_mode.ae_info;
+	unsigned long pix_freq;
+	unsigned int pixclk_mhz;
+	int index;
+	int ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+	dev_dbg(dev, "%s index: %u\n", __func__, sensor->vvcam_cur_mode_index);
+
+	mutex_lock(&sensor->lock);
+
+	index = bpp_to_index(sensor->bpp);
+	pix_freq = sensor->pll[index].pix_freq;
+	pixclk_mhz = pix_freq / 1000000;
+
+	ae_info->curr_frm_len_lines = sensor->vlen;
+	ae_info->one_line_exp_time_ns = sensor->hlen * 1000 / pixclk_mhz;
+	ae_info->cur_fps = div_u64(pix_freq * 1024ULL,
+				   sensor->vlen * sensor->hlen);
+
+	ae_info->max_integration_line = sensor->vlen;
+
+	mutex_unlock(&sensor->lock);
+
+	ret = copy_to_user(args, &sensor->vvcam_mode,
+			   sizeof(struct vvcam_mode_info_s));
+	if (ret)
+		return -EIO;
+
+	return 0;
+}
+
+static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	struct v4l2_subdev *sd = &sensor->subdev;
+	struct v4l2_subdev_pad_config cfg;
+	struct v4l2_subdev_selection sel;
+	struct v4l2_subdev_format format;
+	struct vvcam_mode_info_s mode;
+	uint32_t index;
+	int bpp;
+	int ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+
+	ret = copy_from_user(&mode, args, sizeof(struct vvcam_mode_info_s));
+	index = mode.index;
+
+	if (index > ARRAY_SIZE(ar0144_modes) - 1)
+		index = 0;
+
+	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+	sel.pad = 0;
+	sel.target = V4L2_SEL_TGT_CROP;
+
+	sel.r.top = (AR0144_DEF_HEIGHT - ar0144_modes[index].height) / 2 + 4;
+	sel.r.left = (AR0144_DEF_WIDTH - ar0144_modes[index].width) / 2 + 4;
+	sel.r.width = ar0144_modes[index].width;
+	sel.r.height = ar0144_modes[index].height;
+
+	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+	format.pad = 0;
+
+	bpp = ar0144_modes[index].bit_width;
+	format.format.width = ar0144_modes[index].width;
+	format.format.height = ar0144_modes[index].height;
+	format.format.code = sensor->formats[bpp_to_index(bpp)].code;
+
+	ret = ar0144_set_selection(sd, &cfg, &sel);
+	if (ret)
+		return ret;
+
+	ret = ar0144_set_fmt(sd, &cfg, &format);
+	if (ret)
+		return ret;
+
+	memcpy(&sensor->vvcam_mode, &ar0144_modes[index],
+	       sizeof(struct vvcam_mode_info_s));
+	sensor->vvcam_cur_mode_index = index;
+
+	return 0;
+}
+
+static int ar0144_vv_s_stream(struct ar0144 *sensor, void *args)
+{
+	unsigned int enable = *(int *)args;
+
+	return ar0144_s_stream(&sensor->subdev, enable);
+}
+
+static int ar0144_vv_set_exposure(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	unsigned int pixclk_mhz;
+	uint32_t new_exp = *(uint32_t *) args;
+	uint32_t int_time;
+	int index;
+
+	mutex_lock(&sensor->lock);
+
+	index = bpp_to_index(sensor->bpp);
+	pixclk_mhz = sensor->pll[index].pix_freq / 1000000;
+
+	new_exp = new_exp / 1024;
+	int_time = new_exp * pixclk_mhz / sensor->hlen;
+
+	mutex_unlock(&sensor->lock);
+
+	v4l2_ctrl_s_ctrl(sensor->exp_ctrl, int_time);
+
+	dev_dbg(dev, "%s: %u --> %u\n", __func__, new_exp, int_time);
+
+	return 0;
+}
+
+static int ar0144_vv_set_gain(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	uint32_t new_gain = *(uint32_t *) args;
+	uint32_t d_gain, a_gain;
+
+	new_gain = new_gain * 1000 / 1024;
+
+	dev_dbg(dev, "%s: %u\n", __func__, new_gain);
+
+	if (new_gain > 16000) {
+		a_gain = 16000;
+		d_gain = new_gain * 1000 / a_gain;
+		v4l2_ctrl_s_ctrl(sensor->gains.ana_ctrl, a_gain);
+		v4l2_ctrl_s_ctrl(sensor->gains.dig_ctrl, d_gain);
+	} else {
+		v4l2_ctrl_s_ctrl(sensor->gains.ana_ctrl, new_gain);
+		v4l2_ctrl_s_ctrl(sensor->gains.dig_ctrl, 1000);
+	}
+
+	return 0;
+}
+
+static int ar0144_vv_set_wb(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	sensor_white_balance_t *wb = (sensor_white_balance_t *) args;
+	s32 new_gain;
+
+	new_gain = (wb->r_gain >> 8) * 1000 +
+		   (wb->r_gain & 0xff) * 1000 / 256;
+	v4l2_ctrl_s_ctrl(sensor->gains.red_ctrl, new_gain);
+	dev_dbg(dev, "r_gain: %u --> %u\n", wb->r_gain, new_gain);
+
+	new_gain = (wb->gr_gain >> 8) * 1000 +
+		   (wb->gr_gain & 0xff) * 1000 / 256;
+	v4l2_ctrl_s_ctrl(sensor->gains.greenr_ctrl, new_gain);
+	dev_dbg(dev, "gr_gain: %u --> %u\n", wb->gr_gain, new_gain);
+
+	new_gain = (wb->gb_gain >> 8) * 1000 +
+		   (wb->gb_gain & 0xff) * 1000 / 256;
+	v4l2_ctrl_s_ctrl(sensor->gains.greenb_ctrl, new_gain);
+	dev_dbg(dev, "gb_gain: %u --> %u\n", wb->gb_gain, new_gain);
+
+	new_gain = (wb->b_gain >> 8) * 1000 +
+		   (wb->b_gain & 0xff) * 1000 / 256;
+	v4l2_ctrl_s_ctrl(sensor->gains.blue_ctrl, new_gain);
+	dev_dbg(dev, "b_gain: %u --> %u\n", wb->b_gain, new_gain);
+
+	return 0;
+}
+
+static int ar0144_vv_read_reg(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	struct vvcam_sccb_data_s reg;
+	int ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+
+	ret = copy_from_user(&reg, args, sizeof(struct vvcam_sccb_data_s));
+	if (ret)
+		return ret;
+
+	ret = ar0144_read(sensor, reg.addr, (u16 *)&reg.data);
+	if (ret)
+		return ret;
+
+	ret = copy_to_user(args, &reg, sizeof(struct vvcam_sccb_data_s));
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+static int ar0144_vv_write_reg(struct ar0144 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	struct vvcam_sccb_data_s reg;
+	int ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+
+	ret = copy_from_user(&reg, args, sizeof(struct vvcam_sccb_data_s));
+	if (ret)
+		return ret;
+
+	ret = ar0144_write(sensor, reg.addr, (u16)reg.data);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+static long ar0144_priv_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
+			      void *arg)
+{
+	struct ar0144 *sensor = to_ar0144(sd);
+	int ret;
+	unsigned int idx;
+
+	if (cmd >= 0x100)
+		idx = cmd - 0x100;
+	else
+		idx = sizeof(priv_ioctls);
+
+	if (idx < sizeof(priv_ioctls))
+		dev_dbg(sd->dev, "%s: %s\n", __func__, priv_ioctls[idx].name);
+	else
+		dev_dbg(sd->dev, "%s: Unknown priv ioctl: 0x%08x\n",
+			__func__, cmd);
+
+	switch(cmd) {
+	case VIDIOC_QUERYCAP:
+		ar0144_vv_querycap(sensor, arg);
+		break;
+	case VVSENSORIOC_QUERY:
+		ret = ar0144_vv_querymode(sensor, arg);
+		if (ret)
+			return -EIO;
+		break;
+	case VVSENSORIOC_G_SENSOR_MODE:
+		ret = ar0144_vv_get_sensormode(sensor, arg);
+		if (ret)
+			return ret;
+		break;
+	case VVSENSORIOC_S_SENSOR_MODE:
+		ret = ar0144_vv_set_sensormode(sensor, arg);
+		if (ret)
+			return ret;
+		break;
+	case VVSENSORIOC_S_STREAM:
+		ret = ar0144_vv_s_stream(sensor, arg);
+		if (ret)
+			return ret;
+		break;
+	case VVSENSORIOC_S_EXP:
+		ret = ar0144_vv_set_exposure(sensor, arg);
+		if (ret)
+			return -EIO;
+		break;
+	case VVSENSORIOC_S_GAIN:
+		ret = ar0144_vv_set_gain(sensor, arg);
+		if (ret)
+			return -EIO;
+		break;
+	case VVSENSORIOC_S_WB:
+		ret = ar0144_vv_set_wb(sensor, arg);
+		break;
+	case VVSENSORIOC_READ_REG:
+		ret = ar0144_vv_read_reg(sensor, arg);
+		if (ret)
+			return ret;
+		break;
+	case VVSENSORIOC_WRITE_REG:
+		ret = ar0144_vv_write_reg(sensor, arg);
+		if (ret)
+			return ret;
+		break;
+	default:
+		return -ENOTTY;
+	};
+
+	return 0;
+}
 
 static inline struct ar0144 *to_ar0144(struct v4l2_subdev *sd)
 {
@@ -1313,6 +1741,7 @@ static int ar0144_get_mbus_config(struct v4l2_subdev *sd, unsigned int pad,
 
 static const struct v4l2_subdev_core_ops ar0144_subdev_core_ops = {
 	.s_power		= ar0144_s_power,
+	.ioctl			= ar0144_priv_ioctl,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.s_register		= ar0144_s_register,
 	.g_register		= ar0144_g_register,
@@ -2149,9 +2578,16 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY |
 				       V4L2_CTRL_FLAG_VOLATILE;
 			break;
+		case V4L2_CID_EXPOSURE:
+			sensor->exp_ctrl = ctrl;
+			break;
+		case V4L2_CID_ANALOGUE_GAIN:
+			sensor->gains.ana_ctrl = ctrl;
+			break;
 		case V4L2_CID_DIGITAL_GAIN:
 			ctrl->flags |= V4L2_CTRL_FLAG_EXECUTE_ON_WRITE |
 				       V4L2_CTRL_FLAG_UPDATE;
+			sensor->gains.dig_ctrl = ctrl;
 			break;
 		case V4L2_CID_X_DIGITAL_GAIN_RED:
 			if (sensor->model == AR0144_MODEL_COLOR)
