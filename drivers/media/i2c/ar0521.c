@@ -309,12 +309,13 @@ struct ar0521 {
 
 	struct v4l2_mbus_framefmt fmt;
 	struct v4l2_rect crop;
-	struct v4l2_fract interval;
 	unsigned int bpp;
 	unsigned int w_scale;
 	unsigned int h_scale;
 	unsigned int vblank;
 	unsigned int hblank;
+	unsigned int hlen;
+	unsigned int vlen;
 
 	struct ar0521_businfo info;
 	struct ar0521_pll_config pll[4];
@@ -841,8 +842,6 @@ static int ar0521_config_pll(struct ar0521 *sensor)
 
 static int ar0521_config_frame(struct ar0521 *sensor)
 {
-	unsigned int hlength;
-	unsigned int vlength;
 	unsigned int height = sensor->fmt.height * sensor->h_scale;
 	unsigned int width = sensor->fmt.width * sensor->w_scale;
 	int ret;
@@ -866,21 +865,11 @@ static int ar0521_config_frame(struct ar0521 *sensor)
 	if (ret)
 		return ret;
 
-	hlength = sensor->fmt.width;
-	hlength += sensor->hblank;
-	hlength = clamp_t(unsigned int, hlength,
-			  sensor->limits.hlen.min, sensor->limits.hlen.max);
-
-	vlength = sensor->fmt.height;
-	vlength += sensor->vblank;
-	vlength = clamp_t(unsigned int, vlength,
-			  sensor->limits.vlen.min, sensor->limits.vlen.max);
-
-	ret = ar0521_write(sensor, AR0521_FRAME_LENGTH_LINES, vlength);
+	ret = ar0521_write(sensor, AR0521_FRAME_LENGTH_LINES, sensor->vlen);
 	if (ret)
 		return ret;
 
-	ret = ar0521_write(sensor, AR0521_LINE_LENGTH_PCK, hlength);
+	ret = ar0521_write(sensor, AR0521_LINE_LENGTH_PCK, sensor->hlen);
 	if (ret)
 		return ret;
 
@@ -1069,15 +1058,20 @@ static int ar0521_g_frame_interval(struct v4l2_subdev *sd,
 				   struct v4l2_subdev_frame_interval *interval)
 {
 	struct ar0521 *sensor = to_ar0521(sd);
+	unsigned long pix_freq;
+	int index;
 
 	mutex_lock(&sensor->lock);
 
-	/* TODO: Calculate current frame interval here or in set_selection to
-	 * always have the correct frame interval.
-	 */
-	interval->interval = sensor->interval;
+	index = bpp_to_index(sensor->bpp);
+	pix_freq = sensor->pll[index].pix_freq;
+
+	interval->interval.numerator = 10;
+	interval->interval.denominator = div_u64(pix_freq * 1000ULL,
+						 sensor->vlen * sensor->hlen);
 
 	mutex_unlock(&sensor->lock);
+
 	return 0;
 }
 
@@ -1177,6 +1171,18 @@ out:
 	return ret;
 }
 
+static unsigned int ar0521_get_hlength(struct ar0521 *sensor)
+{
+	return clamp_t(unsigned int, sensor->fmt.width + sensor->hblank,
+		       sensor->limits.hlen.min, sensor->limits.hlen.max);
+}
+
+static unsigned int ar0521_get_vlength(struct ar0521 *sensor)
+{
+	return clamp_t(unsigned int, sensor->fmt.height + sensor->vblank,
+		       sensor->limits.vlen.min, sensor->limits.vlen.max);
+}
+
 static int ar0521_set_fmt(struct v4l2_subdev *sd,
 			  struct v4l2_subdev_pad_config *cfg,
 			  struct v4l2_subdev_format *format)
@@ -1226,6 +1232,8 @@ static int ar0521_set_fmt(struct v4l2_subdev *sd,
 		sensor->bpp = sensor_format->bpp;
 		sensor->w_scale = w_scale;
 		sensor->h_scale = h_scale;
+		sensor->hlen = ar0521_get_hlength(sensor);
+		sensor->vlen = ar0521_get_vlength(sensor);
 	}
 
 	format->format = *fmt;
@@ -1552,13 +1560,19 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 		if (sensor->is_streaming)
 			return -EBUSY;
 
+		mutex_lock(&sensor->lock);
 		sensor->vblank = ctrl->val;
+		sensor->vlen = ar0521_get_vlength(sensor);
+		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_HBLANK:
 		if (sensor->is_streaming)
 			return -EBUSY;
 
+		mutex_lock(&sensor->lock);
 		sensor->hblank = ctrl->val;
+		sensor->hlen = ar0521_get_hlength(sensor);
+		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_HFLIP:
 		ret = ar0521_update_bits(sensor, AR0521_READ_MODE,
@@ -2059,8 +2073,8 @@ static void ar0521_set_defaults(struct ar0521 *sensor)
 	sensor->h_scale = 1;
 	sensor->hblank = sensor->limits.hblank.min;
 	sensor->vblank = sensor->limits.vblank.min;
-	sensor->interval.numerator = 1;
-	sensor->interval.denominator = 60;
+	sensor->hlen = sensor->limits.hlen.min;
+	sensor->vlen = sensor->fmt.height + sensor->vblank;
 
 #ifdef DEBUG
 	sensor->manual_pll = false;
