@@ -621,8 +621,12 @@ static int mxc_pcsi_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct mxc_parallel_csi_dev *pcsidev = sd_to_mxc_pcsi_dev(sd);
 	struct device *dev = &pcsidev->pdev->dev;
+	struct v4l2_subdev *remote_sd;
+	int ret;
 
 	dev_dbg(dev, "%s: enable = %d\n", __func__, enable);
+
+	remote_sd = mxc_get_remote_subdev(pcsidev, __func__);
 
 	if (enable) {
 		pm_runtime_get_sync(dev);
@@ -631,12 +635,22 @@ static int mxc_pcsi_s_stream(struct v4l2_subdev *sd, int enable)
 			mxc_pcsi_csr_config(pcsidev);
 			mxc_pcsi_config_ctrl_reg1(pcsidev);
 			mxc_pcsi_enable_csi(pcsidev);
+			ret = v4l2_subdev_call(remote_sd, video, s_stream,
+					       enable);
+			if (ret) {
+				mxc_pcsi_disable_csi(pcsidev);
+				pm_runtime_put(dev);
+				pcsidev->running--;
+				return ret;
+			}
 			mxc_pcsi_regs_dump(pcsidev);
 		}
 		pcsidev->running++;
 	} else {
-		if (pcsidev->running)
+		if (pcsidev->running) {
+			v4l2_subdev_call(remote_sd, video, s_stream, enable);
 			mxc_pcsi_disable_csi(pcsidev);
+		}
 		pcsidev->running--;
 		pm_runtime_put(dev);
 	}
