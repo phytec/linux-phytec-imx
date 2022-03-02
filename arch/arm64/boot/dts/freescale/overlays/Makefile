@@ -18,6 +18,14 @@ dtb-y += imx8mm-phygate-tauri-rs232-rs232.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485-switchable.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rts-cts.dtbo
+dtb-y += imx8mp-isi-csi1.dtbo
+dtb-y += imx8mp-isi-csi2.dtbo
+dtb-y += imx8mp-isp-csi1.dtbo
+dtb-y += imx8mp-isp-csi2.dtbo
+dtb-y += imx8mp-vm017-csi1.dtbo
+dtb-y += imx8mp-vm017-csi2.dtbo
+dtb-y += imx8mp-vm017-csi1-fpdlink.dtbo
+dtb-y += imx8mp-vm017-csi2-fpdlink.dtbo
 
 DTC_FLAGS += -@
 
