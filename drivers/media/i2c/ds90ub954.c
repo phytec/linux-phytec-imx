@@ -350,49 +350,23 @@ static void ub954_disable_csi_tx(struct ub954 *state)
 			 BIT_CSI_EN | BIT_CSI_CAL_EN | BIT_CSI_CONTS_CLOCK);
 }
 
-static int ub954_power_on(struct ub954 *state)
-{
-	/* TODO: Enable power, clocks, etc... */
-	return ub954_enable_csi_tx(state);
-}
-
-static void ub954_power_off(struct ub954 *state)
-{
-	/* TODO: Disable power, clocks, etc... */
-	ub954_disable_csi_tx(state);
-}
-
 /* V4L2 subdev core ops */
-/* TODO: Add pm_runtime */
+/* TODO: Add pm_runtime to enable/disable power, clocks, etc. */
 /* TODO: Set LP-11 mode here */
 static int ub954_s_power(struct v4l2_subdev *sd, int on)
 {
-	struct ub954 *state = to_ub954(sd);
-	int ret = 0;
-
 	dev_dbg(sd->dev, "%s on: %d\n", __func__, on);
-
-	mutex_lock(&state->lock);
-
-	if (on) {
-		ret = ub954_power_on(state);
-		if (ret) {
-			ub954_power_off(state);
-			goto out;
-		}
-	} else {
-		ub954_power_off(state);
-	}
-
-out:
-	mutex_unlock(&state->lock);
-	return ret;
+	return 0;
 }
 
 static int ub954_start_stream(struct ub954 *state, int port)
 {
 	struct ub954_rxport *rxport = &state->rxport[port];
 	int ret;
+
+	ret = ub954_enable_csi_tx(state);
+	if (ret)
+		goto out;
 
 	ret = ub954_write(state->i2c, UB954_SR_FWD_CTL1,
 			  port ? BIT_FWD_PORT0_DIS : BIT_FWD_PORT1_DIS);
@@ -406,9 +380,11 @@ static int ub954_start_stream(struct ub954 *state, int port)
 	return 0;
 
 out_abort:
-	dev_err(&state->i2c->dev,
-		"%s Failed to start streaming (%d)\n", __func__, ret);
 	ub954_write(state->i2c, UB954_SR_FWD_CTL1, 0);
+out:
+	ub954_disable_csi_tx(state);
+	dev_err(&state->i2c->dev, "%s Failed to start streaming (%d)\n",
+		__func__, ret);
 	return ret;
 }
 
@@ -418,6 +394,7 @@ static void ub954_stop_stream(struct ub954 *state, int port)
 
 	v4l2_subdev_call(rxport->sd, video, s_stream, 0);
 	ub954_write(state->i2c, UB954_SR_FWD_CTL1, 0);
+	ub954_disable_csi_tx(state);
 }
 
 /* V4L2 subdev video ops */
