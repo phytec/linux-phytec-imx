@@ -12,7 +12,7 @@
 #include "../imx8mn-pinfunc.h"
 
 / {
-	compatible = "phytec,imx8mm-phyboard-polis";
+	compatible = "phytec,imx8mn-phyboard-polis";
 
 	fragment@6 {
 		target-path= "/";
