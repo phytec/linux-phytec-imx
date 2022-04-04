@@ -1491,7 +1491,7 @@ static int ar0144_g_frame_interval(struct v4l2_subdev *sd,
 	pix_freq = sensor->pll[index].pix_freq;
 
 	interval->interval.numerator = 10;
-	interval->interval.denominator = div_u64(pix_freq * 1000ULL,
+	interval->interval.denominator = div_u64(pix_freq * 10ULL,
 						 sensor->vlen * sensor->hlen);
 
 	mutex_unlock(&sensor->lock);
