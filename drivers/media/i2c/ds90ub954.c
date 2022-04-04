@@ -605,24 +605,6 @@ static int ub954_notify_bound(struct v4l2_async_notifier *notifier,
 
 	rxport->sd = subdev;
 
-	ret = ub954_write(rxport->i2c, UB954_PR_SFILTER_CFG,
-			  BIT_SFILTER_MAX(rxport->strobe_max) |
-			  BIT_SFILTER_MIN(rxport->strobe_min));
-	if (ret)
-		return ret;
-
-	ret = ub954_write(rxport->i2c, UB954_PR_AEQ_MIN_MAX,
-			  BIT_AEQ_MAX(rxport->eq_max) |
-			  BIT_AEQ_FLOOR_VALUE(rxport->eq_min));
-	if (ret)
-		return ret;
-
-	/* Reset AEQ */
-	ret = ub954_set_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
-			     BIT_AEQ_RESTART | BIT_SET_AEQ_FLOOR);
-	if (ret)
-		return ret;
-
 	dev_dbg(notifier->sd->dev, "Linked %s:%d -> %s:%d\n",
 		subdev->name, src_pad, state->subdev.name, port);
 
@@ -692,6 +674,39 @@ static int ub954_v4l2_notifier_register(struct ub954 *state)
 		v4l2_async_notifier_cleanup(&state->notifier);
 		return ret;
 	};
+
+	return 0;
+}
+
+static int ub954_init_aeq(struct ub954 *state)
+{
+	struct ub954_rxport *rxport;
+	int port;
+	int ret;
+
+	for_each_port(port) {
+		rxport = &state->rxport[port];
+		if (!rxport->fwnode)
+			continue;
+
+		ret = ub954_write(rxport->i2c, UB954_PR_SFILTER_CFG,
+				  BIT_SFILTER_MAX(rxport->strobe_max) |
+				  BIT_SFILTER_MIN(rxport->strobe_min));
+		if (ret)
+			return ret;
+
+		ret = ub954_write(rxport->i2c, UB954_PR_AEQ_MIN_MAX,
+				  BIT_AEQ_MAX(rxport->eq_max) |
+				  BIT_AEQ_FLOOR_VALUE(rxport->eq_min));
+		if (ret)
+			return ret;
+
+		/* Reset AEQ */
+		ret = ub954_set_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
+				     BIT_AEQ_RESTART | BIT_SET_AEQ_FLOOR);
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }
@@ -841,6 +856,10 @@ static int ub954_init(struct ub954 *state)
 		goto out;
 
 	ret = ub954_init_link(state);
+	if (ret)
+		goto out;
+
+	ret = ub954_init_aeq(state);
 	if (ret)
 		goto out;
 
