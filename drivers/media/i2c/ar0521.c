@@ -354,17 +354,17 @@ struct ar0521 {
 static struct vvcam_mode_info_s ar0521_modes [] = {
 	{
 		.index     = 0,
-		.width    = 1920,
-		.height   = 1080,
+		.width    = 1280,
+		.height   = 720,
 		.hdr_mode = SENSOR_MODE_LINEAR,
-		.bit_width = 10,
+		.bit_width = 12,
 		.data_compress = {
 			.enable = 0,
 		},
 		.bayer_pattern = BAYER_GRBG,
 		.ae_info = {
-			.def_frm_len_lines     = 1108,
-			.curr_frm_len_lines    = 1108,
+			.def_frm_len_lines     = 748,
+			.curr_frm_len_lines    = 748,
 			.one_line_exp_time_ns  = 9166,
 
 			.max_integration_line  = 65535,
