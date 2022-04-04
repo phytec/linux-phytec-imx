@@ -252,7 +252,7 @@ examples:
 
             clock-frequency = <400000>;
 
-            serializero: fpdlink@18 {
+            serializer0: fpdlink@18 {
               compatible = "ti,ds90ub953";
               reg = <0x18>;
 
