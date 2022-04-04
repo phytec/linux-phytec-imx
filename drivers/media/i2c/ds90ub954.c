@@ -839,7 +839,6 @@ static int ub954_reset(struct ub954 *state)
 	ret = ub954_write(state->i2c, UB954_SR_RESET,
 			 BIT_DIGITAL_RESET0 | BIT_DIGITAL_RESET1);
 
-	/* TODO: How long do we have to wait here? */
 	msleep(200);
 
 	return ret;
