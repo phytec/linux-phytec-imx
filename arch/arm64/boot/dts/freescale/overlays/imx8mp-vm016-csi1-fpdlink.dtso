@@ -57,7 +57,7 @@
 					link-frequencies = /bits/ 64 <
 						400000000
 					>;
-					data-lanes = <1 2 3 4>;
+					data-lanes = <1 2>;
 				};
 			};
 		};
@@ -101,7 +101,7 @@
 				reg = <0>;
 				ser_csi1_cam0_in: endpoint {
 					remote-endpoint = <&vm016_ep>;
-					data-lanes = <1 2 3 4>;
+					data-lanes = <1 2>;
 				};
 			};
 
