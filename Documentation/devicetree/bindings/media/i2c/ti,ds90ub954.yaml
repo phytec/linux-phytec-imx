@@ -85,6 +85,31 @@ properties:
           reg:
             enum: [ 0, 1 ]
 
+          ti,aeq-strobe-min:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            description: Minimum AEQ strobe setting for this port
+            default: 7
+            minimum: 0
+            maximum: 14
+          ti,aeq-strobe-max:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            description: Maximum AEQ strobe setting for this port
+            default: 10
+            minimum: 0
+            maximum: 14
+          ti,aeq-eq-min:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            description: Minimum AEQ EQ setting for this port
+            default: 2
+            minimum: 0
+            maximum: 14
+          ti,aeq-eq-max:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            description: Maximum AEQ EQ setting for this port
+            default: 14
+            minimum: 0
+            maximum: 14
+
           endpoint:
             type: object
 
