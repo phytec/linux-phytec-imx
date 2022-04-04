@@ -30,7 +30,7 @@
 #define UB954_SR_FWD_CTL1				0x20
 #define		BIT_FWD_PORT1_DIS			BIT(5)
 #define		BIT_FWD_PORT0_DIS			BIT(4)
-#define	UB954_SR_CSI_CTL					0x33
+#define	UB954_SR_CSI_CTL				0x33
 #define		BIT_CSI_CAL_EN				BIT(6)
 #define		BIT_LANE_COUNT(n)			((n) << 4)
 #define		BIT_LANE_COUNT_MASK			GENMASK(5, 4)
