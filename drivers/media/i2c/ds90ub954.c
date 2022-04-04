@@ -68,7 +68,6 @@
 #define		BIT_RX_PORT_ID(n)			((n) << 1)
 
 
-/* Currently only Port0 will be supported */
 #define UB954_PORT0_PAD 		0
 #define UB954_PORT1_PAD 		1
 #define UB954_SOURCE_PAD 		2
