@@ -41,6 +41,9 @@
 #define	UB954_PR_SFILTER_CFG				0x41
 #define		BIT_SFILTER_MAX(n)			((n) << 4)
 #define		BIT_SFILTER_MIN(n)			(n)
+#define	UB954_PR_RX_PORT_STS1				0x4d
+#define		BIT_LOCK_STS_CHG			BIT(4)
+#define		BIT_LOCK_STS				BIT(0)
 #define	UB954_PR_BCC_CONFIG				0x58
 #define		BIT_I2C_PASS_THRU_ALL			BIT(7)
 #define		BIT_I2C_PASS_THRU			BIT(6)
@@ -84,6 +87,9 @@
 #define UB954_DEFAULT_STROBE_MAX	10
 #define UB954_DEFAULT_EQ_MIN		2
 #define UB954_DEFAULT_EQ_MAX		14
+
+#define UB954_LOCK_STEP			100
+#define UB954_LOCK_TIMEOUT		5000
 
 struct ub954_i2c_dev {
 	u8 i2c_addr;
@@ -681,7 +687,9 @@ static int ub954_v4l2_notifier_register(struct ub954 *state)
 static int ub954_init_aeq(struct ub954 *state)
 {
 	struct ub954_rxport *rxport;
+	int time_ms = 0;
 	int port;
+	int status;
 	int ret;
 
 	for_each_port(port) {
@@ -706,6 +714,19 @@ static int ub954_init_aeq(struct ub954 *state)
 				     BIT_AEQ_RESTART | BIT_SET_AEQ_FLOOR);
 		if (ret)
 			return ret;
+
+		while (time_ms < UB954_LOCK_TIMEOUT) {
+			status = ub954_read(rxport->i2c, UB954_PR_RX_PORT_STS1);
+			if ((status & BIT_LOCK_STS) &&
+			    !(status & BIT_LOCK_STS_CHG))
+				break;
+
+			msleep(UB954_LOCK_STEP);
+			time_ms += UB954_LOCK_STEP;
+		}
+
+		dev_dbg(&state->i2c->dev, "%s LOCK after %d ms\n", __func__,
+			 time_ms);
 	}
 
 	return 0;
