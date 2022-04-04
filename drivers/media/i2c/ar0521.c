@@ -370,7 +370,7 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 			.max_integration_line  = 65535,
 			.min_integration_line  = 1,
 
-			.max_again             = 14.25 * 1024,
+			.max_again             = 14 * 1024,
 			.min_again             = 1 * 1024,
 			.max_dgain             = 7.9 * 1024,
 			.min_dgain             = 1 * 1024,
@@ -407,7 +407,7 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 			.max_integration_line  = 65535,
 			.min_integration_line  = 1,
 
-			.max_again             = 14.25 * 1024,
+			.max_again             = 14 * 1024,
 			.min_again             = 1 * 1024,
 			.max_dgain             = 7.9 * 1024,
 			.min_dgain             = 1 * 1024,
@@ -444,7 +444,7 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 			.max_integration_line  = 65535,
 			.min_integration_line  = 1,
 
-			.max_again             = 14.25 * 1024,
+			.max_again             = 14 * 1024,
 			.min_again             = 1 * 1024,
 			.max_dgain             = 7.9 * 1024,
 			.min_dgain             = 1 * 1024,
@@ -2340,7 +2340,7 @@ static const struct v4l2_ctrl_config ar0521_ctrls[] = {
 		.type		= V4L2_CTRL_TYPE_INTEGER,
 		.min		= 1000,
 		.step		= 1,
-		.max		= 14250,
+		.max		= 14000,
 		.def		= 2000,
 	}, {
 		.ops		= &ar0521_ctrl_ops,
