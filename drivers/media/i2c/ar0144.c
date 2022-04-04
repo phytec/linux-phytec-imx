@@ -394,7 +394,7 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 			.min_integration_line  = 1,
 
 			.max_again             = 16 * 1024,
-			.min_again             = 1 * 1024,
+			.min_again             = 1.684 * 1024,
 			.max_dgain             = 15.9 * 1024,
 			.min_dgain             = 1 * 1024,
 			.gain_step             = 1,
@@ -431,7 +431,7 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 			.min_integration_line  = 1,
 
 			.max_again             = 16 * 1024,
-			.min_again             = 1 * 1024,
+			.min_again             = 1.684 * 1024,
 			.max_dgain             = 15.9 * 1024,
 			.min_dgain             = 1 * 1024,
 			.gain_step             = 1,
@@ -2430,7 +2430,7 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_ANALOGUE_GAIN,
 		.type		= V4L2_CTRL_TYPE_INTEGER,
-		.min		= 1000,
+		.min		= 1684,
 		.step		= 1,
 		.max		= 16000,
 		.def		= 2000,
@@ -2485,6 +2485,7 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.name		= "Analogue Gain Auto Min",
 		.min		= 0,
 		.max		= ARRAY_SIZE(ar0144_ana_gain_min_menu) - 1,
+		.def		= 1,
 		.qmenu		= ar0144_ana_gain_min_menu,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
