@@ -619,10 +619,26 @@ static int ar0521_vv_set_sensormode(struct ar0521 *sensor, void *args)
 	sel.pad = 0;
 	sel.target = V4L2_SEL_TGT_CROP;
 
-	sel.r.top = (AR0521_DEF_HEIGHT - ar0521_modes[index].height) / 2 + 4;
-	sel.r.left = (AR0521_DEF_WIDTH - ar0521_modes[index].width) / 2 + 4;
-	sel.r.width = ar0521_modes[index].width;
-	sel.r.height = ar0521_modes[index].height;
+	switch (index) {
+	case 0:
+		sel.r.left = 16;
+		sel.r.top = 252;
+		sel.r.width = 2560;
+		sel.r.height = 1440;
+		break;
+	case 1:
+		sel.r.left = 336;
+		sel.r.top = 432;
+		sel.r.width = 1920;
+		sel.r.height = 1080;
+		break;
+	case 2:
+		sel.r.left = 4;
+		sel.r.top = 4;
+		sel.r.width = 2592;
+		sel.r.height = 1944;
+		break;
+	}
 
 	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
 	format.pad = 0;
