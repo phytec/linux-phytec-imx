@@ -2450,7 +2450,7 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.min		= 1000,
 		.step		= 1,
 		.max		= 15999,
-		.def		= 1300,
+		.def		= 1000,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_X_DIGITAL_GAIN_GREENR,
@@ -2477,7 +2477,7 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.min		= 1000,
 		.step		= 1,
 		.max		= 15999,
-		.def		= 1500,
+		.def		= 1000,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_X_AUTOGAIN_ANALOGUE_MIN,
