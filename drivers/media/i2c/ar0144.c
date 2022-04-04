@@ -376,7 +376,7 @@ struct ar0144 {
 
 static struct vvcam_mode_info_s ar0144_modes [] = {
 	{
-		.index     = 0,
+		.index    = 0,
 		.width    = 1280,
 		.height   = 720,
 		.hdr_mode = SENSOR_MODE_LINEAR,
@@ -388,6 +388,43 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 		.ae_info = {
 			.def_frm_len_lines     = 742,
 			.curr_frm_len_lines    = 742,
+			.one_line_exp_time_ns  = 20040,
+
+			.max_integration_line  = 65535,
+			.min_integration_line  = 1,
+
+			.max_again             = 16 * 1024,
+			.min_again             = 1 * 1024,
+			.max_dgain             = 15.9 * 1024,
+			.min_dgain             = 1 * 1024,
+			.gain_step             = 1,
+			.start_exposure        = 2* 800 * 1024,
+			.cur_fps               = 60 * 1024,
+			.max_fps               = 60 * 1024,
+			.min_fps               = 5 * 1024,
+			.min_afps              = 5 * 1024,
+			.int_update_delay_frm  = 1,
+			.gain_update_delay_frm = 1,
+		},
+		.mipi_info = {
+			.mipi_lane = 2,
+		},
+		.preg_data = NULL,
+		.reg_data_count = 0,
+	},
+	{
+		.index    = 1,
+		.width    = 1280,
+		.height   = 800,
+		.hdr_mode = SENSOR_MODE_LINEAR,
+		.bit_width = 12,
+		.data_compress = {
+			.enable = 0,
+		},
+		.bayer_pattern = BAYER_GRBG,
+		.ae_info = {
+			.def_frm_len_lines     = 822,
+			.curr_frm_len_lines    = 822,
 			.one_line_exp_time_ns  = 20040,
 
 			.max_integration_line  = 65535,
