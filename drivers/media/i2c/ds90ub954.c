@@ -38,6 +38,9 @@
 #define		BIT_CSI_ULP_MASK			GENMASK(3, 2)
 #define		BIT_CSI_CONTS_CLOCK			BIT(1)
 #define		BIT_CSI_EN				BIT(0)
+#define	UB954_PR_SFILTER_CFG				0x41
+#define		BIT_SFILTER_MAX(n)			((n) << 4)
+#define		BIT_SFILTER_MIN(n)			(n)
 #define	UB954_PR_BCC_CONFIG				0x58
 #define		BIT_I2C_PASS_THRU_ALL			BIT(7)
 #define		BIT_I2C_PASS_THRU			BIT(6)
@@ -56,6 +59,10 @@
 #define		BIT_SLAVE_AUTO_ACK			BIT(0)
 #define	UB954_PR_AEQ_CTL2				0xd2
 #define		BIT_AEQ_RESTART				BIT(3)
+#define		BIT_SET_AEQ_FLOOR			BIT(2)
+#define	UB954_PR_AEQ_MIN_MAX				0xd5
+#define		BIT_AEQ_MAX(n)				((n) << 4)
+#define		BIT_AEQ_FLOOR_VALUE(n)			(n)
 #define	UB954_SR_I2C_RX0_ID				0xf8
 #define	UB954_SR_I2C_RX1_ID				0xf9
 #define		BIT_RX_PORT_ID(n)			((n) << 1)
@@ -74,6 +81,11 @@
 #define UB954_800MBPS_LINK_FREQ		400000000UL
 #define UB954_400MBPS_LINK_FREQ		200000000UL
 
+#define UB954_DEFAULT_STROBE_MIN	7
+#define UB954_DEFAULT_STROBE_MAX	10
+#define UB954_DEFAULT_EQ_MIN		2
+#define UB954_DEFAULT_EQ_MAX		14
+
 struct ub954_i2c_dev {
 	u8 i2c_addr;
 	u8 i2c_alias;
@@ -87,6 +99,11 @@ struct ub954_rxport {
 
 	struct ub954_i2c_dev i2c_dev[UB954_MAX_I2C_DEVS];
 	unsigned int num_devs;
+
+	unsigned int eq_min;
+	unsigned int eq_max;
+	unsigned int strobe_min;
+	unsigned int strobe_max;
 
 	int port;
 	u16 ser_id;
@@ -589,9 +606,21 @@ static int ub954_notify_bound(struct v4l2_async_notifier *notifier,
 
 	rxport->sd = subdev;
 
+	ret = ub954_write(rxport->i2c, UB954_PR_SFILTER_CFG,
+			  BIT_SFILTER_MAX(rxport->strobe_max) |
+			  BIT_SFILTER_MIN(rxport->strobe_min));
+	if (ret)
+		return ret;
+
+	ret = ub954_write(rxport->i2c, UB954_PR_AEQ_MIN_MAX,
+			  BIT_AEQ_MAX(rxport->eq_max) |
+			  BIT_AEQ_FLOOR_VALUE(rxport->eq_min));
+	if (ret)
+		return ret;
+
 	/* Reset AEQ */
-	ret = ub954_update_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
-				BIT_AEQ_RESTART, BIT_AEQ_RESTART);
+	ret = ub954_set_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
+			     BIT_AEQ_RESTART | BIT_SET_AEQ_FLOOR);
 	if (ret)
 		return ret;
 
@@ -834,6 +863,26 @@ out:
 	return ret;
 }
 
+static void ub954_parse_port_properties(struct ub954_rxport *rxport,
+					struct device_node *node)
+{
+	rxport->strobe_min = UB954_DEFAULT_STROBE_MIN;
+	of_property_read_u32(node, "ti,aeq-strobe-min", &rxport->strobe_min);
+	rxport->strobe_min = clamp_t(unsigned int, rxport->strobe_min, 0, 14);
+
+	rxport->strobe_max = UB954_DEFAULT_STROBE_MAX;
+	of_property_read_u32(node, "ti,aeq-strobe-max", &rxport->strobe_max);
+	rxport->strobe_max = clamp_t(unsigned int, rxport->strobe_max, 0, 14);
+
+	rxport->eq_min = UB954_DEFAULT_EQ_MIN;
+	of_property_read_u32(node, "ti,aeq-eq-min", &rxport->eq_min);
+	rxport->eq_min = clamp_t(unsigned int, rxport->eq_min, 0, 14);
+
+	rxport->eq_max = UB954_DEFAULT_EQ_MAX;
+	of_property_read_u32(node, "ti,aeq-eq-max", &rxport->eq_max);
+	rxport->eq_max = clamp_t(unsigned int, rxport->eq_max, 0, 14);
+}
+
 static void ub954_parse_i2c_devices(struct ub954 *state, u32 port_id,
 				    struct device_node *i2c_node)
 {
@@ -964,6 +1013,7 @@ static int ub954_of_probe(struct device *dev, struct ub954 *state)
 
 	for_each_endpoint_of_node(dev->of_node, node) {
 		struct of_endpoint ep;
+		struct device_node *port_node;
 		struct fwnode_handle *fwnode, *fwremote, *endpoint;
 
 		of_graph_parse_endpoint(node, &ep);
@@ -987,6 +1037,10 @@ static int ub954_of_probe(struct device *dev, struct ub954 *state)
 			dev_warn(dev, "Only one endpoint per port supported\n");
 			continue;
 		}
+
+		port_node = of_get_parent(node);
+		ub954_parse_port_properties(&state->rxport[ep.port], port_node);
+		of_node_put(port_node);
 
 		fwremote = fwnode_graph_get_remote_port_parent(fwnode);
 		if (!fwremote) {
