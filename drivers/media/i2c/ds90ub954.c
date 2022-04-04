@@ -1119,7 +1119,7 @@ static int ub954_probe(struct i2c_client *i2c, const struct i2c_device_id *did)
 	if (ret)
 		goto out_init;
 
-	dev_info(dev, "Probed ub954UB954 Driver succesfully\n");
+	dev_info(dev, "Probed DS90UB954 Driver succesfully\n");
 
 	return 0;
 
@@ -1132,7 +1132,7 @@ out:
 	media_entity_cleanup(&sd->entity);
 	mutex_destroy(&state->lock);
 
-	dev_err(dev, "Failed to probe ub954UB954 Driver (%d)\n", ret);
+	dev_err(dev, "Failed to probe DS90UB954 Driver (%d)\n", ret);
 	return ret;
 }
 

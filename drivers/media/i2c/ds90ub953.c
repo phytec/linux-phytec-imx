@@ -585,7 +585,7 @@ static const struct media_entity_operations ub953_entity_ops = {
 
 static int ub953_subdev_registered(struct v4l2_subdev *sd)
 {
-	dev_info(sd->dev, "Registered ub953UB953 serializer\n");
+	dev_info(sd->dev, "Registered DS90UB953 serializer\n");
 
 	return 0;
 }
@@ -908,7 +908,7 @@ static int ub953_probe(struct i2c_client *i2c, const struct i2c_device_id *did)
 	if (ret)
 		goto out_init;
 
-	dev_info(dev, "Probed ub953UB953 Driver succesfully\n");
+	dev_info(dev, "Probed DS90UB953 Driver succesfully\n");
 
 	return 0;
 
@@ -920,7 +920,7 @@ out:
 	media_entity_cleanup(&sd->entity);
 	mutex_destroy(&state->gpio_lock);
 
-	dev_err(dev, "Failed to probe ub953UB953 Driver (%d)\n", ret);
+	dev_err(dev, "Failed to probe DS90UB953 Driver (%d)\n", ret);
 	return ret;
 }
 
