@@ -1693,6 +1693,18 @@ static int ar0144_get_fmt(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static int ar0144_group_param_hold(struct ar0144 *sensor)
+{
+	return ar0144_set_bits(sensor, AR0144_RESET_REGISTER,
+			       BIT_GROUPED_PARAM_HOLD);
+}
+
+static int ar0144_group_param_release(struct ar0144 *sensor)
+{
+	return ar0144_clear_bits(sensor, AR0144_RESET_REGISTER,
+				 BIT_GROUPED_PARAM_HOLD);
+}
+
 static int ar0144_set_selection(struct v4l2_subdev *sd,
 				struct v4l2_subdev_pad_config *cfg,
 				struct v4l2_subdev_selection *sel)
@@ -1700,6 +1712,7 @@ static int ar0144_set_selection(struct v4l2_subdev *sd,
 	struct ar0144 *sensor = to_ar0144(sd);
 	struct v4l2_rect *_crop;
 	unsigned int max_w, max_h;
+	int ret = 0;
 
 	if (sel->target != V4L2_SEL_TGT_CROP)
 		return -EINVAL;
@@ -1723,16 +1736,24 @@ static int ar0144_set_selection(struct v4l2_subdev *sd,
 	_crop->height = min_t(unsigned int, sel->r.height, max_h - _crop->top);
 
 	if (sensor->is_streaming) {
-		/* TODO: Add on the fly cropping change */
-		mutex_unlock(&sensor->lock);
-		return -EBUSY;
+		ret = ar0144_group_param_hold(sensor);
+		if (ret)
+			goto out;
+
+		ret = ar0144_config_frame(sensor);
+		if (ret)
+			goto out;
+
+		ret = ar0144_group_param_release(sensor);
+		if (ret)
+			goto out;
 	}
 
 	sel->r = *_crop;
 
+out:
 	mutex_unlock(&sensor->lock);
-
-	return 0;
+	return ret;
 }
 
 static int ar0144_get_selection(struct v4l2_subdev *sd,
