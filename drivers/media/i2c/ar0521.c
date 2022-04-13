@@ -695,9 +695,9 @@ static int ar0521_vv_set_exposure(struct ar0521 *sensor, void *args)
 	new_exp = new_exp / 1024;
 	int_time = new_exp * pixclk_mhz / sensor->hlen;
 
-	mutex_unlock(&sensor->lock);
+	__v4l2_ctrl_s_ctrl(sensor->exp_ctrl, int_time);
 
-	v4l2_ctrl_s_ctrl(sensor->exp_ctrl, int_time);
+	mutex_unlock(&sensor->lock);
 
 	dev_dbg(dev, "%s: %u --> %u\n", __func__, new_exp, int_time);
 
@@ -808,9 +808,9 @@ static int ar0521_vv_set_fps(struct ar0521 *sensor, void *args)
 	vlen = div_u64(pix_freq * 10ULL, fps * sensor->hlen);
 	vblank = vlen - sensor->fmt.height;
 
-	mutex_unlock(&sensor->lock);
+	__v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank);
 
-	v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank);
+	mutex_unlock(&sensor->lock);
 
 	dev_dbg(dev, "%s: %u.%u (vblank: %u)\n", __func__,
 		fps/10, fps%10, vblank);
@@ -2179,14 +2179,10 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	switch (ctrl->id) {
 	case V4L2_CID_VBLANK:
-		mutex_lock(&sensor->lock);
-
 		if (sensor->is_streaming) {
 			ret = ar0521_group_param_hold(sensor);
-			if (ret) {
-				mutex_unlock(&sensor->lock);
+			if (ret)
 				break;
-			}
 		}
 
 		sensor->vblank = ctrl->val;
@@ -2194,25 +2190,18 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 
 		if (sensor->is_streaming) {
 			ret = ar0521_config_frame(sensor);
-			if (ret) {
-				mutex_unlock(&sensor->lock);
+			if (ret)
 				break;
-			}
 
 			ret = ar0521_group_param_release(sensor);
 		}
 
-		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_HBLANK:
-		mutex_lock(&sensor->lock);
-
 		if (sensor->is_streaming) {
 			ret = ar0521_group_param_hold(sensor);
-			if (ret) {
-				mutex_unlock(&sensor->lock);
+			if (ret)
 				break;
-			}
 		}
 
 		sensor->hblank = ctrl->val;
@@ -2220,15 +2209,12 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 
 		if (sensor->is_streaming) {
 			ret = ar0521_config_frame(sensor);
-			if (ret) {
-				mutex_unlock(&sensor->lock);
+			if (ret)
 				break;
-			}
 
 			ret = ar0521_group_param_release(sensor);
 		}
 
-		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_HFLIP:
 		ret = ar0521_update_bits(sensor, AR0521_READ_MODE,
@@ -2333,10 +2319,8 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 		ret = ar0521_write(sensor, AR0521_FLASH_COUNT, ctrl->val);
 		break;
 	case V4L2_CID_X_TRIGGER_MODE:
-		mutex_lock(&sensor->lock);
 		sensor->trigger = ctrl->val;
 		ret = ar0521_set_trigger_mode(sensor, sensor->trigger);
-		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_X_TRIGGER_PIN:
 		if (sensor->trigger)
@@ -2357,9 +2341,7 @@ static int ar0521_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 	struct ar0521 *sensor = ctrl->priv;
 	int index;
 
-	mutex_lock(&sensor->lock);
 	index = bpp_to_index(sensor->bpp);
-	mutex_unlock(&sensor->lock);
 
 	switch (ctrl->id) {
 	case V4L2_CID_LINK_FREQ:
@@ -3390,6 +3372,7 @@ static int ar0521_probe(struct i2c_client *i2c,
 		goto out;
 
 	sensor->subdev.ctrl_handler = &sensor->ctrls;
+	sensor->ctrls.lock = &sensor->lock;
 
 	ret = ar0521_check_chip_id(sensor);
 	if (ret)
