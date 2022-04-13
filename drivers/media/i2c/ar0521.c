@@ -330,6 +330,7 @@ struct ar0521 {
 	unsigned int num_fmts;
 
 	struct v4l2_ctrl *exp_ctrl;
+	struct v4l2_ctrl *vblank_ctrl;
 	struct ar0521_gains gains;
 
 	struct vvcam_mode_info_s vvcam_mode;
@@ -379,7 +380,7 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 			.cur_fps               = 60 * 1024,
 			.max_fps               = 60 * 1024,
 			.min_fps               = 5 * 1024,
-			.min_afps              = 5 * 1024,
+			.min_afps              = 30 * 1024,
 			.int_update_delay_frm  = 1,
 			.gain_update_delay_frm = 1,
 		},
@@ -416,7 +417,7 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 			.cur_fps               = 60 * 1024,
 			.max_fps               = 60 * 1024,
 			.min_fps               = 5 * 1024,
-			.min_afps              = 5 * 1024,
+			.min_afps              = 30 * 1024,
 			.int_update_delay_frm  = 1,
 			.gain_update_delay_frm = 1,
 		},
@@ -453,7 +454,7 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 			.cur_fps               = 60 * 1024,
 			.max_fps               = 60 * 1024,
 			.min_fps               = 5 * 1024,
-			.min_afps              = 5 * 1024,
+			.min_afps              = 30 * 1024,
 			.int_update_delay_frm  = 1,
 			.gain_update_delay_frm = 1,
 		},
@@ -582,6 +583,14 @@ static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
 	ae_info->one_line_exp_time_ns = sensor->hlen * 1000 / pixclk_mhz;
 	ae_info->cur_fps = div_u64(pix_freq * 1024ULL,
 				   sensor->vlen * sensor->hlen);
+	ae_info->max_fps = div_u64(pix_freq * 1024ULL,
+				   sensor->fmt.height +
+				   sensor->limits.vblank.min *
+				   sensor->hlen);
+	ae_info->min_fps = div_u64(pix_freq * 1024ULL,
+				   sensor->fmt.height +
+				   sensor->limits.vblank.max *
+				   sensor->hlen);
 
 	ae_info->max_integration_line = sensor->vlen;
 
@@ -747,6 +756,68 @@ static int ar0521_vv_set_wb(struct ar0521 *sensor, void *args)
 	return 0;
 }
 
+static int ar0521_vv_get_fps(struct ar0521 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	uint32_t *out_fps = (uint32_t *) args;
+	unsigned long pix_freq;
+	unsigned int fps;
+	int index;
+
+	mutex_lock(&sensor->lock);
+
+	index = bpp_to_index(sensor->bpp);
+	pix_freq = sensor->pll[index].pix_freq;
+
+	fps = div_u64(pix_freq * 10ULL, sensor->vlen * sensor->hlen);
+
+	*out_fps = fps * 1024 / 10;
+
+	mutex_unlock(&sensor->lock);
+
+	dev_dbg(dev, "%s: %u.%u\n", __func__, fps/10, fps%10);
+
+	return 0;
+}
+
+static int ar0521_vv_set_fps(struct ar0521 *sensor, void *args)
+{
+	struct device *dev = sensor->subdev.dev;
+	uint32_t fps = *(uint32_t *) args;
+	unsigned long pix_freq;
+	unsigned int max_fps, min_fps;
+	unsigned int vlen, vblank;
+	int index;
+
+	mutex_lock(&sensor->lock);
+
+	index = bpp_to_index(sensor->bpp);
+	pix_freq = sensor->pll[index].pix_freq;
+
+	max_fps = div_u64(pix_freq * 10ULL,
+			  sensor->fmt.height + sensor->limits.vblank.min *
+			  sensor->hlen);
+	min_fps = div_u64(pix_freq * 10ULL,
+			  sensor->fmt.height + sensor->limits.vblank.max *
+			  sensor->hlen);
+
+	fps = fps * 10 / 1024;
+
+	clamp_t(unsigned int, fps, min_fps, max_fps);
+
+	vlen = div_u64(pix_freq * 10ULL, fps * sensor->hlen);
+	vblank = vlen - sensor->fmt.height;
+
+	mutex_unlock(&sensor->lock);
+
+	v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank);
+
+	dev_dbg(dev, "%s: %u.%u (vblank: %u)\n", __func__,
+		fps/10, fps%10, vblank);
+
+	return 0;
+}
+
 static int ar0521_vv_read_reg(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
@@ -843,6 +914,12 @@ static long ar0521_priv_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
 		break;
 	case VVSENSORIOC_S_WB:
 		ret = ar0521_vv_set_wb(sensor, arg);
+		break;
+	case VVSENSORIOC_G_FPS:
+		ret = ar0521_vv_get_fps(sensor, arg);
+		break;
+	case VVSENSORIOC_S_FPS:
+		ret = ar0521_vv_set_fps(sensor, arg);
 		break;
 	case VVSENSORIOC_READ_REG:
 		ret = ar0521_vv_read_reg(sensor, arg);
@@ -2583,6 +2660,9 @@ static int ar0521_create_ctrls(struct ar0521 *sensor)
 			break;
 		case V4L2_CID_EXPOSURE:
 			sensor->exp_ctrl = ctrl;
+			break;
+		case V4L2_CID_VBLANK:
+			sensor->vblank_ctrl = ctrl;
 			break;
 		case V4L2_CID_ANALOGUE_GAIN:
 			sensor->gains.ana_ctrl = ctrl;
