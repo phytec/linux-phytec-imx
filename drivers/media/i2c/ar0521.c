@@ -1791,10 +1791,13 @@ static int ar0521_set_fmt(struct v4l2_subdev *sd,
 
 	dev_dbg(sd->dev, "%s\n", __func__);
 
-	if (sensor->is_streaming && format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-		return -EBUSY;
-
 	mutex_lock(&sensor->lock);
+
+	if (sensor->is_streaming &&
+	    format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+		mutex_unlock(&sensor->lock);
+		return -EBUSY;
+	}
 
 	fmt = ar0521_get_pad_fmt(sensor, cfg, format->pad, format->which);
 	crop = ar0521_get_pad_crop(sensor, cfg, format->pad,
@@ -1882,12 +1885,14 @@ static int ar0521_set_selection(struct v4l2_subdev *sd,
 	if (sel->target != V4L2_SEL_TGT_CROP)
 		return -EINVAL;
 
+	mutex_lock(&sensor->lock);
+
 	if (sensor->is_streaming &&
 	    (sel->r.width != sensor->crop.width ||
-	     sel->r.height != sensor->crop.height))
-		return -EBUSY;
-
-	mutex_lock(&sensor->lock);
+	     sel->r.height != sensor->crop.height)) {
+		ret = -EBUSY;
+		goto out;
+	}
 
 	_crop = ar0521_get_pad_crop(sensor, cfg, sel->pad, sel->which);
 
