@@ -2097,21 +2097,55 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	switch (ctrl->id) {
 	case V4L2_CID_VBLANK:
-		if (sensor->is_streaming)
-			return -EBUSY;
-
 		mutex_lock(&sensor->lock);
+
+		if (sensor->is_streaming) {
+			ret = ar0521_group_param_hold(sensor);
+			if (ret) {
+				mutex_unlock(&sensor->lock);
+				break;
+			}
+		}
+
 		sensor->vblank = ctrl->val;
 		sensor->vlen = ar0521_get_vlength(sensor);
+
+		if (sensor->is_streaming) {
+			ret = ar0521_config_frame(sensor);
+			if (ret) {
+				mutex_unlock(&sensor->lock);
+				break;
+			}
+
+			ret = ar0521_group_param_release(sensor);
+		}
+
 		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_HBLANK:
-		if (sensor->is_streaming)
-			return -EBUSY;
-
 		mutex_lock(&sensor->lock);
+
+		if (sensor->is_streaming) {
+			ret = ar0521_group_param_hold(sensor);
+			if (ret) {
+				mutex_unlock(&sensor->lock);
+				break;
+			}
+		}
+
 		sensor->hblank = ctrl->val;
 		sensor->hlen = ar0521_get_hlength(sensor);
+
+		if (sensor->is_streaming) {
+			ret = ar0521_config_frame(sensor);
+			if (ret) {
+				mutex_unlock(&sensor->lock);
+				break;
+			}
+
+			ret = ar0521_group_param_release(sensor);
+		}
+
 		mutex_unlock(&sensor->lock);
 		break;
 	case V4L2_CID_HFLIP:
