@@ -1779,6 +1779,18 @@ static int ar0521_get_fmt(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static int ar0521_group_param_hold(struct ar0521 *sensor)
+{
+	return ar0521_set_bits(sensor, AR0521_RESET_REGISTER,
+			       BIT_GROUPED_PARAM_HOLD);
+}
+
+static int ar0521_group_param_release(struct ar0521 *sensor)
+{
+	return ar0521_clear_bits(sensor, AR0521_RESET_REGISTER,
+				 BIT_GROUPED_PARAM_HOLD);
+}
+
 static int ar0521_set_selection(struct v4l2_subdev *sd,
 				struct v4l2_subdev_pad_config *cfg,
 				struct v4l2_subdev_selection *sel)
@@ -1786,6 +1798,7 @@ static int ar0521_set_selection(struct v4l2_subdev *sd,
 	struct ar0521 *sensor = to_ar0521(sd);
 	struct v4l2_rect *_crop;
 	unsigned int max_w, max_h;
+	int ret = 0;
 
 	dev_dbg(sd->dev, "%s\n", __func__);
 
@@ -1810,16 +1823,24 @@ static int ar0521_set_selection(struct v4l2_subdev *sd,
 	_crop->height = min_t(unsigned int, sel->r.height, max_h - _crop->top);
 
 	if (sensor->is_streaming) {
-		/* TODO: Add on the fly cropping change */
-		mutex_unlock(&sensor->lock);
-		return -EBUSY;
-	} else {
-		sel->r = *_crop;
+		ret = ar0521_group_param_hold(sensor);
+		if (ret)
+			goto out;
+
+		ret = ar0521_config_frame(sensor);
+		if (ret)
+			goto out;
+
+		ret = ar0521_group_param_release(sensor);
+		if (ret)
+			goto out;
 	}
 
-	mutex_unlock(&sensor->lock);
+	sel->r = *_crop;
 
-	return 0;
+out:
+	mutex_unlock(&sensor->lock);
+	return ret;
 }
 
 static int ar0521_get_selection(struct v4l2_subdev *sd,
