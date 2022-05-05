@@ -567,6 +567,7 @@ static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
 	struct vvcam_ae_info_s *ae_info = &sensor->vvcam_mode.ae_info;
 	unsigned long pix_freq;
 	unsigned int pixclk_mhz;
+	uint32_t int_lines, exposure_ms, gain;
 	int index;
 	int ret;
 
@@ -593,6 +594,13 @@ static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
 				   sensor->hlen);
 
 	ae_info->max_integration_line = sensor->vlen;
+
+	int_lines = sensor->exp_ctrl->cur.val;
+	exposure_ms = int_lines * sensor->hlen / pixclk_mhz;
+	gain = sensor->gains.ana_ctrl->cur.val *
+	       sensor->gains.dig_ctrl->cur.val / 1000;
+
+	ae_info->start_exposure = (gain * exposure_ms / 1000) * 1024;
 
 	mutex_unlock(&sensor->lock);
 
