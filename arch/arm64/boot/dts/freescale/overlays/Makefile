@@ -21,6 +21,7 @@ dtb-y += imx8mm-phygate-tauri-rs232-rts-cts.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-av-010.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-wlbt-05.dtbo
 dtb-y += imx8mp-phycore-rpmsg.dtbo
+dtb-y += imx8mp-phyboard-pollux-1552.1.dtbo
 dtb-y += imx8mp-isi-csi1.dtbo
 dtb-y += imx8mp-isi-csi2.dtbo
 dtb-y += imx8mp-isp-csi1.dtbo
