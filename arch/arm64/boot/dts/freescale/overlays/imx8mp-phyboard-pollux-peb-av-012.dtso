@@ -1,0 +1,110 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Cem Tenruh <c.tenruh@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "../imx8mp-pinfunc.h"
+
+/ {
+	compatible = "phytec,imx8mp-phyboard-pollux-rdk";
+
+	fragment@5 {
+		target-path= "/";
+
+		__overlay__ {
+			panel2: panel2 {
+				compatible = "edt,etml1010g0dka";
+
+				port {
+					panel2_in: endpoint {
+						remote-endpoint = <&bridge_out>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&i2c4 {
+	pinctrl-names = "default","gpio";
+	pinctrl-0 = <&pinctrl_i2c4>;
+	pinctrl-1 = <&pinctrl_i2c4_gpio>;
+	sda-gpios = <&gpio5 21 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	scl-gpios = <&gpio5 20 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	clock-frequency = <400000>;
+	status = "okay";
+
+	gpioexpander: gpio@24 {
+		compatible = "nxp,pca9570";
+		reg = <0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	mipitolvds@2c {
+		compatible = "ti,sn65dsi83";
+		pinctrl-names = "default";
+		enable-gpios = <&gpioexpander 1 GPIO_ACTIVE_LOW>;
+		reg = <0x2c>;
+		lanes_in = <4>;
+		lvds_vod_swing = <0x3>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				bridge_out: endpoint {
+					remote-endpoint = <&panel2_in>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				bridge_in: endpoint {
+					remote-endpoint = <&dsi_out>;
+				};
+			};
+		};
+	};
+};
+
+&lcdif1 {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	port@1 {
+		dsi_out: endpoint {
+			remote-endpoint = <&bridge_in>;
+			attach-bridge;
+		};
+	};
+};
+
+&iomuxc {
+	pinctrl_i2c4: i2c4grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_I2C4_SCL__I2C4_SCL         0x400001c3
+			MX8MP_IOMUXC_I2C4_SDA__I2C4_SDA         0x400001c3
+		>;
+	};
+
+	pinctrl_i2c4_gpio: i2c4gpiogrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_I2C4_SCL__GPIO5_IO20       0x1c3
+			MX8MP_IOMUXC_I2C4_SDA__GPIO5_IO21       0x1c3
+		>;
+	};
+};
