@@ -2,81 +2,96 @@
 /*
  * Copyright (C) 2020 PHYTEC Messtechnik GmbH
  * Author: Teresa Remmet <t.remmet@phytec.de>
+ *         Cem Tenruh <c.tenruh@phytec.de>
  *
  */
 
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "../imx8mp-pinfunc.h"
+
 / {
-	backlight0: backlight0 {
-		compatible = "pwm-backlight";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_lvds0>;
-		default-brightness-level = <6>;
-		pwms = <&pwm4 0 50000 0>;
-		enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
-		brightness-levels= <0 4 8 16 32 64 128 255>;
-	};
+	compatible = "phytec,imx8mp-phyboard-pollux-rdk";
 
-	panel0: panel0 {
-		compatible = "edt,etml1010g0dka";
-		backlight = <&backlight0>;
-
-		port {
-			panel0_in: endpoint {
-				remote-endpoint = <&lvds0_out>;
+	fragment@6 {
+		target-path= "/";
+		__overlay__ {
+			backlight0: backlight0 {
+				compatible = "pwm-backlight";
+				brightness-levels= <0 4 8 16 32 64 128 255>;
+				default-brightness-level = <6>;
+				enable-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_lvds0>;
+				pwms = <&pwm4 0 50000 0>;
 			};
-		};
-	};
 
-	sound-peb-av-10 {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "snd-peb-av-10";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,bitclock-master = <&dailink_master>;
-		simple-audio-card,frame-master = <&dailink_master>;
-		simple-audio-card,mclk-fs = <32>;
-		simple-audio-card,widgets =
-			"Line", "Line In",
-			"Speaker", "Speaker",
-			"Microphone", "Microphone Jack",
-			"Headphone", "Headphone Jack";
-		simple-audio-card,routing =
-			"Speaker", "SPOP",
-			"Speaker", "SPOM",
-			"Headphone Jack", "HPLOUT",
-			"Headphone Jack", "HPROUT",
-			"LINE1L", "Line In",
-			"LINE1R", "Line In",
-			"MIC3R", "Microphone Jack",
-			"Microphone Jack", "Mic Bias";
+			panel0: panel0 {
+				compatible = "edt,etml1010g0dka";
+				backlight = <&backlight0>;
 
-		dailink_master: simple-audio-card,cpu {
-			sound-dai = <&sai2>;
-		};
+				port {
+					panel0_in: endpoint {
+						remote-endpoint = <&lvds0_out>;
+					};
+				};
+			};
 
-		simple-audio-card,codec {
-			sound-dai = <&codec>;
+			sound-peb-av-10 {
+				compatible = "simple-audio-card";
+				simple-audio-card,bitclock-master = <&dailink_master>;
+				simple-audio-card,format = "i2s";
+				simple-audio-card,frame-master = <&dailink_master>;
+				simple-audio-card,mclk-fs = <32>;
+				simple-audio-card,name = "snd-peb-av-10";
+				simple-audio-card,routing =
+					"Speaker", "SPOP",
+					"Speaker", "SPOM",
+					"Headphone Jack", "HPLOUT",
+					"Headphone Jack", "HPROUT",
+					"LINE1L", "Line In",
+					"LINE1R", "Line In",
+					"MIC3R", "Microphone Jack",
+					"Microphone Jack", "Mic Bias";
+				simple-audio-card,widgets =
+					"Line", "Line In",
+					"Speaker", "Speaker",
+					"Microphone", "Microphone Jack",
+					"Headphone", "Headphone Jack";
+
+				dailink_master: simple-audio-card,cpu {
+					sound-dai = <&sai2>;
+				};
+
+				simple-audio-card,codec {
+					sound-dai = <&codec>;
+				};
+			};
 		};
 	};
 };
 
 &i2c4 {
+	clock-frequency = <400000>;
 	pinctrl-names = "default","gpio";
 	pinctrl-0 = <&pinctrl_i2c4>;
 	pinctrl-1 = <&pinctrl_i2c4_gpio>;
-	sda-gpios = <&gpio5 21 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	scl-gpios = <&gpio5 20 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-	clock-frequency = <400000>;
+	sda-gpios = <&gpio5 21 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	status = "okay";
 
 	codec: codec@18 {
 		compatible = "ti,tlv320aic3007";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tlv320>;
-		#sound-dai-cells = <0>;
-		reg = <0x18>;
-		reset-gpios = <&gpio4 28 GPIO_ACTIVE_LOW>;
 		ai3x-gpio-func = <0xd 0x0>;
 		ai3x-micbias-vg = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tlv320>;
+		reg = <0x18>;
+		reset-gpios = <&gpio4 28 GPIO_ACTIVE_LOW>;
+		#sound-dai-cells = <0>;
 	};
 
 	eeprom@57 {
@@ -97,7 +112,7 @@
 	lvds-channel@0 {
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <24>;
-		status = "disabled";
+		status = "okay";
 
 		port@1 {
 			reg = <1>;
@@ -106,6 +121,10 @@
 				remote-endpoint = <&panel0_in>;
 			};
 		};
+	};
+
+	lvds-channel@1 {
+		status = "disabled";
 	};
 };
 
@@ -116,9 +135,6 @@
 };
 
 &sai2 {
-	#sound-dai-cells = <0>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_sai2>;
 	assigned-clocks = <&clk IMX8MP_CLK_SAI2>;
 	assigned-clock-parents = <&clk IMX8MP_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <12288000>;
@@ -131,7 +147,10 @@
 		 <&clk IMX8MP_AUDIO_PLL2_OUT>;
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 	fsl,sai-synchronous-rx;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sai2>;
 	status = "okay";
+	#sound-dai-cells = <0>;
 };
 
 &sdma2 {
@@ -178,8 +197,8 @@
 
 	pinctrl_tlv320: tlv320grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI3_RXFS__GPIO4_IO28		0x16
 			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x16
+			MX8MP_IOMUXC_SAI3_RXFS__GPIO4_IO28		0x16
 		>;
 	};
 };
