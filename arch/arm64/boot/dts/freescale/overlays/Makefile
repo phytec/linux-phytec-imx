@@ -5,6 +5,7 @@ dtb-y += imx8mm-vm017.dtbo
 dtb-y += imx8mm-vm016-fpdlink.dtbo
 dtb-y += imx8mm-vm017-fpdlink.dtbo
 dtb-y += imx8mm-dual-vm017-fpdlink.dtbo
+dtb-y += imx8mm-phyboard-polis-1532.1.dtbo
 dtb-y += imx8mm-phyboard-polis-peb-eval-01.dtbo
 dtb-y += imx8mm-phyboard-polis-peb-av-010.dtbo
 dtb-y += imx8mm-phycore-rpmsg.dtbo
