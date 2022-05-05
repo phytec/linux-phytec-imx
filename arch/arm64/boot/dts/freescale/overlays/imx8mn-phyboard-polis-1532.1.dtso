@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx8mn-phyboard-polis";
+
+	fragment@5 {
+		target-path= "/";
+
+		__overlay__ {
+			 reg_usdhc2_vmmc_fixed: regulator-usdhc2-fixed {
+				compatible = "regulator-fixed";
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-name = "VSD_3V3_FIX";
+			};
+		};
+	};
+};
+
+&can_osc_40m {
+	clock-frequency = <20000000>;
+	clock-output-names = "can_osc_20m";
+};
+
+&can0 {
+	spi-max-frequency = <20000000>;
+};
+
+&fan {
+	status = "disabled";
+};
+
+&reg_usdhc2_vmmc {
+	status = "disabled";
+};
+
+&usdhc2 {
+	vmmc-supply = <&reg_usdhc2_vmmc_fixed>;
+};
