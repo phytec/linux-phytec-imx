@@ -1875,8 +1875,9 @@ static const struct panel_desc edt_etml1010g0dka = {
 		.width = 216,
 		.height = 135,
 	},
-	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
 	.bus_flags = DRM_BUS_FLAG_DE_HIGH,
+	.connector_type = DRM_MODE_CONNECTOR_LVDS,
 };
 
 static const struct drm_display_mode foxlink_fl500wvr00_a0t_mode = {
