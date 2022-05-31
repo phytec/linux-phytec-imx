@@ -32,6 +32,9 @@
 };
 
 &i2c4 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
 	pinctrl-names = "default","gpio";
 	pinctrl-0 = <&pinctrl_i2c4>;
 	pinctrl-1 = <&pinctrl_i2c4_gpio>;
