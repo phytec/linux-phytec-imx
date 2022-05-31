@@ -75,6 +75,9 @@
 };
 
 &i2c4 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
 	clock-frequency = <400000>;
 	pinctrl-names = "default","gpio";
 	pinctrl-0 = <&pinctrl_i2c4>;
@@ -110,6 +113,9 @@
 
 &ldb {
 	lvds-channel@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <24>;
 		status = "okay";
