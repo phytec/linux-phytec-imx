@@ -120,6 +120,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <2187500>;
 				regulator-min-microvolt = <600000>;
+				regulator-name = "VDD_SOC (BUCK1)";
 				regulator-ramp-delay = <3125>;
 			};
 
@@ -130,6 +131,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <2187500>;
 				regulator-min-microvolt = <600000>;
+				regulator-name = "VDD_ARM (BUCK2)";
 				regulator-ramp-delay = <3125>;
 			};
 
@@ -138,6 +140,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <3400000>;
 				regulator-min-microvolt = <600000>;
+				regulator-name = "VDD_3V3 (BUCK4)";
 			};
 
 			buck5: BUCK5 {
@@ -145,6 +148,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <3400000>;
 				regulator-min-microvolt = <600000>;
+				regulator-name = "VDD_1V8 (BUCK5)";
 			};
 
 			buck6: BUCK6 {
@@ -152,6 +156,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <3400000>;
 				regulator-min-microvolt = <600000>;
+				regulator-name = "NVCC_DRAM_1V1 (BUCK6)";
 			};
 
 			ldo1: LDO1 {
@@ -159,6 +164,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <3300000>;
 				regulator-min-microvolt = <1600000>;
+				regulator-name = "NVCC_SNVS_1V8 (LDO1)";
 			};
 
 			ldo3: LDO3 {
@@ -166,6 +172,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <3300000>;
 				regulator-min-microvolt = <800000>;
+				regulator-name = "VDDA_1V8 (LDO3)";
 			};
 
 			ldo5: LDO5 {
@@ -173,6 +180,7 @@
 				regulator-boot-on;
 				regulator-max-microvolt = <3300000>;
 				regulator-min-microvolt = <1800000>;
+				regulator-name = "NVCC_SD2 (LDO5)";
 			};
 		};
 	};
