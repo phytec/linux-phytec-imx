@@ -179,6 +179,12 @@
 	status = "okay";
 };
 
+/* RTC */
+&rv3028 {
+	trickle-resistor-ohms = <3000>;
+	enable-level-switching-mode;
+};
+
 /* UART - RS485 */
 &uart1 {
 	pinctrl-names = "default";
