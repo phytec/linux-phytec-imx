@@ -68,7 +68,7 @@
 
 &iomuxc {
 	pinctrl_gpio_keys: gpio_keysgrp {
-		sl,pins = <
+		fsl,pins = <
 			MX8MM_IOMUXC_SAI1_TXD5_GPIO4_IO17	0x16
 			MX8MM_IOMUXC_UART4_TXD_GPIO5_IO29	0x16
 		>;
