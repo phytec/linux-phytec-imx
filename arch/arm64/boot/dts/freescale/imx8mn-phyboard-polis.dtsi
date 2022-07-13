@@ -22,7 +22,7 @@
 		};
 	};
 
-	fan: gpio_fan {
+	fan: gpio-fan {
 		compatible = "gpio-fan";
 		gpios = <&gpio4 27 GPIO_ACTIVE_HIGH>;
 		gpio-fan,speed-map = <0     0
@@ -59,7 +59,7 @@
 		};
 	};
 
-	usdhc1_pwrseq: pwr_seq {
+	usdhc1_pwrseq: pwr-seq {
 		compatible = "mmc-pwrseq-simple";
 		post-power-on-delay-ms = <100>;
 		power-off-delay-us = <60>;
@@ -133,7 +133,7 @@
 	#size-cells =           <0>;
 	status = "okay";
 
-	tpm: tpm_tis@0 {
+	tpm: tpm-tis@0 {
 		compatible = "tcg,tpm_tis-spi";
 		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
 		interrupt-parent = <&gpio2>;
