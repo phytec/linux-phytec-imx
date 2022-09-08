@@ -297,6 +297,12 @@
 		vdd-supply = <&reg_vdd_1p2>;
 		vddio-supply = <&reg_vdd_1v8>;
 		status = "disabled";
+
+		/*
+		 * Setup is carrier board dependent please checkout
+		 * overlays/imx8mm-phyboard-polis-peb-av-010-tc358775.dtbo
+		 * as an example.
+		 */
 	};
 
 	sn65dsi83: bridge@2d {
