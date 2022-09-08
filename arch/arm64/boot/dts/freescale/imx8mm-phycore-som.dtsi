@@ -16,6 +16,15 @@
 		rtc1 = &snvs_rtc;
 	};
 
+	reg_vdd_1p2: regulator-vdd-1p2 {
+		compatible = "regulator-fixed";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-max-microvolt = <1200000>;
+		regulator-min-microvolt = <1200000>;
+		regulator-name = "reg_vdd_1p2";
+	};
+
 	rtcclkout: rv3028-clkout {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
@@ -242,6 +251,18 @@
 		};
 	};
 
+	i2c1_tc358775: bridge@f {
+		compatible = "toshiba,tc358775";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tc358775>;
+		reg = <0x0f>;
+		reset-gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
+		stby-gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		vdd-supply = <&reg_vdd_1p2>;
+		vddio-supply = <&reg_buck6>;
+		status = "disabled";
+	};
+
 	eeprom@51 {
 		compatible = "atmel,24c32";
 		pagesize = <32>;
@@ -379,6 +400,13 @@
 	pinctrl_sn65dsi83: sn65dsi83grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x0
+		>;
+	};
+
+	pinctrl_tc358775: tc358775grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x0
+			MX8MM_IOMUXC_GPIO1_IO11_GPIO1_IO11		0x0
 		>;
 	};
 
