@@ -16,10 +16,6 @@
 		     "phytec,imx8mm-phycore-som","fsl,imx8mm";
 };
 
-&i2c1_sn65dsi83 {
-	status = "okay";
-};
-
 &flash0 {
 	status = "okay";
 };
