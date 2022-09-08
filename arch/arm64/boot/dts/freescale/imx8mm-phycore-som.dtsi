@@ -278,13 +278,11 @@
 		lvds_vod_swing = <0x3>;
 		status = "disabled";
 
-		sn65dsi83_ports: ports {
-			/*
-			 * Setup is carrier board dependent please checkout
-			 * overlays/imx8mm-phyboard-polis-peb-av-010.dtbo
-			 * as an example.
-			 */
-		};
+		/*
+		 * Setup is carrier board dependent please checkout
+		 * overlays/imx8mm-phyboard-polis-peb-av-010.dtbo
+		 * as an example.
+		 */
 	};
 };
 
