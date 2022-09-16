@@ -41,6 +41,12 @@
 			#size-cells = <0x0>;
 			port@0 {
 				reg = <0>;
+
+				ti,aeq-strobe-min = <7>;
+				ti,aeq-strobe-max = <10>;
+				ti,aeq-eq-min = <2>;
+				ti,aeq-eq-max = <14>;
+
 				des_port0_in: endpoint {
 					remote-endpoint = <&ser_cam0_out>;
 				};
