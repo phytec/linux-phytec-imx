@@ -55,6 +55,11 @@ properties:
       - const: rx0_id
       - const: rx1_id
 
+  ti,reset-delay-ms:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            description: Reset delay in milliseconds.
+            default: 200
+
   ports:
     type: object
     description: |
