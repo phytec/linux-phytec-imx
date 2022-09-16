@@ -128,7 +128,6 @@ struct ub954 {
 	struct v4l2_ctrl_handler ctrls;
 	struct media_pad pad[UB954_NUM_PADS];
 
-
 	struct i2c_mux_core *mux;
 	unsigned int last_chan;
 
@@ -686,50 +685,44 @@ static int ub954_v4l2_notifier_register(struct ub954 *state)
 	return 0;
 }
 
-static int ub954_init_aeq(struct ub954 *state)
+static int ub954_init_aeq(struct ub954 *state, struct ub954_rxport *rxport)
 {
-	struct ub954_rxport *rxport;
 	int time_ms = 0;
-	int port;
 	int status;
 	int ret;
 
-	for_each_port(port) {
-		rxport = &state->rxport[port];
-		if (!rxport->fwnode)
-			continue;
+	if (!rxport->fwnode && !rxport->active)
+		return 0;
 
-		ret = ub954_write(rxport->i2c, UB954_PR_SFILTER_CFG,
-				  BIT_SFILTER_MAX(rxport->strobe_max) |
-				  BIT_SFILTER_MIN(rxport->strobe_min));
-		if (ret)
-			return ret;
+	ret = ub954_write(rxport->i2c, UB954_PR_SFILTER_CFG,
+			  BIT_SFILTER_MAX(rxport->strobe_max) |
+			  BIT_SFILTER_MIN(rxport->strobe_min));
+	if (ret)
+		return ret;
 
-		ret = ub954_write(rxport->i2c, UB954_PR_AEQ_MIN_MAX,
-				  BIT_AEQ_MAX(rxport->eq_max) |
-				  BIT_AEQ_FLOOR_VALUE(rxport->eq_min));
-		if (ret)
-			return ret;
+	ret = ub954_write(rxport->i2c, UB954_PR_AEQ_MIN_MAX,
+			  BIT_AEQ_MAX(rxport->eq_max) |
+			  BIT_AEQ_FLOOR_VALUE(rxport->eq_min));
+	if (ret)
+		return ret;
 
-		/* Reset AEQ */
-		ret = ub954_set_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
-				     BIT_AEQ_RESTART | BIT_SET_AEQ_FLOOR);
-		if (ret)
-			return ret;
+	/* Reset AEQ */
+	ret = ub954_set_bits(rxport->i2c, UB954_PR_AEQ_CTL2,
+			     BIT_AEQ_RESTART | BIT_SET_AEQ_FLOOR);
+	if (ret)
+		return ret;
 
-		while (time_ms < UB954_LOCK_TIMEOUT) {
-			status = ub954_read(rxport->i2c, UB954_PR_RX_PORT_STS1);
-			if ((status & BIT_LOCK_STS) &&
-			    !(status & BIT_LOCK_STS_CHG))
-				break;
+	while (time_ms < UB954_LOCK_TIMEOUT) {
+		status = ub954_read(rxport->i2c, UB954_PR_RX_PORT_STS1);
+		if ((status & BIT_LOCK_STS) &&
+		    !(status & BIT_LOCK_STS_CHG))
+			break;
 
-			msleep(UB954_LOCK_STEP);
-			time_ms += UB954_LOCK_STEP;
-		}
-
-		dev_dbg(&state->i2c->dev, "%s LOCK after %d ms\n", __func__,
-			 time_ms);
+		msleep(UB954_LOCK_STEP);
+		time_ms += UB954_LOCK_STEP;
 	}
+
+	dev_dbg(&state->i2c->dev, "%s LOCK after %d ms\n", __func__, time_ms);
 
 	return 0;
 }
@@ -793,6 +786,10 @@ static int ub954_init_serializer(struct ub954 *state)
 			return ret;
 
 		rxport->i2c = new;
+
+		ret = ub954_init_aeq(state, rxport);
+		if (ret)
+			return ret;
 
 		if (!rxport->active)
 			continue;
@@ -878,10 +875,6 @@ static int ub954_init(struct ub954 *state)
 		goto out;
 
 	ret = ub954_init_link(state);
-	if (ret)
-		goto out;
-
-	ret = ub954_init_aeq(state);
 	if (ret)
 		goto out;
 
