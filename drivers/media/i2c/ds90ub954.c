@@ -87,6 +87,7 @@
 #define UB954_DEFAULT_STROBE_MAX	10
 #define UB954_DEFAULT_EQ_MIN		2
 #define UB954_DEFAULT_EQ_MAX		14
+#define UB954_DEFAULT_RESET_DELAY_MS	200
 
 #define UB954_LOCK_STEP			100
 #define UB954_LOCK_TIMEOUT		5000
@@ -136,6 +137,7 @@ struct ub954 {
 	int last_port;
 	int active_port;
 	unsigned int num_lanes;
+	unsigned int reset_delay_ms;
 
 	bool streaming;
 
@@ -839,7 +841,7 @@ static int ub954_reset(struct ub954 *state)
 	ret = ub954_write(state->i2c, UB954_SR_RESET,
 			 BIT_DIGITAL_RESET0 | BIT_DIGITAL_RESET1);
 
-	msleep(200);
+	msleep(state->reset_delay_ms);
 
 	return ret;
 }
@@ -1025,6 +1027,10 @@ static int ub954_of_probe(struct device *dev, struct ub954 *state)
 		dev_err(dev, "Failed to find i2c-mux node\n");
 		return -EINVAL;
 	}
+
+	state->reset_delay_ms = UB954_DEFAULT_RESET_DELAY_MS;
+	of_property_read_u32(dev->of_node, "ti,reset-delay-ms",
+			     &state->reset_delay_ms);
 
 	for_each_child_of_node(i2c_mux, node) {
 		u32 id = 0;
