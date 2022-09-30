@@ -2020,11 +2020,11 @@ static int ar0521_set_analogue_gain(struct ar0521 *sensor, unsigned int val)
 {
 	unsigned int coarse, fine;
 
-	for (coarse = 1; coarse < 8; coarse++)
-		if (val < (1u << coarse) * 1000)
+	for (coarse = 4; coarse >= 0; coarse--)
+		if ((1u << coarse) * 1000 <= val)
 			break;
 
-	val = val / (1u << (coarse - 1));
+	val = val / (1u << (coarse));
 	fine = ((val * 16) / 1000) - 16;
 
 	if (fine > 15)
