@@ -530,8 +530,7 @@ static int tc358775_parse_dt(struct device_node *np, struct tc_data *tc)
 	struct device_node *endpoint;
 	struct device_node *parent;
 	struct device_node *remote;
-	struct property *prop;
-	int len = 0;
+	int lanes = -1;
 
 	/*
 	 * To get the data-lanes of dsi, we need to access the dsi0_out of port1
@@ -548,10 +547,10 @@ static int tc358775_parse_dt(struct device_node *np, struct tc_data *tc)
 			endpoint = of_graph_get_endpoint_by_regs(parent, 1, -1);
 			of_node_put(parent);
 			if (endpoint) {
-				prop = of_find_property(endpoint, "data-lanes",
-							&len);
+				lanes = of_property_count_u32_elems(endpoint,
+								    "data-lanes");
 				of_node_put(endpoint);
-				if (!prop) {
+				if (lanes < 0) {
 					dev_err(tc->dev,
 						"failed to find data lane\n");
 					return -EPROBE_DEFER;
@@ -560,7 +559,7 @@ static int tc358775_parse_dt(struct device_node *np, struct tc_data *tc)
 		}
 	}
 
-	tc->num_dsi_lanes = len / sizeof(u32);
+	tc->num_dsi_lanes = lanes;
 
 	if (tc->num_dsi_lanes < 1 || tc->num_dsi_lanes > 4)
 		return -EINVAL;
