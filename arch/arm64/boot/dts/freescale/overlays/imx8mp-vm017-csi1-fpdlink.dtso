@@ -88,7 +88,7 @@
 		clock-names = "refclk";
 
 		#clock-cells = <0>;
-		clock-output-names = "clkout_port0";
+		clock-output-names = "clkout_csi1_port0";
 		clock-frequency = <27000000>;
 
 		gpio-controller;
