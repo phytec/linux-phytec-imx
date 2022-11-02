@@ -208,6 +208,7 @@
 	status = "okay";
 };
 
+/* RTC */
 &rv3028 {
 	trickle-resistor-ohms = <3000>;
 };
