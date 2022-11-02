@@ -106,7 +106,7 @@
 	};
 };
 
-/* CAN mcp251xfd */
+/* SPI - CAN MCP251XFD */
 &ecspi1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -168,7 +168,7 @@
 	trickle-resistor-ohms = <3000>;
 };
 
-/* UART - RS485 */
+/* UART - RS232/RS485 */
 &uart1 {
 	assigned-clocks = <&clk IMX8MN_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MN_SYS_PLL1_80M>;
@@ -178,7 +178,7 @@
 	status = "okay";
 };
 
-/* Sterling-LWB Bluetooth & WLAN */
+/* UART - Sterling-LWB Bluetooth */
 &uart2 {
 	assigned-clocks = <&clk IMX8MN_CLK_UART2>;
 	assigned-clock-parents = <&clk IMX8MN_SYS_PLL1_80M>;
@@ -201,7 +201,7 @@
 	};
 };
 
-/* UART console */
+/* UART - console */
 &uart3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
@@ -220,6 +220,7 @@
 	status = "okay";
 };
 
+/* SDIO - Sterling-LWB Wifi */
 &usdhc1 {
 	assigned-clocks = <&clk IMX8MN_CLK_USDHC1>;
 	assigned-clock-rates = <200000000>;
