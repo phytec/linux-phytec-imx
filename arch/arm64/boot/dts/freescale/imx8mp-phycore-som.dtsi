@@ -38,7 +38,7 @@
 	cpu-supply = <&buck2>;
 };
 
-/* ethernet on module */
+/* Ethernet */
 &fec {
 	fsl,magic-packet;
 	phy-handle = <&ethphy0>;
@@ -64,6 +64,7 @@
 	};
 };
 
+/* SPI Flash */
 &flexspi {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexspi0>;
@@ -97,6 +98,7 @@
 	status = "okay";
 };
 
+/* I2C1 */
 &i2c1 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default", "gpio";
@@ -185,17 +187,20 @@
 		};
 	};
 
+	/* EEPROM */
 	eeprom@51 {
 		compatible = "atmel,24c32";
 		pagesize = <32>;
 		reg = <0x51>;
 	};
 
+	/* RTC */
 	rv3028: rtc@52 {
 		compatible = "microcrystal,rv3028";
 		reg = <0x52>;
 	};
 
+	/* EEPROM ID page */
 	eepromid@59 {
 		compatible = "atmel,24c32";
 		pagesize = <32>;
@@ -230,6 +235,7 @@
 	status = "okay";
 };
 
+/* Watchdog */
 &wdog1 {
 	fsl,ext-reset-output;
 	pinctrl-names = "default";
