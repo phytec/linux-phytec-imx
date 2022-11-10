@@ -12,6 +12,7 @@ dtb-y += imx8mm-phygate-tauri-rs232-rs485.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485-switchable.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rts-cts.dtbo
 dtb-y += imx8mm-vm016.dtbo
+dtb-y += imx8mm-vm017.dtbo
 dtb-y += imx8mn-phyboard-polis-peb-eval-01.dtbo
 dtb-y += imx8mn-phyboard-polis-peb-av-010.dtbo
 dtb-y += imx8mn-phyboard-polis-1532.1.dtbo
