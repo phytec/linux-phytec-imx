@@ -478,6 +478,19 @@ config VIDEO_MAX9286
 	  To compile this driver as a module, choose M here: the
 	  module will be called max9286.
 
+config VIDEO_DS90UB954
+	tristate "Texas Instruments DS90UB954 FPD-Link III deserializer"
+	depends on I2C && I2C_MUX
+	select V4L2_FWNODE
+	select VIDEO_V4L2_SUBDEV_API
+	select MEDIA_CONTROLLER
+	help
+	  This driver supports the DS90UB954 Flat Panel Display (FPD)
+	  Link III deserializer.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called ds90ub954.
+
 comment "Video and audio decoders"
 
 config VIDEO_SAA717X
