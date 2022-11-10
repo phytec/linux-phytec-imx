@@ -133,6 +133,7 @@
 		interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&clk IMX8MM_CLK_CSI1_ROOT>;
 		clock-names = "mclk";
+		power-domains = <&mipi_pd>;
 		dma-coherent;
 		status = "okay";
 
