@@ -253,17 +253,19 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
 	 * and bFrameIndex values, in which case we can only assume they have
 	 * accepted the requested format as-is.
 	 */
-	for (i = 0; i < stream->nformats; ++i) {
-		if (probe->bFormatIndex == stream->format[i].index) {
-			format = &stream->format[i];
-			break;
+	if (probe->bFormatIndex != format->index) {
+		for (i = 0; i < stream->nformats; ++i) {
+			if (probe->bFormatIndex == stream->format[i].index) {
+				format = &stream->format[i];
+				break;
+			}
 		}
-	}
 
-	if (i == stream->nformats)
-		uvc_dbg(stream->dev, FORMAT,
-			"Unknown bFormatIndex %u, using default\n",
-			probe->bFormatIndex);
+		if (i == stream->nformats)
+			uvc_dbg(stream->dev, FORMAT,
+				"Unknown bFormatIndex %u, using default\n",
+				probe->bFormatIndex);
+	}
 
 	for (i = 0; i < format->nframes; ++i) {
 		if (probe->bFrameIndex == format->frame[i].bFrameIndex) {
