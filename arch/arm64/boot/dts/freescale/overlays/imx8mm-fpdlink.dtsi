@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+&csi1_i2c {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	status = "okay";
+
+	ds90ub954: deserializer@3d {
+		compatible = "ti,ds90ub954";
+		reg = <0x3d 0x70 0x71>;
+		reg-names = "device_id", "rx0_id", "rx1_id";
+		ti,reset-delay-ms = <1000>;
+
+		ports {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			port@0 {
+				reg = <0>;
+				des_port0_in: endpoint {};
+			};
+
+			port@1 {
+				reg = <1>;
+				des_port1_in: endpoint {};
+			};
+
+			port@2 {
+				reg = <2>;
+				des_out: endpoint {
+					remote-endpoint = <&mipi_csi_ep>;
+					link-frequencies = /bits/ 64 <
+						400000000
+					>;
+					data-lanes = <1 2 3 4>;
+				};
+			};
+		};
+
+		des_i2c_mux: i2c-mux {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+		};
+	};
+};
+
+&csi1_mipi_csi {
+	port@0 {
+		mipi_csi_ep: endpoint {
+			remote-endpoint = <&des_out>;
+			data-lanes = <1 2 3 4>;
+		};
+	};
+};
