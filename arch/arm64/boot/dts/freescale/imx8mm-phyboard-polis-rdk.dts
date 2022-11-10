@@ -88,6 +88,13 @@
 		startup-delay-us = <20>;
 	};
 
+	reg_mipi_1p0: regulator-mipi-1p0 {
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_1p0";
+		regulator-min-microvolt = <1000000>;
+		regulator-max-microvolt = <1000000>;
+	};
+
 	reg_usb_otg1_vbus: regulator-usb-otg1 {
 		compatible = "regulator-fixed";
 		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
@@ -117,6 +124,58 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-name = "VCC_3V3";
 	};
+};
+
+&aips4 {
+	csi-upstream@32e20000 {
+		compatible = "fsl,imx8mm-csi", "fsl,imx7-csi";
+		reg = <0x32e20000 0x1000>;
+		interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&clk IMX8MM_CLK_CSI1_ROOT>;
+		clock-names = "mclk";
+		dma-coherent;
+		status = "okay";
+
+		port {
+			csi_up_ep: endpoint {
+				remote-endpoint = <&mipi_csi_out_ep>;
+			};
+		};
+	};
+
+	csi1_mipi_csi: mipi-csi-upstream@32e30000 {
+		compatible = "fsl,imx8mm-mipi-csi2";
+		reg = <0x32e30000 0x1000>;
+		interrupts = <GIC_SPI 17 IRQ_TYPE_LEVEL_HIGH>;
+		clock-frequency = <500000000>;
+		clocks = <&clk IMX8MM_CLK_DISP_APB_ROOT>,
+			 <&clk IMX8MM_CLK_CSI1_ROOT>,
+			 <&clk IMX8MM_CLK_CSI1_PHY_REF>,
+			 <&clk IMX8MM_CLK_DISP_AXI_ROOT>;
+		clock-names = "pclk", "wrap", "phy", "axi";
+		power-domains = <&mipi_pd>;
+		fsl,csis-hs-settle = <9>;
+		status = "okay";
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+		};
+
+		port@1 {
+			reg = <1>;
+
+			mipi_csi_out_ep: endpoint {
+				remote-endpoint = <&csi_up_ep>;
+			};
+		};
+	};
+};
+
+&csi1_bridge {
+	status = "disabled";
 };
 
 /* SPI - CAN MCP251XFD */
@@ -186,6 +245,10 @@
 	gpio-line-names = "", "", "", "",
 		"", "", "", "",
 		"", "ECSPI1_SS0";
+};
+
+&mipi_csi_1 {
+	status = "disabled";
 };
 
 /* PCIe */
