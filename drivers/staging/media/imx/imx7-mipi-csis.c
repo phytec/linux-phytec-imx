@@ -774,7 +774,14 @@ static int mipi_csis_dump_regs(struct csi_state *state)
 	};
 
 	unsigned int i;
+	int ret;
 	u32 cfg;
+
+	ret = pm_runtime_get_sync(state->dev);
+	if (ret < 0) {
+		pm_runtime_put_noidle(state->dev);
+		return ret;
+	}
 
 	dev_info(state->dev, "--- REGISTERS ---\n");
 
@@ -782,6 +789,8 @@ static int mipi_csis_dump_regs(struct csi_state *state)
 		cfg = mipi_csis_read(state, registers[i].offset);
 		dev_info(state->dev, "%14s: 0x%08x\n", registers[i].name, cfg);
 	}
+
+	pm_runtime_put(state->dev);
 
 	return 0;
 }
@@ -1059,7 +1068,7 @@ static int mipi_csis_log_status(struct v4l2_subdev *sd)
 
 	mutex_lock(&state->lock);
 	mipi_csis_log_counters(state, true);
-	if (state->debug && (state->state & ST_POWERED))
+	if (state->debug)
 		mipi_csis_dump_regs(state);
 	mutex_unlock(&state->lock);
 
