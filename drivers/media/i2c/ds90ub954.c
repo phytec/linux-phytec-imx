@@ -1085,6 +1085,13 @@ static int ub954_of_probe(struct device *dev, struct ub954 *state)
 				 ep.local_node);
 			continue;
 		}
+
+		if (!fwnode_device_is_available(fwremote)) {
+			dev_dbg(dev, "Skipping disabled serializer port %u\n",
+				ep.port);
+			continue;
+		}
+
 		endpoint = fwnode_graph_get_remote_endpoint(fwnode);
 		state->rxport[ep.port].fwnode = fwremote;
 		state->rxport[ep.port].endpoint = endpoint;
