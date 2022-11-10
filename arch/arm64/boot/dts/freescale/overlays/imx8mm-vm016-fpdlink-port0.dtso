@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "imx8mm-fpdlink-port0.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "phytec,imx8mm-phyboard-polis";
+};
+
+&i2c_port0 {
+	vm016_port0: camera@10 {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		compatible = "onsemi,ar0144";
+		reg = <0x10>;
+		clocks = <&ser_port0>;
+		clock-names = "ext";
+
+		reset-gpios = <&ser_port0 3 GPIO_ACTIVE_LOW>;
+
+		port@0 {
+			reg = <0>;
+
+			vm016_port0_ep: endpoint {
+				remote-endpoint = <&ser_port0_in>;
+				bus-type = <4>; /* MIPI CSI-2 D-PHY */
+				link-frequencies = /bits/ 64 <222750000>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+				onsemi,t-hs-prep = <1>;
+				onsemi,t-clk-post = <9>;
+			};
+		};
+	};
+
+	eeprom@56 {
+		compatible = "atmel,24c02";
+		reg = <0x56>;
+		pagesize = <16>;
+	};
+};
+
+&ser_port0 {
+	clock-frequency = <26666666>;
+};
+
+&ser_port0_in {
+	remote-endpoint = <&vm016_port0_ep>;
+	data-lanes = <1 2>;
+};

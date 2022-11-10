@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "imx8mm-fpdlink.dtsi"
+
+&{/} {
+	ser_port1_clk: serializer-port1-clk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <24000000>;
+	};
+};
+
+&des_i2c_mux {
+	i2c_port1: i2c@1 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <1>;
+		clock-frequency = <400000>;
+
+		ser_port1: serializer@18 {
+			compatible = "ti,ds90ub953";
+			reg = <0x18>;
+
+			clocks = <&ser_port1_clk>;
+			clock-names = "refclk";
+
+			#clock-cells = <0>;
+			clock-output-names = "clkout_port1";
+			clock-frequency = <27000000>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			ports {
+				#address-cells = <0x1>;
+				#size-cells = <0x0>;
+				port@0 {
+					reg = <0>;
+					ser_port1_in: endpoint {};
+				};
+
+				port@1 {
+					reg = <1>;
+					ser_port1_out: endpoint {
+						remote-endpoint = <&des_port1_in>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&des_port1_in {
+	remote-endpoint = <&ser_port1_out>;
+};
