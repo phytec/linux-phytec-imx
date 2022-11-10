@@ -3239,7 +3239,7 @@ static int ar0521_parse_endpoint(struct device *dev, struct ar0521 *sensor,
 	fwnode_property_read_u32(ep, "onsemi,t-hs-prep", &tmp);
 	sensor->info.t_hs_prep = clamp_t(unsigned int, tmp, 0, 0xf);
 
-	tmp = 17;
+	tmp = 15;
 	fwnode_property_read_u32(ep, "onsemi,t-hs-zero", &tmp);
 	sensor->info.t_hs_zero = clamp_t(unsigned int, tmp, 0, 0xf);
 
