@@ -603,6 +603,20 @@ config VIDEO_THS8200
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called ths8200.
+
+config VIDEO_DS90UB953
+	tristate "Texas Instruments DS90UB953 FPD-Link III serializer"
+	depends on I2C
+	depends on OF_GPIO
+	select V4L2_FWNODE
+	select VIDEO_V4L2_SUBDEV_API
+	select MEDIA_CONTROLLER
+	help
+	  This driver supports the DS90UB953 Flat Panel Display (FPD)
+	  Link III serializer.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called ds90ub953.
 endmenu
 
 menu "Video improvement chips"
