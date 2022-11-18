@@ -139,9 +139,9 @@
 			};
 
 			reg_ldo3: ldo3 {
-				regulator-name = "VCC_ENET_2V5";
+				regulator-name = "VCC_ENET";
 				regulator-min-microvolt = <1500000>;
-				regulator-max-microvolt = <2500000>;
+				regulator-max-microvolt = <3300000>;
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-state-mem {
