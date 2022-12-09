@@ -27,7 +27,7 @@
 			reg = <0>;
 			reset-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 			reset-assert-us = <1000>;
-			reset-deassert-us = <1000>;
+			reset-deassert-us = <5000>;
 		};
 	};
 };
