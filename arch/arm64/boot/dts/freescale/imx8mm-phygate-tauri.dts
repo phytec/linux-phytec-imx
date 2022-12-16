@@ -92,7 +92,7 @@
 	cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>,
 		   <&gpio5 13 GPIO_ACTIVE_LOW>,
 		   <&gpio5 2 GPIO_ACTIVE_LOW>;
-	fsl,spi-num-chipselects = <3>;
+	num-cs = <3>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_ecspi1 &pinctrl_ecspi1_cs>;
 	#address-cells = <1>;
