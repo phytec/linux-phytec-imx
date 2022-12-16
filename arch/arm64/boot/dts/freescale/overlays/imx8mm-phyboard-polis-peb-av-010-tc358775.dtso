@@ -12,9 +12,11 @@
 #include <dt-bindings/gpio/gpio.h>
 #include "../imx8mm-pinfunc.h"
 
-&{/} {
+/ {
 	compatible = "phytec,imx8mm-phyboard-polis";
+};
 
+&{/} {
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pinctrl-names = "default";
