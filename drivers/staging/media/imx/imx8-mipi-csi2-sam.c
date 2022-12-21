@@ -443,6 +443,7 @@ struct csi_state {
 
 	struct mipi_csis_pdata const *pdata;
 	bool hdr;
+	bool streaming;
 	u32 val;
 };
 
@@ -1122,6 +1123,12 @@ static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
 		return -EINVAL;
 	}
 
+	if (enable && state->streaming)
+		return -EBUSY;
+
+	if (!enable && !state->streaming)
+		return 0;
+
 	if (enable) {
 		pm_runtime_get_sync(state->dev);
 		mipi_csis_clear_counters(state);
@@ -1144,6 +1151,7 @@ static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
 		pm_runtime_put(state->dev);
 	}
 
+	state->streaming = enable;
 	return 0;
 }
 
