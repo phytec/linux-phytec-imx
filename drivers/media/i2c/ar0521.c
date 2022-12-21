@@ -300,10 +300,11 @@ struct ar0521_gains {
 	struct v4l2_ctrl *greenb_ctrl;
 	struct v4l2_ctrl *greenr_ctrl;
 	struct v4l2_ctrl *blue_ctrl;
-	unsigned int red_clip;
-	unsigned int greenb_clip;
-	unsigned int greenr_clip;
-	unsigned int blue_clip;
+	unsigned int red;
+	unsigned int greenb;
+	unsigned int greenr;
+	unsigned int blue;
+	unsigned int min_ref;
 };
 
 struct ar0521 {
@@ -2044,10 +2045,10 @@ unsigned int ar0521_get_min_color_gain(struct ar0521 *sensor)
 	int min_idx = 0;
 	int i;
 
-	gains[0] = sensor->gains.red_ctrl->cur.val;
-	gains[1] = sensor->gains.greenr_ctrl->cur.val;
-	gains[2] = sensor->gains.greenb_ctrl->cur.val;
-	gains[3] = sensor->gains.blue_ctrl->cur.val;
+	gains[0] = sensor->gains.red_ctrl->val;
+	gains[1] = sensor->gains.greenr_ctrl->val;
+	gains[2] = sensor->gains.greenb_ctrl->val;
+	gains[3] = sensor->gains.blue_ctrl->val;
 
 	for (i = 0; i < 4; i++) {
 		if (gains[i] < gains[min_idx])
@@ -2062,7 +2063,6 @@ static int ar0521_set_digital_gain(struct ar0521 *sensor,
 {
 	unsigned int gain;
 	unsigned int gain_min;
-	unsigned int gain_factor;
 	int ret;
 	u16 val, mask;
 
@@ -2077,18 +2077,8 @@ static int ar0521_set_digital_gain(struct ar0521 *sensor,
 			return ret;
 		}
 
-		gain_min = ar0521_get_min_color_gain(sensor);
-		gain_factor = (ctrl->val * 1000) / gain_min;
-
-		gain = sensor->gains.red_ctrl->cur.val;
-		gain += sensor->gains.red_clip;
-		gain = (gain * gain_factor) / 1000;
-
-		if (gain > 7999)
-			sensor->gains.red_clip = gain - 7999;
-		else
-			sensor->gains.red_clip = 0;
-
+		gain = sensor->gains.red * ctrl->val;
+		gain = gain / sensor->gains.min_ref;
 		gain = clamp_t(unsigned int, gain, 1000, 7999);
 		val = BIT_DIGITAL_GAIN((gain * 64) / 1000);
 		ret = ar0521_update_bits(sensor, AR0521_RED_GAIN, mask, val);
@@ -2098,15 +2088,8 @@ static int ar0521_set_digital_gain(struct ar0521 *sensor,
 		sensor->gains.red_ctrl->val = gain;
 		sensor->gains.red_ctrl->cur.val = gain;
 
-		gain = sensor->gains.greenr_ctrl->cur.val;
-		gain += sensor->gains.greenr_clip;
-		gain = (gain * gain_factor) / 1000;
-
-		if (gain > 7999)
-			sensor->gains.greenr_clip = gain - 7999;
-		else
-			sensor->gains.greenr_clip = 0;
-
+		gain = sensor->gains.greenr * ctrl->val;
+		gain = gain / sensor->gains.min_ref;
 		gain = clamp_t(unsigned int, gain, 1000, 7999);
 		val = BIT_DIGITAL_GAIN((gain * 64) / 1000);
 		ret = ar0521_update_bits(sensor, AR0521_GREENR_GAIN, mask, val);
@@ -2116,15 +2099,8 @@ static int ar0521_set_digital_gain(struct ar0521 *sensor,
 		sensor->gains.greenr_ctrl->val = gain;
 		sensor->gains.greenr_ctrl->cur.val = gain;
 
-		gain = sensor->gains.greenb_ctrl->cur.val;
-		gain += sensor->gains.greenb_clip;
-		gain = (gain * gain_factor) / 1000;
-
-		if (gain > 7999)
-			sensor->gains.greenb_clip = gain - 7999;
-		else
-			sensor->gains.greenb_clip = 0;
-
+		gain = sensor->gains.greenb * ctrl->val;
+		gain = gain / sensor->gains.min_ref;
 		gain = clamp_t(unsigned int, gain, 1000, 7999);
 		val = BIT_DIGITAL_GAIN((gain * 64) / 1000);
 		ret = ar0521_update_bits(sensor, AR0521_GREENB_GAIN, mask, val);
@@ -2134,15 +2110,8 @@ static int ar0521_set_digital_gain(struct ar0521 *sensor,
 		sensor->gains.greenb_ctrl->val = gain;
 		sensor->gains.greenb_ctrl->cur.val = gain;
 
-		gain = sensor->gains.blue_ctrl->cur.val;
-		gain += sensor->gains.blue_clip;
-		gain = (gain * gain_factor) / 1000;
-
-		if (gain > 7999)
-			sensor->gains.blue_clip = gain - 7999;
-		else
-			sensor->gains.blue_clip = 0;
-
+		gain = sensor->gains.blue * ctrl->val;
+		gain = gain / sensor->gains.min_ref;
 		gain = clamp_t(unsigned int, gain, 1000, 7999);
 		val = BIT_DIGITAL_GAIN((gain * 64) / 1000);
 		ret = ar0521_update_bits(sensor, AR0521_BLUE_GAIN, mask, val);
@@ -2155,30 +2124,48 @@ static int ar0521_set_digital_gain(struct ar0521 *sensor,
 		break;
 	case V4L2_CID_X_DIGITAL_GAIN_RED:
 		ret = ar0521_update_bits(sensor, AR0521_RED_GAIN, mask, val);
-		if (!ret)
-			sensor->gains.red_clip = 0;
+		if (ret)
+			return ret;
 		break;
 	case V4L2_CID_X_DIGITAL_GAIN_GREENR:
 		ret = ar0521_update_bits(sensor, AR0521_GREENR_GAIN, mask, val);
-		if (!ret)
-			sensor->gains.greenr_clip = 0;
+		if (ret)
+			return ret;
 		break;
 	case V4L2_CID_X_DIGITAL_GAIN_GREENB:
 		ret = ar0521_update_bits(sensor, AR0521_GREENB_GAIN, mask, val);
-		if (!ret)
-			sensor->gains.greenb_clip = 0;
+		if (ret)
+			return ret;
 		break;
 	case V4L2_CID_X_DIGITAL_GAIN_BLUE:
 		ret = ar0521_update_bits(sensor, AR0521_BLUE_GAIN, mask, val);
-		if (!ret)
-			sensor->gains.blue_clip = 0;
+		if (ret)
+			return ret;
 		break;
 	default:
 		ret = -EINVAL;
 		break;
 	}
 
-	return ret;
+	switch (ctrl->id) {
+	case V4L2_CID_X_DIGITAL_GAIN_RED:
+	case V4L2_CID_X_DIGITAL_GAIN_GREENR:
+	case V4L2_CID_X_DIGITAL_GAIN_GREENB:
+	case V4L2_CID_X_DIGITAL_GAIN_BLUE:
+		gain_min = ar0521_get_min_color_gain(sensor);
+		sensor->gains.red = sensor->gains.red_ctrl->val;
+		sensor->gains.greenr = sensor->gains.greenr_ctrl->val;
+		sensor->gains.greenb = sensor->gains.greenb_ctrl->val;
+		sensor->gains.blue = sensor->gains.blue_ctrl->val;
+		sensor->gains.min_ref = gain_min;
+		sensor->gains.dig_ctrl->val = gain_min;
+		sensor->gains.dig_ctrl->cur.val = gain_min;
+		break;
+	default:
+		break;
+	}
+
+	return 0;
 }
 
 static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -2734,6 +2721,11 @@ static void ar0521_set_defaults(struct ar0521 *sensor)
 	sensor->vblank = sensor->limits.vblank.min;
 	sensor->hlen = sensor->limits.hlen.min;
 	sensor->vlen = sensor->fmt.height + sensor->vblank;
+	sensor->gains.red = 1000;
+	sensor->gains.greenr = 1000;
+	sensor->gains.greenb = 1000;
+	sensor->gains.blue = 1000;
+	sensor->gains.min_ref = 1000;
 
 #ifdef DEBUG
 	sensor->manual_pll = false;
