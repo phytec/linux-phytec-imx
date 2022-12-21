@@ -3291,7 +3291,7 @@ static int ar0144_probe(struct i2c_client *i2c,
 	if (ret)
 		goto out_media;
 
-	ret = v4l2_async_register_subdev(&sensor->subdev);
+	ret = v4l2_async_register_subdev_sensor(&sensor->subdev);
 	if (ret)
 		goto out;
 
