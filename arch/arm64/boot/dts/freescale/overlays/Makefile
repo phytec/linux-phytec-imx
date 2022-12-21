@@ -22,6 +22,10 @@ dtb-y += imx8mn-phyboard-polis-peb-av-010.dtbo
 dtb-y += imx8mn-phyboard-polis-1532.1.dtbo
 dtb-y += imx8mn-phycore-no-spiflash.dtbo
 dtb-y += imx8mn-phycore-no-eth.dtbo
+dtb-y += imx8mp-isi-csi1.dtbo
+dtb-y += imx8mp-isi-csi2.dtbo
+dtb-y += imx8mp-isp-csi1.dtbo
+dtb-y += imx8mp-isp-csi2.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-av-010.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-av-012.dtbo
 dtb-y += imx8mp-phyboard-pollux-peb-wlbt-05.dtbo
@@ -30,6 +34,12 @@ dtb-y += imx8mp-phycore-no-eth.dtbo
 dtb-y += imx8mp-phycore-no-rtc.dtbo
 dtb-y += imx8mp-phycore-no-spiflash.dtbo
 dtb-y += imx8mp-phycore-rpmsg.dtbo
+dtb-y += imx8mp-vm017-csi1.dtbo
+dtb-y += imx8mp-vm017-csi2.dtbo
+dtb-y += imx8mp-vm017-csi1-fpdlink-port0.dtbo
+dtb-y += imx8mp-vm017-csi1-fpdlink-port1.dtbo
+dtb-y += imx8mp-vm017-csi2-fpdlink-port0.dtbo
+dtb-y += imx8mp-vm017-csi2-fpdlink-port1.dtbo
 
 DTC_FLAGS += -@
 
