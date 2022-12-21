@@ -544,7 +544,7 @@ static int ub954_link_setup(struct media_entity *entity,
 		return 0;
 
 	if (state->active_port >= 0 && enable)
-		return -EINVAL;
+		return -EBUSY;
 
 	mutex_lock(&state->lock);
 
