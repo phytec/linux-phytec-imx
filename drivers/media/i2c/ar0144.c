@@ -379,8 +379,14 @@ struct ar0144 {
 static struct vvcam_mode_info_s ar0144_modes [] = {
 	{
 		.index    = 0,
-		.width    = 1280,
-		.height   = 720,
+		.size = {
+			.bounds_width   = 1280,
+			.bounds_height  = 720,
+			.top		= 0,
+			.left		= 0,
+			.width    	= 1280,
+			.height   	= 720,
+		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
 		.data_compress = {
@@ -416,8 +422,14 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 	},
 	{
 		.index    = 1,
-		.width    = 1280,
-		.height   = 800,
+		.size = {
+			.bounds_width   = 1280,
+			.bounds_height  = 800,
+			.top		= 0,
+			.left		= 0,
+			.width    	= 1280,
+			.height   	= 800,
+		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
 		.data_compress = {
@@ -625,14 +637,14 @@ static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
 
 	switch (index) {
 	case 0:
-		sel.r.left = 0;
 		sel.r.top = 44;
+		sel.r.left = 0;
 		sel.r.width = 1280;
 		sel.r.height = 720;
 		break;
 	case 1:
-		sel.r.left = 0;
 		sel.r.top = 4;
+		sel.r.left = 0;
 		sel.r.width = 1280;
 		sel.r.height = 800;
 		break;
@@ -642,8 +654,8 @@ static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
 	format.pad = 0;
 
 	bpp = ar0144_modes[index].bit_width;
-	format.format.width = ar0144_modes[index].width;
-	format.format.height = ar0144_modes[index].height;
+	format.format.width = ar0144_modes[index].size.bounds_width;
+	format.format.height = ar0144_modes[index].size.bounds_height;
 	format.format.code = sensor->formats[bpp_to_index(bpp)].code;
 
 	ret = ar0144_set_selection(sd, &state, &sel);
