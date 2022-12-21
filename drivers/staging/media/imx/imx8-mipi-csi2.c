@@ -1035,21 +1035,35 @@ static int mipi_csi2_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct mxc_mipi_csi2_dev *csi2dev = sd_to_mxc_mipi_csi2_dev(sd);
 	struct device *dev = &csi2dev->pdev->dev;
+	struct v4l2_subdev *remote_sd;
 	int ret = 0;
 
 	dev_dbg(&csi2dev->pdev->dev, "%s: %d, csi2dev: 0x%x\n",
 		__func__, enable, csi2dev->flags);
 
+	remote_sd = mxc_get_remote_subdev(csi2dev, __func__);
+
 	if (enable) {
 		pm_runtime_get_sync(dev);
 		if (!csi2dev->running++) {
-			if (!csi2dev->runtime_suspend)
+			if (!csi2dev->runtime_suspend) {
 				mipi_csi2_hw_config(csi2dev);
+				ret = v4l2_subdev_call(remote_sd, video, s_stream,
+						       enable);
+				if (ret) {
+					mxc_mipi_csi2_disable(csi2dev);
+					pm_runtime_put(dev);
+					csi2dev->running--;
+					return ret;
+				}
+			}
 		}
 	} else {
 		if (!--csi2dev->running) {
-			if (!csi2dev->runtime_suspend)
+			if (!csi2dev->runtime_suspend) {
+				v4l2_subdev_call(remote_sd, video, s_stream, enable);
 				mxc_mipi_csi2_disable(csi2dev);
+			}
 		}
 		pm_runtime_put(dev);
 	}

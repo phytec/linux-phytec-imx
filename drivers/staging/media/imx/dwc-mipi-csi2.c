@@ -1198,9 +1198,16 @@ static int dwc_mipi_csi2_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct dwc_mipi_csi2_host *csi2h = sd_to_dwc_mipi_csi2h(sd);
 	struct device *dev = &csi2h->pdev->dev;
+	struct v4l2_subdev *sen_sd;
 	int ret = 0;
 
 	dev_info(&csi2h->pdev->dev, "enter enable=%d\n", enable);
+
+	sen_sd = dwc_get_remote_subdev(csi2h, __func__);
+	if (!sen_sd) {
+		v4l2_err(sd, "%s, No remote subdev found!\n", __func__);
+		return -EINVAL;
+	}
 
 	if (enable) {
 		pm_runtime_get_sync(dev);
@@ -1209,9 +1216,18 @@ static int dwc_mipi_csi2_s_stream(struct v4l2_subdev *sd, int enable)
 		dwc_mipi_csi2_host_ipi_config(csi2h);
 		dwc_mipi_csi2_host_hs_rx_start(csi2h);
 		disp_mix_gasket_config(csi2h);
+
+		ret = v4l2_subdev_call(sen_sd, video, s_stream, enable);
+		if (ret) {
+			dwc_mipi_csi2_host_hs_rx_stop(csi2h);
+			pm_runtime_put(dev);
+			return ret;
+		}
+
 		dwc_mipi_csi2_dump(csi2h);
 		gasket_dump(csi2h);
 	} else {
+		ret = v4l2_subdev_call(sen_sd, video, s_stream, enable);
 		dwc_mipi_csi2_host_hs_rx_stop(csi2h);
 		pm_runtime_put(dev);
 	}
