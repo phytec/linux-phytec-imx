@@ -1169,6 +1169,9 @@ static int mipi_csis_set_fmt(struct v4l2_subdev *mipi_sd,
 	}
 
 	state->csis_fmt = csis_fmt;
+	state->format.code = mf->code;
+	state->format.width = mf->width;
+	state->format.height = mf->height;
 
 	return 0;
 }
@@ -1364,6 +1367,7 @@ static int csis_s_fmt(struct v4l2_subdev *sd, struct csi_sam_format *fmt)
 		return -EINVAL;
 
 	state->csis_fmt = csis_format;
+	state->format.code = csis_format->code;
 	state->format.width = fmt->width;
 	state->format.height = fmt->height;
 	disp_mix_gasket_config(state);
