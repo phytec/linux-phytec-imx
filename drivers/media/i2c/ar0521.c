@@ -356,8 +356,14 @@ struct ar0521 {
 static struct vvcam_mode_info_s ar0521_modes [] = {
 	{
 		.index     = 0,
-		.width    = 1280,
-		.height   = 720,
+		.size = {
+			.bounds_width	= 1280,
+			.bounds_height	= 720,
+			.left		= 0,
+			.top		= 0,
+			.width		= 1280,
+			.height		= 720,
+		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
 		.data_compress = {
@@ -393,8 +399,14 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 	},
 	{
 		.index     = 1,
-		.width    = 1920,
-		.height   = 1080,
+		.size = {
+			.bounds_width	= 1920,
+			.bounds_height	= 1080,
+			.left		= 0,
+			.top		= 0,
+			.width		= 1920,
+			.height		= 1080,
+		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
 		.data_compress = {
@@ -430,8 +442,14 @@ static struct vvcam_mode_info_s ar0521_modes [] = {
 	},
 	{
 		.index     = 2,
-		.width    = 2592,
-		.height   = 1944,
+		.size = {
+			.bounds_width	= 2592,
+			.bounds_height	= 1944,
+			.left		= 0,
+			.top		= 0,
+			.width		= 2592,
+			.height		= 1944,
+		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
 		.data_compress = {
@@ -662,8 +680,8 @@ static int ar0521_vv_set_sensormode(struct ar0521 *sensor, void *args)
 	format.pad = 0;
 
 	bpp = ar0521_modes[index].bit_width;
-	format.format.width = ar0521_modes[index].width;
-	format.format.height = ar0521_modes[index].height;
+	format.format.width = ar0521_modes[index].size.bounds_width;
+	format.format.height = ar0521_modes[index].size.bounds_height;
 	format.format.code = sensor->formats[bpp_to_index(bpp)].code;
 
 	ret = ar0521_set_selection(sd, &state, &sel);
