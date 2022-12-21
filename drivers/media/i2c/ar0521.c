@@ -1087,8 +1087,6 @@ static int ar0521_clear_bits(struct ar0521 *sensor, u16 reg, u16 val)
 #ifdef DEBUG
 static int ar0521_debugfs_init(struct ar0521 *sensor)
 {
-	struct dentry *d;
-
 	if (!debugfs_initialized())
 		return -ENODEV;
 
@@ -1097,11 +1095,8 @@ static int ar0521_debugfs_init(struct ar0521 *sensor)
 	if (!sensor->debugfs_root)
 		return -ENOMEM;
 
-	d = debugfs_create_bool("manual_pll", 0600, sensor->debugfs_root,
-				&sensor->manual_pll);
-	if (!d)
-		goto remove_debugfs;
-
+	debugfs_create_bool("manual_pll", 0600, sensor->debugfs_root,
+			    &sensor->manual_pll);
 	debugfs_create_u32("pll2_div", 0600, sensor->debugfs_root,
 			   &sensor->pll[3].pll2_div);
 	debugfs_create_u32("pll_div", 0600, sensor->debugfs_root,
@@ -1120,11 +1115,6 @@ static int ar0521_debugfs_init(struct ar0521 *sensor)
 			   &sensor->pll[3].op_pix_div);
 
 	return 0;
-
-remove_debugfs:
-	debugfs_remove_recursive(sensor->debugfs_root);
-	return -ENOMEM;
-
 }
 
 static void ar0521_debugfs_remove(struct ar0521 *sensor)
