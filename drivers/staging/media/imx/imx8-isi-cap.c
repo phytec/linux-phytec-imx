@@ -33,8 +33,6 @@
 #include "imx8-isi-fmt.h"
 
 #define sd_to_cap_dev(ptr)	container_of(ptr, struct mxc_isi_cap_dev, sd)
-static int mxc_isi_cap_streamoff(struct file *file, void *priv,
-				 enum v4l2_buf_type type);
 
 /*
  * Pixel link input format
@@ -277,12 +275,17 @@ static void cap_vb2_buffer_queue(struct vb2_buffer *vb2)
 	spin_unlock_irqrestore(&isi_cap->slock, flags);
 }
 
+static int mxc_isi_config_parm(struct mxc_isi_cap_dev *isi_cap);
+static struct v4l2_subdev *mxc_get_remote_subdev(struct v4l2_subdev *subdev,
+						 const char * const label);
+
 static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 {
 	struct mxc_isi_cap_dev *isi_cap = vb2_get_drv_priv(q);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
-	struct mxc_isi_buffer *buf;
+	struct mxc_isi_buffer *buf, *tmp;
 	struct vb2_buffer *vb2;
+	struct v4l2_subdev *src_sd;
 	unsigned long flags;
 	int i, j;
 	int ret;
@@ -291,13 +294,29 @@ static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 
 	if (count < 2) {
 		ret = -ENOBUFS;
-		goto err;
+		goto buf_out;
 	}
 
 	if (!mxc_isi) {
 		ret = -EINVAL;
-		goto err;
+		goto buf_out;
 	}
+
+	src_sd = mxc_get_remote_subdev(&isi_cap->sd, __func__);
+	if (!src_sd) {
+		ret = -EINVAL;
+		goto buf_out;
+	}
+
+	ret = v4l2_subdev_call(src_sd, core, s_power, 1);
+	if (ret) {
+		v4l2_err(&isi_cap->sd, "Call subdev s_power fail!\n");
+		goto buf_out;
+	}
+
+	ret = mxc_isi_config_parm(isi_cap);
+	if (ret < 0)
+		goto power_out;
 
 	/* Create a buffer for discard operation */
 	for (i = 0; i < isi_cap->pix.num_planes; i++) {
@@ -317,7 +336,7 @@ static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 					"alloc dma buffer(%d) fail\n", j);
 			}
 			ret = -ENOMEM;
-			goto err;
+			goto power_out;
 		}
 		dev_dbg(&isi_cap->pdev->dev,
 			"%s: num_plane=%d discard_size=%d discard_buffer=%p\n"
@@ -359,27 +378,57 @@ static int cap_vb2_start_streaming(struct vb2_queue *q, unsigned int count)
 	isi_cap->frame_count = 1;
 	spin_unlock_irqrestore(&isi_cap->slock, flags);
 
+	mxc_isi_channel_enable(mxc_isi, mxc_isi->m2m_enabled);
+
+	ret = v4l2_subdev_call(src_sd, video, s_stream, 1);
+	if (ret < 0 && ret != -ENOIOCTLCMD) {
+		dev_err(&isi_cap->pdev->dev, "subdev %s s_stream failed\n",
+			src_sd->name);
+		goto err_out;
+	}
+
+	mxc_isi->is_streaming = 1;
+	isi_cap->is_streaming[isi_cap->id] = 1;
+
 	return 0;
 
-err:
+err_out:
+	mxc_isi_channel_disable(mxc_isi);
+
+power_out:
+	v4l2_subdev_call(src_sd, core, s_power, 0);
+
+buf_out:
 	spin_lock_irqsave(&isi_cap->slock, flags);
-	while (!list_empty(&isi_cap->out_active)) {
-		buf = list_entry(isi_cap->out_active.next,
-				 struct mxc_isi_buffer, list);
-		list_del_init(&buf->list);
+	list_for_each_entry_safe(buf, tmp, &isi_cap->out_pending, list) {
+		list_del(&buf->list);
+		vb2_buffer_done(&buf->v4l2_buf.vb2_buf, VB2_BUF_STATE_QUEUED);
+	}
+
+	list_for_each_entry_safe(buf, tmp, &isi_cap->out_active, list) {
+		list_del(&buf->list);
+
 		if (buf->discard)
 			continue;
 
-		vb2_buffer_done(&buf->v4l2_buf.vb2_buf, VB2_BUF_STATE_ERROR);
+		vb2_buffer_done(&buf->v4l2_buf.vb2_buf, VB2_BUF_STATE_QUEUED);
 	}
 
-	while (!list_empty(&isi_cap->out_pending)) {
-		buf = list_entry(isi_cap->out_pending.next,
-				 struct mxc_isi_buffer, list);
-		list_del_init(&buf->list);
-		vb2_buffer_done(&buf->v4l2_buf.vb2_buf, VB2_BUF_STATE_ERROR);
+	list_for_each_entry_safe(buf, tmp, &isi_cap->out_discard, list) {
+		list_del(&buf->list);
 	}
+
 	spin_unlock_irqrestore(&isi_cap->slock, flags);
+
+	for (i = 0; i < isi_cap->pix.num_planes; i++) {
+		if (!isi_cap->discard_buffer[i])
+			continue;
+
+		dma_free_coherent(&isi_cap->pdev->dev,
+				  PAGE_ALIGN(isi_cap->discard_size[i]),
+				  isi_cap->discard_buffer[i],
+				  isi_cap->discard_buffer_dma[i]);
+	}
 
 	return ret;
 }
@@ -389,10 +438,14 @@ static void cap_vb2_stop_streaming(struct vb2_queue *q)
 	struct mxc_isi_cap_dev *isi_cap = vb2_get_drv_priv(q);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
 	struct mxc_isi_buffer *buf;
+	struct v4l2_subdev *src_sd;
 	unsigned long flags;
 	int i;
 
 	dev_dbg(&isi_cap->pdev->dev, "%s\n", __func__);
+
+	src_sd = mxc_get_remote_subdev(&isi_cap->sd, __func__);
+	v4l2_subdev_call(src_sd, video, s_stream, 0);
 
 	mxc_isi_channel_disable(mxc_isi);
 
@@ -432,6 +485,10 @@ static void cap_vb2_stop_streaming(struct vb2_queue *q)
 				  PAGE_ALIGN(isi_cap->discard_size[i]),
 				  isi_cap->discard_buffer[i],
 				  isi_cap->discard_buffer_dma[i]);
+
+	v4l2_subdev_call(src_sd, core, s_power, 0);
+	mxc_isi->is_streaming = 0;
+	isi_cap->is_streaming[isi_cap->id] = 0;
 }
 
 static struct vb2_ops mxc_cap_vb2_qops = {
@@ -695,17 +752,12 @@ static int mxc_isi_capture_open(struct file *file)
 static int mxc_isi_capture_release(struct file *file)
 {
 	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
-	struct video_device *vdev = video_devdata(file);
 	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
 	struct device *dev = &isi_cap->pdev->dev;
-	struct vb2_queue *q = vdev->queue;
 	int ret = -1;
 
 	if (!isi_cap->is_link_setup)
 		return 0;
-
-	if (isi_cap->is_streaming[isi_cap->id])
-		mxc_isi_cap_streamoff(file, NULL, q->type);
 
 	mutex_lock(&isi_cap->lock);
 	ret = _vb2_fop_release(file, NULL);
@@ -1055,92 +1107,6 @@ static int mxc_isi_cap_s_parm(struct file *file, void *fh,
 	return v4l2_s_parm_cap(video_devdata(file), sd, a);
 }
 
-
-static int mxc_isi_cap_streamon(struct file *file, void *priv,
-				enum v4l2_buf_type type)
-{
-	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
-	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
-	struct device *dev = &isi_cap->pdev->dev;
-	struct vb2_queue *q = &isi_cap->vb2_q;
-	struct v4l2_subdev *src_sd;
-	int ret;
-
-	dev_dbg(dev, "%s\n", __func__);
-
-	if (!isi_cap->is_streaming[isi_cap->id]) {
-		src_sd = mxc_get_remote_subdev(&isi_cap->sd, __func__);
-		ret = (!src_sd) ? -EINVAL : v4l2_subdev_call(src_sd, core, s_power, 1);
-		if (ret) {
-			v4l2_err(&isi_cap->sd, "Call subdev s_power fail!\n");
-			return ret;
-		}
-
-		ret = mxc_isi_config_parm(isi_cap);
-		if (ret < 0)
-			goto power;
-	}
-
-	ret = vb2_ioctl_streamon(file, priv, type);
-	if (ret < 0) {
-		if (!isi_cap->is_streaming[isi_cap->id])
-			goto power;
-		else
-			return ret;
-	}
-
-	if (!isi_cap->is_streaming[isi_cap->id] &&
-	     q->start_streaming_called) {
-		mxc_isi_channel_enable(mxc_isi, mxc_isi->m2m_enabled);
-		ret = v4l2_subdev_call(src_sd, video, s_stream, 1);
-		if (ret < 0 && ret != -ENOIOCTLCMD) {
-			dev_err(dev, "subdev %s s_stream failed\n",
-				src_sd->name);
-			goto disable;
-		}
-
-		isi_cap->is_streaming[isi_cap->id] = 1;
-		mxc_isi->is_streaming = 1;
-	}
-
-	return 0;
-
-disable:
-	mxc_isi_channel_disable(mxc_isi);
-power:
-	v4l2_subdev_call(src_sd, core, s_power, 0);
-	return ret;
-}
-
-static int mxc_isi_cap_streamoff(struct file *file, void *priv,
-				 enum v4l2_buf_type type)
-{
-	struct mxc_isi_cap_dev *isi_cap = video_drvdata(file);
-	struct mxc_isi_dev *mxc_isi = mxc_isi_get_hostdata(isi_cap->pdev);
-	struct device *dev = &isi_cap->pdev->dev;
-	struct v4l2_subdev *src_sd;
-	int ret;
-
-	dev_dbg(dev, "%s\n", __func__);
-
-	ret = vb2_ioctl_streamoff(file, priv, type);
-	if (ret < 0)
-		return ret;
-
-	if (isi_cap->is_streaming[isi_cap->id]) {
-		src_sd = mxc_get_remote_subdev(&isi_cap->sd, __func__);
-		v4l2_subdev_call(src_sd, video, s_stream, 0);
-		mxc_isi_channel_disable(mxc_isi);
-
-		isi_cap->is_streaming[isi_cap->id] = 0;
-		mxc_isi->is_streaming = 0;
-
-		return v4l2_subdev_call(src_sd, core, s_power, 0);
-	}
-
-	return 0;
-}
-
 static int mxc_isi_cap_g_selection(struct file *file, void *fh,
 				   struct v4l2_selection *s)
 {
@@ -1340,8 +1306,8 @@ static const struct v4l2_ioctl_ops mxc_isi_capture_ioctl_ops = {
 	.vidioc_g_parm			= mxc_isi_cap_g_parm,
 	.vidioc_s_parm			= mxc_isi_cap_s_parm,
 
-	.vidioc_streamon		= mxc_isi_cap_streamon,
-	.vidioc_streamoff		= mxc_isi_cap_streamoff,
+	.vidioc_streamon		= vb2_ioctl_streamon,
+	.vidioc_streamoff		= vb2_ioctl_streamoff,
 
 	.vidioc_g_selection		= mxc_isi_cap_g_selection,
 	.vidioc_s_selection		= mxc_isi_cap_s_selection,
