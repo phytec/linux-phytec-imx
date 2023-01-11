@@ -1,0 +1,331 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+* Copyright (C) 2023 PHYTEC Messtechnik GmbH
+* Author: Felix Siebel <f.siebel@phytec.de>
+*/
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/{
+	compatible = "phytec,imx8mm-phyboard-tauri";
+};
+
+&{/}{
+	leds-expander {
+		compatible = "gpio-leds";
+
+		led1-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_0 4  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led2-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_0 5  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led3-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_0 6  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led4-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_0 7  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led5-r-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_RED>;
+			gpios = <&pca9535_0 8  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led5-g-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_0 9  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led5-b-iso1 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_BLUE>;
+			gpios = <&pca9535_0 10  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led1-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_1 4  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led2-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_1 5  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led3-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_1 6  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led4-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_1 7  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led5-r-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_RED>;
+			gpios = <&pca9535_1 8  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led5-g-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pca9535_1 9  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		led5-b-iso2 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_BLUE>;
+			gpios = <&pca9535_1 10  GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+	};
+};
+
+&i2c4 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	pca9535_1: gpio@26 {
+		compatible = "nxp,pca9535";
+		reg = <0x26>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interruppt-cells = <2>;
+		ngpios = <16>;
+		gpio-line-names =
+			"ntc-ch1-4-iso2", "pt100-ch1-4-iso2", "divider-ch1-4-iso2",
+			"current-ch1-4-iso2", "led1-iso2", "led2-iso2", "led3-iso2",
+			"led4-iso2", "led5-r-iso2", "led5-g-iso2", "led5-b-iso2",
+			"adc-reset-iso2", "adc-drdy-iso2", "mode-select0-iso2",
+			"mode-select1-iso2", "mode-select2-iso2";
+
+		adc-reset-iso2-hog {
+			gpio-hog;
+			gpios = <11 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "adc-reset-iso2";
+		};
+	};
+
+	pca9535_0: gpio@27 {
+		compatible = "nxp,pca9535";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interruppt-cells = <2>;
+		ngpios = <16>;
+		gpio-line-names =
+			"ntc-ch1-4-iso1", "pt100-ch1-4-iso1", "divider-ch1-4-iso1",
+			"current-ch1-4-iso1", "led1-iso1", "led2-iso1", "led3-iso1",
+			"led4-iso1", "led5-r-iso1", "led5-g-iso1","led5-b-iso1",
+			"adc-reset-iso1", "adc-drdy-iso1", "mode-select0-iso1",
+			"mode-select1-iso1", "mode-select2-iso1";
+
+		adc-reset-iso1-hog {
+			gpio-hog;
+			gpios = <11 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "adc-reset-iso1";
+		};
+	};
+
+	ads1119_0: adc@41 {
+		compatible = "ti,ads1119";
+		reg = <0x41>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupt-parent = <&pca9535_0>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+
+		ads1119_0_a0_a1: channel@0 {
+			reg = <0>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_a2_a3: channel@1 {
+			reg = <1>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_a1_a2: channel@2 {
+			reg = <2>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_a0_g: channel@3 {
+			reg = <3>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_a1_g: channel@4 {
+			reg = <4>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_a2_g: channel@5 {
+			reg = <5>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_a3_g: channel@6 {
+			reg = <6>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_0_short: channel@7 {
+			reg = <7>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+	};
+
+	ads1119_1: adc@42 {
+		compatible = "ti,ads1119";
+		reg = <0x42>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupt-parent = <&pca9535_1>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+
+		ads1119_1_a0_a1: channel@0 {
+			reg = <0>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_a2_a3: channel@1 {
+			reg = <1>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_a1_a2: channel@2 {
+			reg = <2>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_a0_g: channel@3 {
+			reg = <3>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_a1_g: channel@4 {
+			reg = <4>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_a2_g: channel@5 {
+			reg = <5>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_a3_g: channel@6 {
+			reg = <6>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+
+		ads1119_1_short: channel@7 {
+			reg = <7>;
+			ti,gain = <1>;
+			ti,samplerate = <1000>;
+			ti,extref = <1>;
+			ti,refvoltage = <3300000>;
+		};
+	};
+};
