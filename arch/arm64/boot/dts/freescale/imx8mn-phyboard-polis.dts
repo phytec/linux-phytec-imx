@@ -253,7 +253,7 @@
 	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
 	vmmc-supply = <&reg_usdhc2_vmmc>;
-	vqmmc-supply = <&reg_ldo2>;
+	vqmmc-supply = <&reg_nvcc_sd2>;
 	status = "okay";
 };
 
