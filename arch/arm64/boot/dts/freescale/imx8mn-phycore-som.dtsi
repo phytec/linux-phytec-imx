@@ -26,6 +26,11 @@
 		#clock-cells = <0>;
 		status = "disabled";
 	};
+
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0x0 0x40000000 0 0x40000000>;
+	};
 };
 
 &A53_0 {
