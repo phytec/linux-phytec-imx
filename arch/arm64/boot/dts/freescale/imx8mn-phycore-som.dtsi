@@ -27,19 +27,19 @@
 };
 
 &A53_0 {
-	cpu-supply = <&reg_buck5>;
+	cpu-supply = <&reg_vdd_arm>;
 };
 
 &A53_1 {
-	cpu-supply = <&reg_buck5>;
+	cpu-supply = <&reg_vdd_arm>;
 };
 
 &A53_2 {
-	cpu-supply = <&reg_buck5>;
+	cpu-supply = <&reg_vdd_arm>;
 };
 
 &A53_3 {
-	cpu-supply = <&reg_buck5>;
+	cpu-supply = <&reg_vdd_arm>;
 };
 
 /* Ethernet */
@@ -107,7 +107,7 @@
 		reg = <0x08>;
 
 		regulators {
-			reg_ldo1: ldo1 {
+			reg_nvcc_sd1: ldo1 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <3300000>;
@@ -119,7 +119,7 @@
 				};
 			};
 
-			reg_ldo2: ldo2 {
+			reg_nvcc_sd2: ldo2 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <3300000>;
@@ -132,7 +132,7 @@
 				};
 			};
 
-			reg_ldo3: ldo3 {
+			reg_vcc_enet: ldo3 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <2500000>;
@@ -144,7 +144,7 @@
 				};
 			};
 
-			reg_ldo4: ldo4 {
+			reg_vdda_1v8: ldo4 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1800000>;
@@ -158,7 +158,7 @@
 				};
 			};
 
-			reg_buck1: buck1 {
+			reg_soc_vdda_phy: buck1 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1000000>;
@@ -172,7 +172,7 @@
 				};
 			};
 
-			reg_buck2: buck2 {
+			reg_vdd_gpu_dram: buck2 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1000000>;
@@ -186,7 +186,7 @@
 				};
 			};
 
-			reg_buck3: buck3 {
+			reg_vdd_vpu: buck3 {
 				regulator-name = "VDD_VPU_dummy";
 				regulator-max-microvolt = <1000000>;
 				regulator-min-microvolt = <400000>;
@@ -196,7 +196,7 @@
 				};
 			};
 
-			reg_buck4: buck4 {
+			reg_vdd_mipi: buck4 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1000000>;
@@ -208,7 +208,7 @@
 				};
 			};
 
-			reg_buck5: buck5 {
+			reg_vdd_arm: buck5 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1050000>;
@@ -220,7 +220,7 @@
 				};
 			};
 
-			reg_buck6: buck6 {
+			reg_vdd_1v8: buck6 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1800000>;
@@ -234,7 +234,7 @@
 				};
 			};
 
-			reg_buck7: buck7 {
+			reg_nvcc_dram: buck7 {
 				regulator-always-on;
 				regulator-boot-on;
 				regulator-max-microvolt = <1100000>;
