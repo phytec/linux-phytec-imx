@@ -149,6 +149,34 @@
 	};
 };
 
+&gpio1 {
+	gpio-line-names = "", "LED_RED", "WDOG_INT", "X_RTC_INT",
+		"", "", "", "RESET_ETHPHY",
+		"CAN_nINT", "CAN_EN", "nENABLE_FLATLINK", "",
+		"USB_OTG_VBUS_EN", "", "LED_GREEN", "LED_BLUE";
+};
+
+&gpio2 {
+	gpio-line-names = "", "", "", "",
+		"", "", "BT_REG_ON", "WL_REG_ON",
+		"BT_DEV_WAKE", "BT_HOST_WAKE", "", "",
+		"X_SD2_CD_B", "", "", "",
+		"", "", "", "SD2_RESET_B";
+};
+
+&gpio4 {
+	gpio-line-names = "", "", "", "",
+		"", "", "", "",
+		"FAN", "miniPCIe_nPERST", "", "",
+		"COEX1", "COEX2";
+};
+
+&gpio5 {
+	gpio-line-names = "", "", "", "",
+		"", "", "", "",
+		"", "ECSPI1_SS0";
+};
+
 &i2c3 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default", "gpio";
