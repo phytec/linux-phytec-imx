@@ -20,13 +20,6 @@
 		stdout-path = &uart3;
 	};
 
-	rtcclkout: rv3028-clkout {
-		compatible = "fixed-clock";
-		clock-frequency = <32768>;
-		#clock-cells = <0>;
-		status = "disabled";
-	};
-
 	memory@40000000 {
 		device_type = "memory";
 		reg = <0x0 0x40000000 0 0x40000000>;
@@ -279,14 +272,11 @@
 	/* RTC */
 	rv3028: rtc@52 {
 		compatible = "microcrystal,rv3028";
-		clocks = <&rtcclkout>;
-		clock-output-names = "rv3028-clkout";
 		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
 		interrupt-parent = <&gpio1>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_rtc>;
 		reg = <0x52>;
-		wakeup-source;
 	};
 
 	sn65dsi83: bridge@2d {
