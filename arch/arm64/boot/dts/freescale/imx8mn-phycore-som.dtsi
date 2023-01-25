@@ -289,6 +289,15 @@
 		wakeup-source;
 	};
 
+	sn65dsi83: bridge@2d {
+		compatible = "ti,sn65dsi83";
+		enable-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_sn65dsi83>;
+		reg = <0x2d>;
+		status = "disabled";
+	};
+
 	/* EEPROM ID page */
 	eepromid@59 {
 		compatible = "atmel,24c32";
