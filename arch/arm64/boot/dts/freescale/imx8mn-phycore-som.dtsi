@@ -251,6 +251,15 @@
 				regulator-min-microvolt = <1800000>;
 				regulator-name = "NVCC_SNVS_1P8";
 			};
+
+			reg_vdd_3v3_s: regulator-vdd-3v3-s {
+				compatible = "regulator-fixed";
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-max-microvolt = <3300000>;
+				regulator-min-microvolt = <3300000>;
+				regulator-name = "VDD_3V3_S";
+			};
 		};
 	};
 
@@ -259,6 +268,7 @@
 		compatible = "atmel,24c32";
 		pagesize = <32>;
 		reg = <0x51>;
+		vcc-supply = <&reg_vdd_3v3_s>;
 	};
 
 	/* RTC */
