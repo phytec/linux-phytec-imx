@@ -46,7 +46,7 @@
 			color = <LED_COLOR_ID_RED>;
 			function = LED_FUNCTION_DISK;
 			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "mmc0";
+			linux,default-trigger = "mmc2";
 		};
 
 		led-1 {
