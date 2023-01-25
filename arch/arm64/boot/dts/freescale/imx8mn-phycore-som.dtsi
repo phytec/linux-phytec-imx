@@ -83,6 +83,12 @@
 	};
 };
 
+&gpio1 {
+	gpio-line-names = "", "", "WDOG_INT", "X_RTC_INT",
+		"", "", "", "RESET_ETHPHY",
+		"", "", "nENABLE_FLATLINK";
+};
+
 /* GPU */
 &gpu {
 	status = "okay";
