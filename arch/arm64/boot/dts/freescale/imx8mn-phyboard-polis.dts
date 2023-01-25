@@ -14,6 +14,10 @@
 	compatible = "phytec,imx8mn-phyboard-polis",
 		     "phytec,i.mx8mn-phycore-som","fsl,imx8mn";
 
+	chosen {
+		stdout-path = &uart3;
+	};
+
 	clocks {
 		#address-cells = <1>;
 		#size-cells = <0>;
