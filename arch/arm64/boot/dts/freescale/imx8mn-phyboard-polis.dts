@@ -210,12 +210,12 @@
 
 /* USB */
 &usbotg1 {
+	adp-disable;
 	dr_mode = "otg";
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usbotg1grp>;
 	over-current-active-low;
-	picophy,dc-vol-level-adjust = <7>;
-	picophy,pre-emp-curr-control = <3>;
+	samsung,picophy-pre-emp-curr-control = <3>;
+	samsung,picophy-dc-vol-level-adjust = <7>;
+	srp-disable;
 	vbus-supply = <&reg_usb_otg1_vbus>;
 	status = "okay";
 };
