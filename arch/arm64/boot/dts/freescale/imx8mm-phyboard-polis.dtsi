@@ -267,6 +267,7 @@
 &usdhc2 {
 	assigned-clocks = <&clk IMX8MM_CLK_USDHC2>;
 	assigned-clock-rates = <200000000>;
+	disable-wp;
 	vmmc-supply = <&reg_usdhc2_vmmc>;
 	vqmmc-supply = <&reg_ldo2>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
