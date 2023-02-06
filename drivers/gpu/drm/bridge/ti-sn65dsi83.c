@@ -148,6 +148,7 @@ struct sn65dsi83 {
 	int				dsi_lanes;
 	bool				lvds_dual_link;
 	bool				lvds_dual_link_even_odd_swap;
+	u32				lvds_vod_swing;
 };
 
 static const struct regmap_range sn65dsi83_readable_ranges[] = {
@@ -476,7 +477,7 @@ static void sn65dsi83_atomic_enable(struct drm_bridge *bridge,
 		val |= REG_LVDS_FMT_LVDS_LINK_CFG;
 
 	regmap_write(ctx->regmap, REG_LVDS_FMT, val);
-	regmap_write(ctx->regmap, REG_LVDS_VCOM, 0x05);
+	regmap_write(ctx->regmap, REG_LVDS_VCOM, ctx->lvds_vod_swing);
 	regmap_write(ctx->regmap, REG_LVDS_LANE,
 		     (ctx->lvds_dual_link_even_odd_swap ?
 		      REG_LVDS_LANE_EVEN_ODD_SWAP : 0) |
@@ -616,6 +617,11 @@ static int sn65dsi83_parse_dt(struct sn65dsi83 *ctx, enum sn65dsi83_model model)
 	endpoint = of_graph_get_endpoint_by_regs(dev->of_node, 0, 0);
 	ctx->dsi_lanes = of_property_count_u32_elems(endpoint, "data-lanes");
 	ctx->host_node = of_graph_get_remote_port_parent(endpoint);
+
+	ret = of_property_read_u32(endpoint, "lvds_vod_swing", &ctx->lvds_vod_swing);
+	if (ret)
+		ctx->lvds_vod_swing = 0x05;
+
 	of_node_put(endpoint);
 
 	if (ctx->dsi_lanes <= 0 || ctx->dsi_lanes > 4) {
