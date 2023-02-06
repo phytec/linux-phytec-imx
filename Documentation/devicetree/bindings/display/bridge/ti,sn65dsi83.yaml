@@ -55,6 +55,9 @@ properties:
                   - const: 2
                   - const: 3
                   - const: 4
+              lvds_vod_swing:
+                description: LVDS output voltage configuration.
+                minItems: 1
 
       port@1:
         $ref: /schemas/graph.yaml#/$defs/port-base
@@ -75,6 +78,9 @@ properties:
                   - const: 2
                   - const: 3
                   - const: 4
+              lvds_vod_swing:
+                description: LVDS output voltage configuration.
+                minItems: 1
 
       port@2:
         $ref: /schemas/graph.yaml#/properties/port
@@ -118,7 +124,7 @@ allOf:
           properties:
             port@1: false
 
-additionalProperties: false
+additionalProperties: true
 
 examples:
   - |
