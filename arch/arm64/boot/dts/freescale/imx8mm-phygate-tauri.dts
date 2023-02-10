@@ -219,6 +219,10 @@
 	status = "okay";
 };
 
+&{/soc@0/bus@32c00000/display-subsystem} {
+	status = "disabled";
+};
+
 /* USB */
 &usbotg1 {
 	dr_mode = "host";
