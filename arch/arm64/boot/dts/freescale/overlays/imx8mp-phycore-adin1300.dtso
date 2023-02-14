@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ *
+ * phyCORE-i.MX8MP PMA-024 mapper support for alternativ ethernet
+ * phy ADIN1300.
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+
+#include "../imx8mp-pinfunc.h"
+
+/ {
+	compatible = "phytec,imx8mp-phycore-som";
+};
+
+&ethphy0 {
+	interrupt-parent = <&gpio1>;
+	interrupts = <15 IRQ_TYPE_EDGE_FALLING>;
+};
+
+&fec {
+	pinctrl-0 = <&pinctrl_fec &pinctrl_fec_irq>;
+};
+
+&iomuxc {
+	pinctrl_fec_irq: fecirqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15	0x10
+		>;
+	};
+};
