@@ -180,6 +180,14 @@
 				regulator-name = "VDDA_1V8 (LDO3)";
 			};
 
+			ldo4: LDO4 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-max-microvolt = <900000>;
+				regulator-min-microvolt = <900000>;
+				regulator-name = "VDD_ENET_0V9 (LDO4)";
+			};
+
 			ldo5: LDO5 {
 				regulator-always-on;
 				regulator-boot-on;
