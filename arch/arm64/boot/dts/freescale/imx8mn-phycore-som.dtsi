@@ -189,16 +189,6 @@
 				};
 			};
 
-			reg_buck3: buck3 {
-				regulator-name = "VDD_VPU_dummy";
-				regulator-max-microvolt = <1000000>;
-				regulator-min-microvolt = <400000>;
-
-				regulator-state-mem {
-					regulator-off-in-suspend;
-				};
-			};
-
 			reg_buck4: buck4 {
 				regulator-always-on;
 				regulator-boot-on;
