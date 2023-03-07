@@ -202,7 +202,7 @@
 			reg_buck4: buck4 {
 				regulator-always-on;
 				regulator-boot-on;
-				regulator-max-microvolt = <1000000>;
+				regulator-max-microvolt = <850000>;
 				regulator-min-microvolt = <850000>;
 				regulator-name = "VDD_MIPI_0P8";
 
