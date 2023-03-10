@@ -80,6 +80,7 @@
 		bridge_in: endpoint {
 			data-lanes = <1 2 3 4>;
 			remote-endpoint = <&dsi_out>;
+			lvds_vod_swing = <0x0C>;
 		};
 
 	};
