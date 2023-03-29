@@ -6,6 +6,7 @@
 
 /dts-v1/;
 #include "imx8mm-phycore-som.dtsi"
+#include <dt-bindings/leds/common.h>
 
 / {
 	model = "PHYTEC phyGATE-Tauri-iMX8MM";
@@ -44,15 +45,15 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_leds>;
 
-		led-red {
+		led1 {
+			color = <LED_COLOR_ID_RED>;
 			gpios = <&gpio5 5 GPIO_ACTIVE_HIGH>;
-			label = "red";
 			linux,default-trigger = "off";
 		};
 
-		led-yellow {
+		led2 {
+			color = <LED_COLOR_ID_YELLOW>;
 			gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>;
-			label = "yellow";
 			linux,default-trigger = "off";
 		};
 	};
