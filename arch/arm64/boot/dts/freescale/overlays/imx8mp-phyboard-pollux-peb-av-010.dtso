@@ -40,6 +40,20 @@
 				};
 			};
 
+			reg_sound_1v8: regulator-1v8 {
+				compatible = "regulator-fixed";
+				regulator-name = "VCC-1V8-Audio";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+			};
+
+			reg_sound_3v3: regulator-3v3 {
+				compatible = "regulator-fixed";
+				regulator-name = "VCC-3V3-Audio";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+
 			sound-peb-av-10 {
 				compatible = "simple-audio-card";
 				simple-audio-card,bitclock-master = <&dailink_master>;
@@ -90,6 +104,10 @@
 		compatible = "ti,tlv320aic3007";
 		ai3x-gpio-func = <0xd 0x0>;
 		ai3x-micbias-vg = <2>;
+		AVDD-supply = <&reg_sound_3v3>;
+		IOVDD-supply = <&reg_sound_3v3>;
+		DRVDD-supply = <&reg_sound_3v3>;
+		DVDD-supply = <&reg_sound_1v8>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_tlv320>;
 		reg = <0x18>;
