@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2023 PHYTEC Messtechnik GmbH
- * Author: Steffen Hemer <s.hemer@phytec.de>>
- * Supports PEB-AV-010 connected to a Toshiba tc358775 mipi-dsi bridge
+ * Author: Steffen Hemer <s.hemer@phytec.de>
+ * Supports PEB-AV-010 connected to a TI sn65dsi83 mipi-dsi bridge
  */
 
 /dts-v1/;
 /plugin/;
 
 #include "imx8mm-phyboard-polis-peb-av-010.dtsi"
-#include "imx8mm-phycore-tc358775.dtsi"
+#include "imx8mm-phycore-sn65dsi83.dtsi"
