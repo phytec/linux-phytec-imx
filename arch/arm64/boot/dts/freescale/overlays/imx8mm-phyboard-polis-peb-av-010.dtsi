@@ -2,10 +2,8 @@
 /*
  * Copyright (C) 2019-2021 PHYTEC Messtechnik GmbH
  * Author: Teresa Remmet <t.remmet@phytec.de>
+ * Supports PEB-AV-010
  */
-
-/dts-v1/;
-/plugin/;
 
 #include <dt-bindings/clock/imx8mm-clock.h>
 #include <dt-bindings/gpio/gpio.h>
@@ -93,8 +91,8 @@
 	scl-gpios = <&gpio5 18 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	status = "okay";
 
-	#address-cells = <0x1>;
-	#size-cells = <0x0>;
+	#address-cells = <1>;
+	#size-cells = <0>;
 
 	codec: codec@18 {
 		compatible = "ti,tlv320aic3007";
@@ -129,20 +127,6 @@
 	status = "okay";
 };
 
-&mipi_dsi {
-	status = "okay";
-
-	#address-cells = <0x1>;
-	#size-cells = <0x0>;
-
-	port@1 {
-		dsi_out: endpoint {
-			attach-bridge;
-			remote-endpoint = <&bridge_in>;
-		};
-	};
-};
-
 &pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
@@ -165,33 +149,6 @@
 	#sound-dai-cells = <0>;
 	status = "okay";
 
-};
-
-&sn65dsi83 {
-	status = "okay";
-
-	ports {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		port@0 {
-			reg = <0>;
-
-			bridge_in: endpoint {
-				remote-endpoint = <&dsi_out>;
-				data-lanes = <1 2 3 4>;
-				lvds_vod_swing = <0x0C>;
-			};
-		};
-
-		port@2 {
-			reg = <2>;
-
-			bridge_out: endpoint {
-				remote-endpoint = <&panel_in>;
-			};
-		};
-	};
 };
 
 &iomuxc {

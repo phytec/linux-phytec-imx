@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 
 dtb-y += imx8mm-phyboard-polis-1532.1.dtbo
-dtb-y += imx8mm-phyboard-polis-peb-av-010.dtbo
+dtb-y += imx8mm-phyboard-polis-peb-av-010-sn65dsi83.dtbo
 dtb-y += imx8mm-phyboard-polis-peb-av-010-tc358775.dtbo
-dtb-y += imx8mm-phyboard-polis-peb-av-013.dtbo
+dtb-y += imx8mm-phyboard-polis-peb-av-013-sn65dsi83.dtbo
+dtb-y += imx8mm-phyboard-polis-peb-av-013-tc358775.dtbo
 dtb-y += imx8mm-phyboard-polis-peb-eval-01.dtbo
 dtb-y += imx8mm-phycore-adin1300.dtbo
 dtb-y += imx8mm-phycore-rpmsg.dtbo
