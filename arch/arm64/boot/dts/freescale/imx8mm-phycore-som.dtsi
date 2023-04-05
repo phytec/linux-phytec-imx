@@ -91,7 +91,6 @@
 		spi-max-frequency = <80000000>;
 		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <4>;
-		status = "disabled";
 	};
 };
 
