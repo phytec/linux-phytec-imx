@@ -30,6 +30,16 @@
 		brightness-levels= <0 4 8 16 32 64 128 255>;
 	};
 
+	gpio-fan {
+		compatible = "gpio-fan";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_fan>;
+		gpios = <&gpio5 4 GPIO_ACTIVE_HIGH>;
+		gpio-fan,speed-map = <0     0
+				      13000 1>;
+		#cooling-cells = <2>;
+	};
+
 	panel1: panel1 {
 		compatible = "edt,etml1010g0dka";
 		backlight = <&backlight1>;
@@ -39,13 +49,6 @@
 				remote-endpoint = <&lvds1_out>;
 			};
 		};
-	};
-
-	pwmfan0: pwm-fan {
-		compatible = "pwm-fan";
-		cooling-levels = <1 90 150 200 255>;
-		pwms = <&pwm2 0 38000 PWM_POLARITY_INVERTED>;
-		#cooling-cells = <2>;
 	};
 
 	reg_can1_stby: regulator-can1-stby {
@@ -306,12 +309,6 @@ csi1_i2c: &i2c3 {
 };
 
 /* PWM */
-&pwm2 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm2>;
-};
-
 &pwm3 {
 	status = "okay";
 	pinctrl-names = "default";
@@ -429,6 +426,12 @@ csi1_i2c: &i2c3 {
 		>;
 	};
 
+	pinctrl_fan: fan0grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SPDIF_RX__GPIO5_IO04	0x16
+		>;
+	};
+
 	pinctrl_flexcan1: flexcan1grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI5_RXD2__CAN1_RX		0x154
@@ -504,12 +507,6 @@ csi1_i2c: &i2c3 {
 			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08	0x41
 			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x61
 			MX8MP_IOMUXC_GPIO1_IO14__GPIO1_IO14	0x41
-		>;
-	};
-
-	pinctrl_pwm2: pwm2grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SPDIF_RX__PWM2_OUT		0x12
 		>;
 	};
 
