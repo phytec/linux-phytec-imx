@@ -18,6 +18,7 @@ dtb-y += imx8mn-phyboard-polis-peb-eval-01.dtbo
 dtb-y += imx8mn-phyboard-polis-peb-av-010.dtbo
 dtb-y += imx8mn-phycore-no-spiflash.dtbo
 dtb-y += imx8mn-phycore-no-eth.dtbo
+dtb-y += imx8mm-phygate-tauri-analog-io.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs232.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485-switchable.dtbo
