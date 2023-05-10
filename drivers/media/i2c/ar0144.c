@@ -505,7 +505,7 @@ struct priv_ioctl priv_ioctls[] = {
 };
 
 static inline struct ar0144 *to_ar0144(struct v4l2_subdev *sd);
-static inline int bpp_to_index(unsigned int bpp);
+static inline int bpp_to_index(struct ar0144 *sensor, unsigned int bpp);
 static int ar0144_read(struct ar0144 *sensor, u16 reg, u16 *val);
 static int ar0144_write(struct ar0144 *sensor, u16 reg, u16 val);
 static int ar0144_s_stream(struct v4l2_subdev *sd, int enable);
@@ -575,7 +575,7 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 
 	mutex_lock(&sensor->lock);
 
-	index = bpp_to_index(sensor->bpp);
+	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
 	pixclk_mhz = pix_freq / 1000000;
 
@@ -656,7 +656,7 @@ static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
 	bpp = ar0144_modes[index].bit_width;
 	format.format.width = ar0144_modes[index].size.bounds_width;
 	format.format.height = ar0144_modes[index].size.bounds_height;
-	format.format.code = sensor->formats[bpp_to_index(bpp)].code;
+	format.format.code = sensor->formats[bpp_to_index(sensor, bpp)].code;
 
 	ret = ar0144_set_selection(sd, &state, &sel);
 	if (ret)
@@ -690,7 +690,7 @@ static int ar0144_vv_set_exposure(struct ar0144 *sensor, void *args)
 
 	mutex_lock(&sensor->lock);
 
-	index = bpp_to_index(sensor->bpp);
+	index = bpp_to_index(sensor, sensor->bpp);
 	pixclk_mhz = sensor->pll[index].pix_freq / 1000000;
 
 	new_exp = new_exp / 1024;
@@ -767,7 +767,7 @@ static int ar0144_vv_get_fps(struct ar0144 *sensor, void *args)
 
 	mutex_lock(&sensor->lock);
 
-	index = bpp_to_index(sensor->bpp);
+	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
 
 	fps = div_u64(pix_freq * 10ULL, sensor->vlen * sensor->hlen);
@@ -792,7 +792,7 @@ static int ar0144_vv_set_fps(struct ar0144 *sensor, void *args)
 
 	mutex_lock(&sensor->lock);
 
-	index = bpp_to_index(sensor->bpp);
+	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
 
 	max_fps = div_u64(pix_freq * 10ULL,
@@ -948,14 +948,23 @@ static inline struct ar0144 *to_ar0144(struct v4l2_subdev *sd)
 	return container_of(sd, struct ar0144, subdev);
 }
 
-static inline unsigned int index_to_bpp(int index)
+static inline unsigned int index_to_bpp(struct ar0144 *sensor, int index)
 {
-	return index * 2 + 8;
+	if (index >= sensor->num_fmts)
+		index = sensor->num_fmts - 1;
+
+	return sensor->formats[index].bpp;
 }
 
-static inline int bpp_to_index(unsigned int bpp)
+static inline int bpp_to_index(struct ar0144 *sensor, unsigned int bpp)
 {
-	return (bpp - 8) / 2;
+	int index;
+
+	for (index = 0; index < sensor->num_fmts; index++)
+		if (sensor->formats[index].bpp == bpp)
+			return index;
+
+	return sensor->num_fmts - 1;
 }
 
 static int ar0144_read(struct ar0144 *sensor, u16 reg, u16 *val)
@@ -1268,7 +1277,7 @@ static int ar0144_g_register(struct v4l2_subdev *sd,
 
 static int ar0144_config_pll(struct ar0144 *sensor)
 {
-	int index = bpp_to_index(sensor->bpp);
+	int index = bpp_to_index(sensor, sensor->bpp);
 	int ret;
 
 	ret = ar0144_write(sensor, AR0144_VT_PIX_CLK_DIV,
@@ -1599,7 +1608,7 @@ static int ar0144_g_frame_interval(struct v4l2_subdev *sd,
 
 	mutex_lock(&sensor->lock);
 
-	index = bpp_to_index(sensor->bpp);
+	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
 
 	interval->interval.numerator = 10;
@@ -2328,7 +2337,7 @@ static int ar0144_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 	int ret;
 	u16 val;
 
-	index = bpp_to_index(sensor->bpp);
+	index = bpp_to_index(sensor, sensor->bpp);
 
 	switch (ctrl->id) {
 	case V4L2_CID_X_AUTO_EXPOSURE_CUR:
@@ -3236,7 +3245,7 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 		ret = ar0144_calculate_pll(sensor, dev, &sensor->pll[i],
 					   ext_freq,
 					   bus_cfg.link_frequencies[0],
-					   index_to_bpp(i));
+					   index_to_bpp(sensor, i));
 		if (ret)
 			goto out_put;
 
