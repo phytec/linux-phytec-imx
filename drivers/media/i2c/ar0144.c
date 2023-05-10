@@ -157,6 +157,7 @@
 #define	AR0144_PIX_DEF_ID				0x31e0
 #define		BIT_PIX_DEF_1D_DDC_EN			BIT(3)
 #define AR0144_CUSTOMER_REV				0x31fe
+#define		BIT_COLOR				BIT(4)
 
 #define	AR0144_FLASH_CTRL				0x3270
 #define		BIT_LED_FLASH_EN			BIT(8)
@@ -3089,11 +3090,11 @@ static int ar0144_check_chip_id(struct ar0144 *sensor)
 	if (ret)
 		goto out;
 
-	dev_info(dev, "Device ID: 0x%04x customer rev: 0x%04x\n",
-		 model_id, customer_rev);
+	dev_info(dev, "Device ID: 0x%04x, %s model\n",
+		 model_id, customer_rev & BIT_COLOR ? "color" : "monochrome");
 
 	if (sensor->model == AR0144_MODEL_UNKNOWN) {
-		if (customer_rev & BIT(4))
+		if (customer_rev & BIT_COLOR)
 			sensor->model = AR0144_MODEL_COLOR;
 		else
 			sensor->model = AR0144_MODEL_MONOCHROME;
