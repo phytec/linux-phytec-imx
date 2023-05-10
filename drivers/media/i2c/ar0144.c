@@ -284,6 +284,7 @@ struct ar0144_sensor_limits {
 struct ar0144_businfo {
 	enum v4l2_mbus_type bus_type;
 	unsigned int flags;
+	unsigned long target_link_frequency;
 	const s64 *link_freqs;
 
 	unsigned int slew_rate_dat;
@@ -1377,37 +1378,11 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 
 static int ar0144_config_parallel(struct ar0144 *sensor)
 {
-	unsigned int slew_rate_dat = sensor->info.slew_rate_dat;
-	unsigned int slew_rate_clk = sensor->info.slew_rate_clk;
-	u16 val = 0;
-	u16 mask = 0;
 	int ret;
-
-	if (slew_rate_dat != AR0144_NO_SLEW_RATE) {
-		val |= BIT_SLEW_RATE_DAT(slew_rate_dat);
-		mask |= BIT_SLEW_RATE_DAT_MASK;
-	}
-
-	if (slew_rate_clk != AR0144_NO_SLEW_RATE) {
-		val |= BIT_SLEW_RATE_CLK(slew_rate_clk);
-		mask |= BIT_SLEW_RATE_CLK_MASK;
-	}
-
-	if (mask) {
-		ret = ar0144_update_bits(sensor, AR0144_DATAPATH_SEL,
-					 mask, val);
-		if (ret)
-			return ret;
-	}
 
 	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS,
 			   BIT_DATA_FMT_IN(sensor->bpp) |
 			   BIT_DATA_FMT_OUT(sensor->bpp));
-	if (ret)
-		return ret;
-
-	ret = ar0144_clear_bits(sensor, AR0144_SERIAL_FORMAT,
-				BIT_DUAL_LANE | BIT_SINGLE_LANE);
 	if (ret)
 		return ret;
 
@@ -1448,56 +1423,9 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_0,
-			   BIT_HS_PREP(sensor->info.t_hs_prep) |
-			   BIT_HS_ZERO(sensor->info.t_hs_zero) |
-			   BIT_HS_TRAIL(sensor->info.t_hs_trail) |
-			   BIT_CLK_TRAIL(sensor->info.t_clk_trail));
-	if (ret)
-		return ret;
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_1,
-			   BIT_CLK_PREP(sensor->info.t_clk_prep) |
-			   BIT_HS_EXIT(sensor->info.t_hs_exit) |
-			   BIT_CLK_ZERO(sensor->info.t_clk_zero));
-	if (ret)
-		return ret;
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_2,
-			   BIT_BGAP(sensor->info.t_bgap) |
-			   BIT_CLK_PRE(sensor->info.t_clk_pre) |
-			   BIT_CLK_POST(sensor->info.t_clk_post));
-	if (ret)
-		return ret;
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_3,
-			   BIT_LPX(sensor->info.t_lpx) |
-			   BIT_WAKE_UP(sensor->info.t_wakeup));
-	if (ret)
-		return ret;
-
-	val = BIT_INIT(sensor->info.t_init) |
-	      (sensor->info.cont_tx_clk ? (u16) BIT_CONT_TX_CLK : 0) |
-	      (sensor->info.heavy_lp_load ?
-	       (u16) BIT_HEAVY_LP_LOAD : 0);
-
-	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_4, val);
-	if (ret)
-		return ret;
-
 	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS,
 			   BIT_DATA_FMT_IN(sensor->bpp) |
 			   BIT_DATA_FMT_OUT(sensor->bpp));
-	if (ret)
-		return ret;
-
-	if (sensor->info.num_lanes == 1)
-		val = BIT_SINGLE_LANE;
-	else
-		val = BIT_DUAL_LANE;
-
-	ret = ar0144_update_bits(sensor, AR0144_SERIAL_FORMAT,
-				 BIT_DUAL_LANE | BIT_SINGLE_LANE, val);
 	if (ret)
 		return ret;
 
@@ -2805,116 +2733,87 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 	return 0;
 }
 
-static void ar0144_set_defaults(struct ar0144 *sensor)
+static int ar0144_init_mipi_sensor(struct ar0144 *sensor)
 {
-	sensor->limits = (struct ar0144_sensor_limits) {
-					/* min		max	 */
-		.x			= {0,		1295      },
-		.y			= {0,		807       },
-		.hlen			= {1488,	65534     },
-		.vlen			= {29,		65535     },
-		.hblank			= {208,		65535     },
-		.vblank			= {22,		65535     },
-		.ext_clk		= {6000000,	48000000  },
-	};
-
-	sensor->crop.left = 4;
-	sensor->crop.top = 4;
-	sensor->crop.width = AR0144_DEF_WIDTH;
-	sensor->crop.height = AR0144_DEF_HEIGHT;
-
-	sensor->fmt.width = AR0144_DEF_WIDTH;
-	sensor->fmt.height = AR0144_DEF_HEIGHT;
-	sensor->fmt.field = V4L2_FIELD_NONE;
-	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
-
-	if (sensor->model == AR0144_MODEL_MONOCHROME) {
-		sensor->formats = ar0144_mono_formats;
-		sensor->num_fmts = ARRAY_SIZE(ar0144_mono_formats);
-	} else {
-		sensor->formats = ar0144_col_formats;
-		sensor->num_fmts = ARRAY_SIZE(ar0144_col_formats);
-	}
-
-	sensor->fmt.code = sensor->formats[sensor->num_fmts - 1].code;
-	sensor->bpp = sensor->formats[sensor->num_fmts - 1].bpp;
-
-	sensor->w_scale = 1;
-	sensor->h_scale = 1;
-	sensor->hblank = sensor->limits.hblank.min;
-	sensor->vblank = sensor->limits.vblank.min;
-	sensor->hlen = sensor->limits.hlen.min;
-	sensor->vlen = sensor->fmt.height + sensor->vblank;
-	sensor->gains.red = 1000;
-	sensor->gains.greenr = 1000;
-	sensor->gains.greenb = 1000;
-	sensor->gains.blue = 1000;
-	sensor->gains.min_ref = 1000;
-}
-
-static int ar0144_subdev_registered(struct v4l2_subdev *sd)
-{
-	struct ar0144 *sensor = to_ar0144(sd);
 	int ret;
+	u16 val = 0;
 
-	ar0144_set_defaults(sensor);
-
-	ret = ar0144_create_ctrls(sensor);
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_0,
+			   BIT_HS_PREP(sensor->info.t_hs_prep) |
+			   BIT_HS_ZERO(sensor->info.t_hs_zero) |
+			   BIT_HS_TRAIL(sensor->info.t_hs_trail) |
+			   BIT_CLK_TRAIL(sensor->info.t_clk_trail));
 	if (ret)
 		return ret;
 
-	v4l2_ctrl_handler_setup(&sensor->ctrls);
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_1,
+			   BIT_CLK_PREP(sensor->info.t_clk_prep) |
+			   BIT_HS_EXIT(sensor->info.t_hs_exit) |
+			   BIT_CLK_ZERO(sensor->info.t_clk_zero));
+	if (ret)
+		return ret;
 
-	return 0;
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_2,
+			   BIT_BGAP(sensor->info.t_bgap) |
+			   BIT_CLK_PRE(sensor->info.t_clk_pre) |
+			   BIT_CLK_POST(sensor->info.t_clk_post));
+	if (ret)
+		return ret;
+
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_3,
+			   BIT_LPX(sensor->info.t_lpx) |
+			   BIT_WAKE_UP(sensor->info.t_wakeup));
+	if (ret)
+		return ret;
+
+	val = BIT_INIT(sensor->info.t_init) |
+	      (sensor->info.cont_tx_clk ? (u16) BIT_CONT_TX_CLK : 0) |
+	      (sensor->info.heavy_lp_load ?
+	      (u16) BIT_HEAVY_LP_LOAD : 0);
+
+	ret = ar0144_write(sensor, AR0144_MIPI_TIMING_4, val);
+	if (ret)
+		return ret;
+
+	if (sensor->info.num_lanes == 1)
+		val = BIT_SINGLE_LANE;
+	else
+		val = BIT_DUAL_LANE;
+
+	ret = ar0144_update_bits(sensor, AR0144_SERIAL_FORMAT,
+				 BIT_DUAL_LANE | BIT_SINGLE_LANE, val);
+
+	return ret;
 }
 
-static const struct v4l2_subdev_internal_ops ar0144_subdev_internal_ops = {
-	.registered		= ar0144_subdev_registered,
-};
-
-static int ar0144_check_chip_id(struct ar0144 *sensor)
+static int ar0144_init_parallel_sensor(struct ar0144 *sensor)
 {
-	struct device *dev = sensor->dev;
-	u16 model_id, customer_rev;
+	unsigned int slew_rate_dat = sensor->info.slew_rate_dat;
+	unsigned int slew_rate_clk = sensor->info.slew_rate_clk;
+	u16 val = 0;
+	u16 mask = 0;
 	int ret;
 
-	ret = ar0144_power_on(sensor);
-	if (ret) {
-		dev_err(dev, "Failed to power on sensor (%d)\n", ret);
-		return ret;
+	if (slew_rate_dat != AR0144_NO_SLEW_RATE) {
+		val |= BIT_SLEW_RATE_DAT(slew_rate_dat);
+		mask |= BIT_SLEW_RATE_DAT_MASK;
 	}
 
-	ar0144_reset(sensor);
-
-	ret = ar0144_read(sensor, AR0144_MODEL_ID, &model_id);
-	if (ret) {
-		dev_err(dev, "Failed to read model ID (%d)\n", ret);
-		goto out;
+	if (slew_rate_clk != AR0144_NO_SLEW_RATE) {
+		val |= BIT_SLEW_RATE_CLK(slew_rate_clk);
+		mask |= BIT_SLEW_RATE_CLK_MASK;
 	}
 
-	if (model_id != AR0144_CHIP_VERSION) {
-		dev_err(dev, "Wrong chip version: 0x%04x <-> 0x%04x\n",
-			model_id, AR0144_CHIP_VERSION);
-		ret = -ENOENT;
-		goto out;
+	if (mask) {
+		ret = ar0144_update_bits(sensor, AR0144_DATAPATH_SEL,
+					 mask, val);
+		if (ret)
+			return ret;
 	}
 
-	ret = ar0144_read(sensor, AR0144_CUSTOMER_REV, &customer_rev);
-	if (ret)
-		goto out;
+	ret = ar0144_clear_bits(sensor, AR0144_SERIAL_FORMAT,
+				BIT_DUAL_LANE | BIT_SINGLE_LANE);
 
-	dev_info(dev, "Device ID: 0x%04x customer rev: 0x%04x\n",
-		 model_id, customer_rev);
-
-	if (sensor->model == AR0144_MODEL_UNKNOWN) {
-		if (customer_rev & BIT(4))
-			sensor->model = AR0144_MODEL_COLOR;
-		else
-			sensor->model = AR0144_MODEL_MONOCHROME;
-	}
-
-out:
-	ar0144_power_off(sensor);
 	return ret;
 }
 
@@ -3047,6 +2946,163 @@ static int ar0144_calculate_pll(struct ar0144 *sensor, struct device *dev,
 	return 0;
 }
 
+static int ar0144_setup_pll(struct ar0144 *sensor)
+{
+	struct device *dev = sensor->dev;
+	struct ar0144_businfo *info = &sensor->info;
+	unsigned long ext_freq;
+	u64 *link_freqs;
+	int ret;
+	int i;
+
+	link_freqs = devm_kcalloc(dev, 3, sizeof(*info->link_freqs),
+				  GFP_KERNEL);
+	if (!link_freqs)
+		return -ENOMEM;
+
+	ext_freq = clk_get_rate(sensor->extclk);
+
+	for (i = 0; i < 3; i++) {
+		ret = ar0144_calculate_pll(sensor, dev, &sensor->pll[i],
+					   ext_freq,
+					   info->target_link_frequency,
+					   index_to_bpp(sensor, i));
+		if (ret)
+			return ret;
+
+		link_freqs[i] = sensor->pll[i].ser_freq;
+	}
+
+	info->link_freqs = link_freqs;
+
+	return 0;
+}
+
+static void ar0144_set_defaults(struct ar0144 *sensor)
+{
+	sensor->limits = (struct ar0144_sensor_limits) {
+					/* min		max	  */
+		.x			= {0,		1295	  },
+		.y			= {0,		807	  },
+		.hlen			= {1488,	65534	  },
+		.vlen			= {29,		65535	  },
+		.hblank			= {208,		65535	  },
+		.vblank			= {22,		65535	  },
+		.ext_clk		= {6000000,	48000000  },
+	};
+
+	sensor->crop.left = 4;
+	sensor->crop.top = 4;
+	sensor->crop.width = AR0144_DEF_WIDTH;
+	sensor->crop.height = AR0144_DEF_HEIGHT;
+
+	sensor->fmt.width = AR0144_DEF_WIDTH;
+	sensor->fmt.height = AR0144_DEF_HEIGHT;
+	sensor->fmt.field = V4L2_FIELD_NONE;
+	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
+
+	if (sensor->model == AR0144_MODEL_MONOCHROME) {
+		sensor->formats = ar0144_mono_formats;
+		sensor->num_fmts = ARRAY_SIZE(ar0144_mono_formats);
+	} else {
+		sensor->formats = ar0144_col_formats;
+		sensor->num_fmts = ARRAY_SIZE(ar0144_col_formats);
+	}
+
+	sensor->fmt.code = sensor->formats[sensor->num_fmts - 1].code;
+	sensor->bpp = sensor->formats[sensor->num_fmts - 1].bpp;
+
+	sensor->w_scale = 1;
+	sensor->h_scale = 1;
+	sensor->hblank = sensor->limits.hblank.min;
+	sensor->vblank = sensor->limits.vblank.min;
+	sensor->hlen = sensor->limits.hlen.min;
+	sensor->vlen = sensor->fmt.height + sensor->vblank;
+	sensor->gains.red = 1000;
+	sensor->gains.greenr = 1000;
+	sensor->gains.greenb = 1000;
+	sensor->gains.blue = 1000;
+	sensor->gains.min_ref = 1000;
+}
+
+static int ar0144_subdev_registered(struct v4l2_subdev *sd)
+{
+	struct ar0144 *sensor = to_ar0144(sd);
+	int ret;
+
+	ar0144_set_defaults(sensor);
+
+	ret = ar0144_setup_pll(sensor);
+	if (ret)
+		return ret;
+
+	if (sensor->info.bus_type == V4L2_MBUS_CSI2_DPHY)
+		ret = ar0144_init_mipi_sensor(sensor);
+	else
+		ret = ar0144_init_parallel_sensor(sensor);
+
+	if (ret)
+		return ret;
+
+	ret = ar0144_create_ctrls(sensor);
+	if (ret)
+		return ret;
+
+	v4l2_ctrl_handler_setup(&sensor->ctrls);
+
+	return 0;
+}
+
+static const struct v4l2_subdev_internal_ops ar0144_subdev_internal_ops = {
+	.registered		= ar0144_subdev_registered,
+};
+
+static int ar0144_check_chip_id(struct ar0144 *sensor)
+{
+	struct device *dev = sensor->dev;
+	u16 model_id, customer_rev;
+	int ret;
+
+	ret = ar0144_power_on(sensor);
+	if (ret) {
+		dev_err(dev, "Failed to power on sensor (%d)\n", ret);
+		return ret;
+	}
+
+	ar0144_reset(sensor);
+
+	ret = ar0144_read(sensor, AR0144_MODEL_ID, &model_id);
+	if (ret) {
+		dev_err(dev, "Failed to read model ID (%d)\n", ret);
+		goto out;
+	}
+
+	if (model_id != AR0144_CHIP_VERSION) {
+		dev_err(dev, "Wrong chip version: 0x%04x <-> 0x%04x\n",
+			model_id, AR0144_CHIP_VERSION);
+		ret = -ENOENT;
+		goto out;
+	}
+
+	ret = ar0144_read(sensor, AR0144_CUSTOMER_REV, &customer_rev);
+	if (ret)
+		goto out;
+
+	dev_info(dev, "Device ID: 0x%04x customer rev: 0x%04x\n",
+		 model_id, customer_rev);
+
+	if (sensor->model == AR0144_MODEL_UNKNOWN) {
+		if (customer_rev & BIT(4))
+			sensor->model = AR0144_MODEL_COLOR;
+		else
+			sensor->model = AR0144_MODEL_MONOCHROME;
+	}
+
+out:
+	ar0144_power_off(sensor);
+	return ret;
+}
+
 static int ar0144_parse_parallel_props(struct ar0144 *sensor,
 				       struct fwnode_handle *ep,
 				       struct v4l2_fwnode_endpoint *bus_cfg)
@@ -3160,9 +3216,6 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 	struct v4l2_fwnode_endpoint bus_cfg = {
 		.bus_type = V4L2_MBUS_UNKNOWN,
 	};
-	unsigned long ext_freq;
-	u64 *link_freqs;
-	int i;
 	int ret;
 
 	clk = devm_clk_get(dev, "ext");
@@ -3217,6 +3270,8 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 		goto out_put;
 	}
 
+	info->target_link_frequency = bus_cfg.link_frequencies[0];
+
 	switch (info->bus_type) {
 	case V4L2_MBUS_PARALLEL:
 		ret = ar0144_parse_parallel_props(sensor, ep, &bus_cfg);
@@ -3231,28 +3286,6 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 
 	if (ret)
 		goto out_put;
-
-	link_freqs = devm_kcalloc(dev, 3, sizeof(*info->link_freqs),
-				  GFP_KERNEL);
-	if (!link_freqs) {
-		ret = -ENOMEM;
-		goto out_put;
-	}
-
-	ext_freq = clk_get_rate(sensor->extclk);
-
-	for (i = 0; i < 3; i++) {
-		ret = ar0144_calculate_pll(sensor, dev, &sensor->pll[i],
-					   ext_freq,
-					   bus_cfg.link_frequencies[0],
-					   index_to_bpp(sensor, i));
-		if (ret)
-			goto out_put;
-
-		link_freqs[i] = sensor->pll[i].ser_freq;
-	}
-
-	info->link_freqs = link_freqs;
 
 out_put:
 	v4l2_fwnode_endpoint_free(&bus_cfg);
