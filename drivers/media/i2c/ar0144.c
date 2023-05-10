@@ -2098,7 +2098,7 @@ static int ar0144_set_analogue_gain(struct ar0144 *sensor, unsigned int val)
 			break;
 
 	val = val / (1u << coarse);
-	fine = 32 * (val - 1000) / val;
+	fine = DIV_ROUND_CLOSEST(32 * (val - 1000), val);
 
 	if (fine > 15)
 		fine = 15;
