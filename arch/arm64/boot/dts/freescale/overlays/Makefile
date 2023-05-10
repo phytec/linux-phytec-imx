@@ -50,6 +50,8 @@ dtb-y += imx8mp-vm017-csi1-fpdlink-port0.dtbo
 dtb-y += imx8mp-vm017-csi1-fpdlink-port1.dtbo
 dtb-y += imx8mp-vm017-csi2-fpdlink-port0.dtbo
 dtb-y += imx8mp-vm017-csi2-fpdlink-port1.dtbo
+dtb-y += imx8mp-vm020-csi1.dtbo
+dtb-y += imx8mp-vm020-csi2.dtbo
 
 DTC_FLAGS += -@
 
