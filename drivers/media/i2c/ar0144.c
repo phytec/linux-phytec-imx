@@ -3260,19 +3260,26 @@ out_put:
 	return ret;
 }
 
-static int ar0144_probe(struct i2c_client *i2c,
-			const struct i2c_device_id *did)
+static const struct i2c_device_id ar0144_id_table[];
+
+static int ar0144_probe(struct i2c_client *i2c)
 {
 	struct ar0144 *sensor;
 	struct v4l2_subdev *sd;
+	enum ar0144_model model;
 	int ret;
 
 	sensor = devm_kzalloc(&i2c->dev, sizeof(*sensor), GFP_KERNEL);
 	if (!sensor)
 		return -ENOMEM;
 
+	if (i2c->dev.of_node)
+		model = (enum ar0144_model)device_get_match_data(&i2c->dev);
+	else
+		model = i2c_match_id(ar0144_id_table, i2c)->driver_data;
+
 	sd = &sensor->subdev;
-	sensor->model = did->driver_data;
+	sensor->model = model;
 	sensor->dev = &i2c->dev;
 
 	dev_info(sensor->dev, "Probing AR0144 Driver\n");
@@ -3336,9 +3343,16 @@ static const struct i2c_device_id ar0144_id_table[] = {
 MODULE_DEVICE_TABLE(i2c, ar0144_id_table);
 
 static const struct of_device_id ar0144_of_match[] = {
-	{ .compatible = "onsemi,ar0144" },
-	{ .compatible = "onsemi,ar0144c" },
-	{ .compatible = "onsemi,ar0144m" },
+	{
+		.compatible = "onsemi,ar0144",
+		.data = (void *)AR0144_MODEL_UNKNOWN,
+	}, {
+		.compatible = "onsemi,ar0144c",
+		.data = (void *)AR0144_MODEL_COLOR,
+	}, {
+		.compatible = "onsemi,ar0144m",
+		.data = (void *)AR0144_MODEL_MONOCHROME,
+	},
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, ar0144_of_match);
@@ -3348,7 +3362,7 @@ static struct i2c_driver ar0144_i2c_driver = {
 		.name = "ar0144",
 		.of_match_table	= of_match_ptr(ar0144_of_match),
 	},
-	.probe		= ar0144_probe,
+	.probe_new	= ar0144_probe,
 	.remove		= ar0144_remove,
 	.id_table	= ar0144_id_table,
 };
