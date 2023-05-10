@@ -188,10 +188,6 @@
 #define AR0144_DEF_WIDTH		1280
 #define AR0144_DEF_HEIGHT		800
 
-#define AR0144_FREQ_MENU_8BIT		0
-#define AR0144_FREQ_MENU_10BIT		1
-#define AR0144_FREQ_MENU_12BIT		2
-
 
 enum {
 	V4L2_CID_USER_BASE_AR0144		= V4L2_CID_USER_BASE + 0x2500,
@@ -353,7 +349,7 @@ struct ar0144 {
 	bool embedded_stat;
 
 	struct ar0144_businfo info;
-	struct ar0144_pll_config pll[3];
+	struct ar0144_pll_config *pll;
 	struct ar0144_sensor_limits limits;
 	enum ar0144_model model;
 
@@ -2569,9 +2565,7 @@ static const struct v4l2_ctrl_config ar0144_ctrls[] = {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_LINK_FREQ,
 		.type		= V4L2_CTRL_TYPE_INTEGER_MENU,
-		.min		= AR0144_FREQ_MENU_8BIT,
-		.max		= AR0144_FREQ_MENU_12BIT,
-		.def		= AR0144_FREQ_MENU_12BIT,
+		.min		= 0,
 	}, {
 		.ops		= &ar0144_ctrl_ops,
 		.id		= V4L2_CID_PIXEL_RATE,
@@ -2667,6 +2661,8 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 			break;
 		case V4L2_CID_LINK_FREQ:
 			ctrl_cfg.qmenu_int = sensor->info.link_freqs;
+			ctrl_cfg.def = sensor->num_fmts - 1;
+			ctrl_cfg.max = sensor->num_fmts - 1;
 			break;
 		default:
 			break;
@@ -2955,14 +2951,19 @@ static int ar0144_setup_pll(struct ar0144 *sensor)
 	int ret;
 	int i;
 
-	link_freqs = devm_kcalloc(dev, 3, sizeof(*info->link_freqs),
-				  GFP_KERNEL);
+	link_freqs = devm_kcalloc(dev, sensor->num_fmts,
+				  sizeof(*info->link_freqs), GFP_KERNEL);
 	if (!link_freqs)
+		return -ENOMEM;
+
+	sensor->pll = devm_kcalloc(dev, sensor->num_fmts,
+				   sizeof(*sensor->pll), GFP_KERNEL);
+	if (!sensor->pll)
 		return -ENOMEM;
 
 	ext_freq = clk_get_rate(sensor->extclk);
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < sensor->num_fmts; i++) {
 		ret = ar0144_calculate_pll(sensor, dev, &sensor->pll[i],
 					   ext_freq,
 					   info->target_link_frequency,
