@@ -376,16 +376,16 @@ struct ar0144 {
 	bool trigger;
 };
 
-static struct vvcam_mode_info_s ar0144_modes [] = {
+static struct vvcam_mode_info_s ar0144_modes[] = {
 	{
-		.index    = 0,
+		.index = 0,
 		.size = {
-			.bounds_width   = 1280,
-			.bounds_height  = 720,
+			.bounds_width	= 1280,
+			.bounds_height	= 720,
 			.top		= 0,
 			.left		= 0,
-			.width    	= 1280,
-			.height   	= 720,
+			.width		= 1280,
+			.height		= 720,
 		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
@@ -406,7 +406,7 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 			.max_dgain             = 15.9 * 1024,
 			.min_dgain             = 1 * 1024,
 			.gain_step             = 1,
-			.start_exposure        = 2* 800 * 1024,
+			.start_exposure        = 2 * 800 * 1024,
 			.cur_fps               = 60 * 1024,
 			.max_fps               = 60 * 1024,
 			.min_fps               = 5 * 1024,
@@ -421,14 +421,14 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 		.reg_data_count = 0,
 	},
 	{
-		.index    = 1,
+		.index = 1,
 		.size = {
-			.bounds_width   = 1280,
-			.bounds_height  = 800,
+			.bounds_width	= 1280,
+			.bounds_height	= 800,
 			.top		= 0,
 			.left		= 0,
-			.width    	= 1280,
-			.height   	= 800,
+			.width		= 1280,
+			.height		= 800,
 		},
 		.hdr_mode = SENSOR_MODE_LINEAR,
 		.bit_width = 12,
@@ -449,7 +449,7 @@ static struct vvcam_mode_info_s ar0144_modes [] = {
 			.max_dgain             = 15.9 * 1024,
 			.min_dgain             = 1 * 1024,
 			.gain_step             = 1,
-			.start_exposure        = 2* 800 * 1024,
+			.start_exposure        = 2 * 800 * 1024,
 			.cur_fps               = 60 * 1024,
 			.max_fps               = 60 * 1024,
 			.min_fps               = 5 * 1024,
@@ -879,7 +879,7 @@ static long ar0144_priv_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
 		dev_dbg(sd->dev, "%s: Unknown priv ioctl: 0x%08x\n",
 			__func__, cmd);
 
-	switch(cmd) {
+	switch (cmd) {
 	case VIDIOC_QUERYCAP:
 		ar0144_vv_querycap(sensor, arg);
 		break;
@@ -2220,7 +2220,7 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 
 		/*
 		 * Embedded statistics are always enabled but only shown when
-		 * when the corresponding ctrl is set.
+		 * the corresponding ctrl is set.
 		 */
 		val = ctrl->val & V4L2_X_EMBEDDED_DATA ?
 		       BIT_EMBEDDED_DATA : 0;
@@ -2367,7 +2367,7 @@ static const char * const ar0144_test_pattern_menu[] = {
 	"walking 1 (12 bit)"
 };
 
-static char const * const ar0144_embdata_menu[] = {
+static const char * const ar0144_embdata_menu[] = {
 	"disabled",
 	"stats",
 	"data",
@@ -3240,7 +3240,7 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 		if (ret)
 			goto out_put;
 
-		link_freqs[i] = sensor->pll[i].ser_freq;;
+		link_freqs[i] = sensor->pll[i].ser_freq;
 	}
 
 	info->link_freqs = link_freqs;
