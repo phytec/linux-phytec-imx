@@ -30,7 +30,7 @@
 		brightness-levels= <0 4 8 16 32 64 128 255>;
 	};
 
-	gpio-fan {
+	fan {
 		compatible = "gpio-fan";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_fan>;
