@@ -632,6 +632,12 @@ properties:
           - const: toradex,colibri-imx7s
           - const: fsl,imx7s
 
+      - description: PHYTEC phyCORE-i.MX7S SoM based boards
+        items:
+          - const: phytec,imx7s-phyboard-zeta-kit  # phyBOARD-Zeta kit
+          - const: phytec,imx7-phycore-som         # phyCORE-i.MX7 SoM
+          - const: fsl,imx7s
+
       - description: TQ-Systems TQMa7S SoM on MBa7x board
         items:
           - const: tq,imx7s-mba7
@@ -697,6 +703,12 @@ properties:
               - toradex,colibri-imx7d-emmc-aster    # Module on Aster Carrier Board
               - toradex,colibri-imx7d-emmc-eval-v3  # Module on Colibri Evaluation Board V3
           - const: toradex,colibri-imx7d-emmc
+          - const: fsl,imx7d
+
+      - description: PHYTEC phyCORE-i.MX7D SoM based boards
+        items:
+          - const: phytec,imx7d-phyboard-zeta-kit  # phyBOARD-Zeta kit
+          - const: phytec,imx7-phycore-som         # phyCORE-i.MX7 SoM
           - const: fsl,imx7d
 
       - description: i.MX7ULP based Boards
