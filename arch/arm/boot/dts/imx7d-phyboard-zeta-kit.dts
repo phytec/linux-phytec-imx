@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2019-2021 PHYTEC America, LLC
+ *
+ * This file configures the interfaces supported by i.MX7 Solo
+ * on carrier board PBA-C-09.
+ * DTS for PHYTEC kit KPB-01910-004
+ */
+
+/dts-v1/;
+
+#include "imx7d.dtsi"			/* Dual Processor */
+#include "imx7-phycore-som.dtsi"	/* Enable all SOM population options */
+#include "imx7d-pba-c-09.dtsi"		/* Carrier board */
+
+/ {
+	model = "PHYTEC phyCORE-i.MX7 Dual kit, 1GB DDR3";
+	compatible = "phytec,imx7d-pcm-061-2110111c",
+		     "phytec,imx7-phycore-som",
+		     "fsl,imx7d";
+};
