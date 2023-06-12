@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2019-2023 PHYTEC America, LLC
+ *
+ * DTS for PHYTEC SOM PCM-061-2211111E and Carrier Board PBA-C-09.
+ */
+
+/dts-v1/;
+
+#include "imx7d.dtsi"			/* Dual Processor */
+#include "imx7-phycore-som.dtsi"	/* Enable all SOM population options */
+#include "imx7d-pba-c-09.dtsi"		/* Carrier board */
+#include "imx7-phycore-som-no-can.dtsi"		/* No CAN on MCIMX7D3EVK10SC */
+
+/ {
+	model = "PHYTEC phyCORE-i.MX7 Dual, 1GiB DDR3, Extended Temp";
+	compatible = "phytec,imx7d-phyboard-zeta-2211111e",
+			 "phytec,imx7-phycore-som",
+			 "fsl,imx7d";
+};
