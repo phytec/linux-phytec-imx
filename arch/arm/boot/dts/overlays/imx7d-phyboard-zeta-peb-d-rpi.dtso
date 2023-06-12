@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/* Copyright (C) 2018-2023 PHYTEC America, LLC */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/clock/imx7d-clock.h>
+#include "../imx7d-pinfunc.h"
+
+/ {
+	pebdrpi_buttons: pebdrpi-btns {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pebdrpi_btns>;
+
+		userbtn@0 {
+			label = "pebdrpi_button_1";
+			gpios = <&gpio2 9 GPIO_ACTIVE_HIGH>;
+			linux,code = <0x100>;	/* BTN_MISC */
+		};
+
+		userbtn@1 {
+			label = "pebdrpi_button_2";
+			gpios = <&gpio5 2 GPIO_ACTIVE_HIGH>;
+			linux,code = <0x100>;	/* BTN_MISC */
+		};
+	};
+
+	pebdrpi_leds: pebdrpi-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pebdrpi_leds>;
+
+		pebdrpi-led-1 {
+			gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			default-state = "on";
+		};
+
+		pebdrpi-led-2 {
+			gpios = <&gpio2 15 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			default-state = "on";
+		};
+
+	};
+};
+
+&i2c4 {
+	status = "okay";
+
+	pebdrpi_eeprom: eeprom@56 {
+		compatible = "atmel,24c32";
+		reg = <0x56>;
+		pagesize = <32>;
+	};
+};
+
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	assigned-clocks = <&clks IMX7D_UART1_ROOT_SRC>;
+	assigned-clock-parents = <&clks IMX7D_OSC_24M_CLK>;
+	status = "okay";
+};
+
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	assigned-clocks = <&clks IMX7D_UART2_ROOT_SRC>;
+	assigned-clock-parents = <&clks IMX7D_OSC_24M_CLK>;
+	status = "okay";
+};
+
+&iomuxc {
+	pinctrl_pebdrpi_btns: pebdrpi-btnsgrp {
+		fsl,pins = <
+			MX7D_PAD_EPDC_DATA09__GPIO2_IO9		0x79
+			MX7D_PAD_SD1_RESET_B__GPIO5_IO2		0x79
+		>;
+
+	};
+
+	pinctrl_pebdrpi_leds: pebdrpi-ledsgrp {
+		fsl,pins = <
+			MX7D_PAD_EPDC_DATA08__GPIO2_IO8		0x79
+			MX7D_PAD_EPDC_DATA15__GPIO2_IO15	0x79
+		>;
+	};
+
+	pinctrl_uart1: uart1grp {
+		fsl,pins = <
+			MX7D_PAD_UART1_RX_DATA__UART1_DCE_RX	0x7e
+			MX7D_PAD_UART1_TX_DATA__UART1_DCE_TX	0x7e
+		>;
+	};
+
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			MX7D_PAD_UART2_RX_DATA__UART2_DCE_RX	0x7e
+			MX7D_PAD_UART2_TX_DATA__UART2_DCE_TX	0x7e
+		>;
+	};
+};
+
