@@ -1,0 +1,162 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2015-2021 PHYTEC America, LLC
+ *
+ * This file configures the interfaces supported by i.MX7 Solo
+ * on carrier board PBA-C-09.
+ */
+
+/ {
+	pbac09_leds: pbac09-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pbac09_leds>;
+
+		pbac09-led-1 {
+			gpios = <&gpio2 10 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			default-state = "on";
+		};
+	};
+
+	reg_boot_buffer_disable: regulator-boot-buffer-disable {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_boot_buffer>;
+		regulator-name = "boot_buffer_disable";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio2 13 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-boot-on;
+	};
+
+	reg_usb_otg1_vbus: regulator-usb-otg1-vbus {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb1_vbus>;
+		regulator-name = "usb_otg1_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	reg_vref_1v8: regulator-vref-1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "vref-1v8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+	};
+};
+
+&adc1 {
+	vref-supply = <&reg_vref_1v8>;
+	status = "okay";
+};
+
+&flexcan1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexcan1>;
+	status = "okay";
+};
+
+&i2c4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c4>;
+	clock-frequency = <100000>;
+	status = "disabled";
+};
+
+&uart5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart5>;
+	assigned-clocks = <&clks IMX7D_UART5_ROOT_SRC>;
+	assigned-clock-parents = <&clks IMX7D_OSC_24M_CLK>;
+	status = "okay";
+};
+
+&usbotg1 {
+	vbus-supply = <&reg_usb_otg1_vbus>;
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usdhc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc1>;
+	cd-gpios = <&gpio5 0 GPIO_ACTIVE_LOW>;
+	no-1-8-v; /* Fixed voltage supply, doesn't support vsel */
+	enable-sdio-wakeup;
+	keep-power-in-suspend;
+	status = "okay";
+};
+
+&wdog1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_wdog>;
+	fsl,ext-reset-output;
+	status = "okay";
+};
+
+&iomuxc {
+	pinctrl_boot_buffer: bootbuffergrp {
+		fsl,pins = <
+			MX7D_PAD_EPDC_DATA13__GPIO2_IO13	0x39
+		>;
+	};
+
+	pinctrl_flexcan1: flexcan1grp {
+		fsl,pins = <
+			MX7D_PAD_GPIO1_IO12__FLEXCAN1_RX	0x5a
+			MX7D_PAD_GPIO1_IO13__FLEXCAN1_TX	0x5a
+		>;
+	};
+
+	pinctrl_i2c4: i2c4grp {
+		fsl,pins = <
+			MX7D_PAD_I2C4_SCL__I2C4_SCL	0x4000007e
+			MX7D_PAD_I2C4_SDA__I2C4_SDA	0x4000007e
+		>;
+	};
+
+	pinctrl_pbac09_leds: pbac09-ledsgrp {
+		fsl,pins = <
+			MX7D_PAD_EPDC_DATA10__GPIO2_IO10	0x59
+		>;
+	};
+
+	pinctrl_usdhc1: usdhc1grp {
+		fsl,pins = <
+			MX7D_PAD_SD1_CMD__SD1_CMD	0x59
+			MX7D_PAD_SD1_CLK__SD1_CLK	0x19
+			MX7D_PAD_SD1_DATA0__SD1_DATA0	0x59
+			MX7D_PAD_SD1_DATA1__SD1_DATA1	0x59
+			MX7D_PAD_SD1_DATA2__SD1_DATA2	0x59
+			MX7D_PAD_SD1_DATA3__SD1_DATA3	0x59
+			MX7D_PAD_SD1_CD_B__GPIO5_IO0	0x59	/* X_SD1_CD_B */
+		>;
+	};
+};
+
+&iomuxc_lpsr {
+	pinctrl_uart5: uart5grp {
+		fsl,pins = <
+			MX7D_PAD_LPSR_GPIO1_IO06__UART5_DCE_RX	0x79
+			MX7D_PAD_LPSR_GPIO1_IO07__UART5_DCE_TX	0x79
+		>;
+	};
+
+	pinctrl_usb1_vbus: usb1grp {
+		fsl,pins = <
+			/* X_USB_OTG1_PWR */
+			MX7D_PAD_LPSR_GPIO1_IO05__GPIO1_IO5	0x14
+		>;
+	};
+
+	pinctrl_wdog: wdoggrp {
+		fsl,pins = <
+			MX7D_PAD_LPSR_GPIO1_IO00__WDOG1_WDOG_B	0x74
+		>;
+	};
+};

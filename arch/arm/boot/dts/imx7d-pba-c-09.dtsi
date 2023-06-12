@@ -1,0 +1,115 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2015-2021 PHYTEC America, LLC
+ *
+ * This file includes the dtsi for interfaces supported by i.MX7 Solo on
+ * carrier board PBA-C-09, and configures additional interfaces only
+ * supported by the i.MX7 Dual.
+ */
+
+#include "imx7s-pba-c-09.dtsi"
+
+/ {
+	reg_usb_otg2_vbus: regulator-usb-otg2-vbus {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb2_vbus>;
+		regulator-name = "usb_otg2_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio4 7 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	vdd_3v3: fixedregulator-vdd {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+	};
+};
+
+&fec2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enet2>;
+	assigned-clocks = <&clks IMX7D_ENET2_TIME_ROOT_SRC>,
+			<&clks IMX7D_ENET2_TIME_ROOT_CLK>;
+	assigned-clock-parents = <&clks IMX7D_PLL_ENET_MAIN_100M_CLK>;
+	assigned-clock-rates = <0>, <100000000>;
+	phy-mode = "rgmii";
+	phy-handle = <&ethphy1>;
+	fsl,magic-packet;
+	phy-reset-gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;
+	status = "okay";
+};
+
+/* same MDIO bus as PHY on phyCORE SOM */
+&mdio {
+	ethphy1: ethernet-phy@2 {
+		compatible = "ethernet-phy-ieee802.3-c22";
+		interrupt-parent = <&gpio1>;
+		interrupts = <9 0>;
+		reg = <2>;
+		rxdv-skew-ps = <0>;
+		txen-skew-ps = <0>;
+		rxd0-skew-ps = <0>;
+		rxd1-skew-ps = <0>;
+		rxd2-skew-ps = <0>;
+		rxd3-skew-ps = <0>;
+		rxc-skew-ps = <1860>;
+		txc-skew-ps = <1860>;
+	};
+};
+
+&pcie {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie>;
+	reset-gpio = <&gpio6 17  GPIO_ACTIVE_LOW>;
+	disable-gpio = <&gpio5 1 GPIO_ACTIVE_LOW>;
+	status = "disabled";
+};
+
+&usbotg2 {
+	vbus-supply = <&reg_usb_otg2_vbus>;
+	status = "okay";
+};
+
+&iomuxc {
+	pinctrl_enet2: enet2grp {
+		fsl,pins = <
+			MX7D_PAD_EPDC_SDCE0__ENET2_RGMII_RX_CTL	0x5
+			MX7D_PAD_EPDC_SDCE1__ENET2_RGMII_RXC	0x5
+			MX7D_PAD_EPDC_SDCLK__ENET2_RGMII_RD0	0x5
+			MX7D_PAD_EPDC_SDLE__ENET2_RGMII_RD1	0x5
+			MX7D_PAD_EPDC_SDOE__ENET2_RGMII_RD2	0x5
+			MX7D_PAD_EPDC_SDSHR__ENET2_RGMII_RD3	0x5
+			MX7D_PAD_EPDC_SDCE2__ENET2_RGMII_TD0	0x5
+			MX7D_PAD_EPDC_SDCE3__ENET2_RGMII_TD1	0x5
+			MX7D_PAD_EPDC_GDCLK__ENET2_RGMII_TD2	0x5
+			MX7D_PAD_EPDC_GDOE__ENET2_RGMII_TD3	0x5
+			MX7D_PAD_EPDC_GDRL__ENET2_RGMII_TX_CTL	0x5
+			MX7D_PAD_EPDC_GDSP__ENET2_RGMII_TXC	0x5
+			/* ETH2 INT_N */
+			MX7D_PAD_GPIO1_IO09__GPIO1_IO9		0x59
+			/* ETH2 RESET_N */
+			MX7D_PAD_EPDC_PWR_COM__GPIO2_IO30	0x59
+		>;
+	};
+
+	pinctrl_pcie: pciegrp {
+		fsl,pins = <
+			/* PCIE_DISABLE */
+			MX7D_PAD_SD1_WP__GPIO5_IO1		0x59
+			/* PCIE_RESET */
+			MX7D_PAD_SAI1_RX_BCLK__GPIO6_IO17	0x59
+		>;
+	};
+
+	pinctrl_usb2_vbus: usb2grp {
+		fsl,pins = <
+			/* X_USB_OTG2_PWR */
+			MX7D_PAD_UART3_CTS_B__GPIO4_IO7		0x14
+		>;
+	};
+};
