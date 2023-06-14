@@ -23,7 +23,7 @@
 		reg = <0x10>;
 		clocks = <&ser_csi2_port0>;
 		clock-names = "ext";
-		isp-bus-info = "csi0";
+		isp-bus-info = "csi1";
 
 		reset-gpios = <&ser_csi2_port0 3 GPIO_ACTIVE_LOW>;
 
