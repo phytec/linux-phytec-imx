@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * Copyright (C) 2019 Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
  * Copyright (C) 2021 PHYTEC Messtechnik GmbH
@@ -353,7 +353,7 @@ struct ar0521 {
 	bool is_streaming;
 };
 
-static struct vvcam_mode_info_s ar0521_modes [] = {
+static struct vvcam_mode_info_s ar0521_modes[] = {
 	{
 		.index     = 0,
 		.size = {
@@ -905,7 +905,7 @@ static long ar0521_priv_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
 		dev_dbg(sd->dev, "%s: Unknown priv ioctl: 0x%08x\n",
 			__func__, cmd);
 
-	switch(cmd) {
+	switch (cmd) {
 	case VIDIOC_QUERYCAP:
 		ar0521_vv_querycap(sensor, arg);
 		break;
@@ -1149,9 +1149,8 @@ static int ar0521_enter_standby(struct ar0521 *sensor)
 	while (timeout) {
 		ar0521_read(sensor, AR0521_FRAME_STATUS, &val);
 
-		if (val & BIT_STANDBY_STATUS) {
+		if (val & BIT_STANDBY_STATUS)
 			break;
-		}
 
 		timeout--;
 
@@ -1655,11 +1654,10 @@ static int ar0521_s_stream(struct v4l2_subdev *sd, int enable)
 	if (!enable && !sensor->is_streaming)
 		goto out;
 
-	if (enable) {
+	if (enable)
 		ret = ar0521_stream_on(sensor);
-	} else {
+	else
 		ret = ar0521_stream_off(sensor);
-	}
 
 out:
 	mutex_unlock(&sensor->lock);
@@ -2022,7 +2020,7 @@ static const struct v4l2_subdev_ops ar0521_subdev_ops = {
 };
 
 static const struct media_entity_operations ar0521_entity_ops = {
-	.get_fwnode_pad 	= v4l2_subdev_get_fwnode_pad_1_to_1,
+	.get_fwnode_pad		= v4l2_subdev_get_fwnode_pad_1_to_1,
 };
 
 static int ar0521_set_analogue_gain(struct ar0521 *sensor, unsigned int val)
@@ -2298,7 +2296,7 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 		ret = ar0521_update_bits(sensor, AR0521_PIX_DEF_ID, mask, val);
 		break;
 	case V4L2_CID_FLASH_LED_MODE:
-		switch(ctrl->val) {
+		switch (ctrl->val) {
 		case V4L2_FLASH_LED_MODE_NONE:
 			val = 0;
 			break;
@@ -2692,14 +2690,14 @@ static int ar0521_create_ctrls(struct ar0521 *sensor)
 static void ar0521_set_defaults(struct ar0521 *sensor)
 {
 	sensor->limits = (struct ar0521_sensor_limits) {
-					/* min		max	 */
-		.x 			= {0        ,	2603      },
-		.y 			= {0        ,	1955      },
-		.hlen 			= {3080     ,	65532     },
-		.vlen 			= {48       ,	65535     },
-		.hblank 		= {240      ,	65535     },
-		.vblank 		= {28       ,	65535     },
-		.ext_clk 		= {5000000  ,	64000000  },
+					/* mim		max      */
+		.x			= {0,		2603     },
+		.y			= {0,		1955     },
+		.hlen			= {3080,	65532    },
+		.vlen			= {48,		65535    },
+		.hblank			= {240,		65535    },
+		.vblank			= {28,		65535    },
+		.ext_clk		= {5000000,	64000000 },
 	};
 
 	sensor->crop.left = 4;
@@ -3098,7 +3096,7 @@ static int ar0521_calculate_pll(struct device *dev,
 	mul = mul_lim.min;
 
 	if (pix_clk_target < (2 * pix_lim.min)) {
-		dev_warn(dev, "Link target too small, %d bit pll not valid \n",
+		dev_warn(dev, "Link target too small, %d bit pll not valid\n",
 			 bpp);
 		return 0;
 	}
@@ -3420,29 +3418,29 @@ static int ar0521_remove(struct i2c_client *i2c)
 }
 
 static const struct i2c_device_id ar0521_id_table[] = {
-        { "ar0521", AR0521_MODEL_UNKNOWN },
-        { "ar0521c", AR0521_MODEL_COLOR },
-        { "ar0521m", AR0521_MODEL_MONOCHROME },
-        { /* sentinel */ }
+	{ "ar0521", AR0521_MODEL_UNKNOWN },
+	{ "ar0521c", AR0521_MODEL_COLOR },
+	{ "ar0521m", AR0521_MODEL_MONOCHROME },
+	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, ar0521_id_table);
 
 static const struct of_device_id ar0521_of_match[] = {
-        { .compatible = "onsemi,ar0521" },
-        { .compatible = "onsemi,ar0521c" },
-        { .compatible = "onsemi,ar0521m" },
-        { /* sentinel */ }
+	{ .compatible = "onsemi,ar0521" },
+	{ .compatible = "onsemi,ar0521c" },
+	{ .compatible = "onsemi,ar0521m" },
+	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, ar0521_of_match);
 
 static struct i2c_driver ar0521_i2c_driver = {
-        .driver         = {
-                .name   = "ar0521",
-                .of_match_table = of_match_ptr(ar0521_of_match),
-        },
-        .probe          = ar0521_probe,
-        .remove         = ar0521_remove,
-        .id_table       = ar0521_id_table,
+	.driver		= {
+		.name	= "ar0521",
+		.of_match_table = of_match_ptr(ar0521_of_match),
+	},
+	.probe		= ar0521_probe,
+	.remove		= ar0521_remove,
+	.id_table	= ar0521_id_table,
 };
 module_i2c_driver(ar0521_i2c_driver);
 
