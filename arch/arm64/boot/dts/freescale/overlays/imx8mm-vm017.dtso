@@ -50,6 +50,8 @@
 };
 
 &csi1_mipi_csi {
+	status = "okay";
+
 	port@0 {
 		mipi_csi_ep: endpoint {
 			remote-endpoint = <&vm017_ep>;

@@ -64,6 +64,8 @@
 };
 
 &csi1_mipi_csi {
+	status = "okay";
+
 	port@0 {
 		mipi_csi_ep: endpoint {
 			remote-endpoint = <&des_out>;
