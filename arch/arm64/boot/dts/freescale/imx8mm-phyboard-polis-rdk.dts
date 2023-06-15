@@ -156,7 +156,7 @@
 		clock-names = "pclk", "wrap", "phy", "axi";
 		power-domains = <&mipi_pd>;
 		fsl,csis-hs-settle = <9>;
-		status = "okay";
+		status = "disabled";
 
 		#address-cells = <1>;
 		#size-cells = <0>;
