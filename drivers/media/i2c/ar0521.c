@@ -2042,7 +2042,7 @@ static int ar0521_set_analogue_gain(struct ar0521 *sensor, unsigned int val)
 			   BIT_ANA_COARSE_GAIN(coarse) |
 			   BIT_ANA_FINE_GAIN(fine));
 
-	return 1000 * (1u << (coarse - 1)) * (16 + fine) / 16;
+	return 1000 * (1u << coarse) * (16 + fine) / 16;
 }
 
 unsigned int ar0521_get_min_color_gain(struct ar0521 *sensor)
