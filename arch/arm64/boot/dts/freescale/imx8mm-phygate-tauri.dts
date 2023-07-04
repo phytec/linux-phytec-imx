@@ -225,8 +225,6 @@
 
 /* UART console */
 &uart3 {
-	assigned-clocks = <&clk IMX8MM_CLK_UART3>;
-	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
 	status = "okay";
