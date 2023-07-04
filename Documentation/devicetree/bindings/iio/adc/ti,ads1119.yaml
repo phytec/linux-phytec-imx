@@ -1,0 +1,121 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/iio/adc/ti,ads1119.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: TI ADS1119 4 channel I2C analog to digital converter
+
+maintainers:
+  - Felix Siebel <f.siebel@phytec.de>
+
+description: |
+  Datasheet at: https://www.ti.com/lit/gpn/ads1119
+  Supports both single ended and differential channels.
+
+properties:
+  compatible:
+    const: ti,ads1119
+
+  reg:
+    maxItems: 1
+
+  "#address-cells":
+    const: 1
+
+  "#size-cells":
+    const: 0
+
+  "#io-channel-cells":
+    const: 1
+
+required:
+  - compatible
+  - reg
+  - "#address-cells"
+  - "#size-cells"
+
+additionalProperties: false
+
+patternProperties:
+  "^channel@[0-7]+$":
+    type: object
+    description:
+      Child nodes needed for each channel that the platform uses.
+
+    properties:
+      reg:
+        description: |
+          0: Voltage over AIN0 and AIN1. (default)
+          1: Voltage over AIN2 and AIN3.
+          2: Voltage over AIN1 and AIN2.
+          3: Voltage over AIN0 and GND.
+          4: Voltage over AIN1 and GND.
+          5: Voltage over AIN2 and GND.
+          6: Voltage over AIN3 and GND.
+          7: Voltage over AINP and AINN shorted to AVDD/2.
+        items:
+          - minimum: 0
+            maximum: 7
+
+      ti,gain:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 1
+        maximum: 4
+        description: |
+          pga is the programmable gain amplifier (+/- full scale)
+          1: 1  +/- Refvoltage (default)
+          4: 4  +/- Refvoltage/4
+
+      ti,samplerate:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 20
+        maximum: 1000
+        description: |
+          Data acquisition rate in samples per second
+          20: 20 (default)
+          90: 90
+          330: 330
+          1000: 1000
+
+     ti,extref:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 1
+        description: |
+          Use external or internal reference voltage
+          0: internal (2.048 V) reference voltage (default)
+          1: external reference voltage
+
+      ti,refvoltage:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 5500000
+        description: |
+          External reference voltage in uV used for calculation if "ti,extref=1" is specified
+
+    required:
+      - reg
+
+examples:
+  - |
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        adc@41 {
+            compatible = "ti,ads1119";
+            reg = <0x41>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            channel@0 {
+                reg = <0>;
+                ti,gain = <1>;
+                ti,samplerate = <1000>;
+                ti,extref = <1>;
+                ti,refvoltage = <3300000>;
+            };
+        };
+    };
+...
