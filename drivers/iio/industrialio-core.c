@@ -168,6 +168,8 @@ static const char * const iio_chan_info_postfix[] = {
 	[IIO_CHAN_INFO_OVERSAMPLING_RATIO] = "oversampling_ratio",
 	[IIO_CHAN_INFO_THERMOCOUPLE_TYPE] = "thermocouple_type",
 	[IIO_CHAN_INFO_CALIBAMBIENT] = "calibambient",
+	[IIO_CHAN_INFO_REFSOURCE] = "reference_source",
+	[IIO_CHAN_INFO_REFVOLTAGE] = "reference_voltage",
 };
 /**
  * iio_device_id() - query the unique ID for the device
