@@ -10,6 +10,7 @@ dtb-y += imx8mm-phycore-adin1300.dtbo
 dtb-y += imx8mm-phycore-rpmsg.dtbo
 dtb-y += imx8mm-phycore-no-eth.dtbo
 dtb-y += imx8mm-phycore-no-spiflash.dtbo
+dtb-y += imx8mm-phygate-tauri-analog-io.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs232.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485.dtbo
 dtb-y += imx8mm-phygate-tauri-rs232-rs485-switchable.dtbo
