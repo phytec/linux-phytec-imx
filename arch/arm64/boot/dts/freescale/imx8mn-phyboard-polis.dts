@@ -201,7 +201,12 @@
 /* RTC */
 &rv3028 {
 	enable-level-switching-mode;
+	interrupt-parent = <&gpio1>;
+	interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+	pinctrl-0 = <&pinctrl_rtc>;
+	pinctrl-names = "default";
 	trickle-resistor-ohms = <3000>;
+	wakeup-source;
 };
 
 /* UART - RS232/RS485 */
