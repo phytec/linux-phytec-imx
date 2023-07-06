@@ -25,7 +25,7 @@
 	};
 
 	panel {
-		compatible = "edt,etml1010g0dka";
+		compatible = "edt,etml1010g3dra";
 		backlight = <&backlight>;
 
 		port {
