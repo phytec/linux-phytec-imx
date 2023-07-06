@@ -2290,6 +2290,31 @@ static const struct panel_desc edt_etml1010g0dka = {
 	.connector_type = DRM_MODE_CONNECTOR_LVDS,
 };
 
+static const struct drm_display_mode edt_etml1010g3dra_mode = {
+	.clock = 66500,
+	.hdisplay = 1280,
+	.hsync_start = 1280 + 12,
+	.hsync_end = 1280 + 12 + 20,
+	.htotal = 1280 + 12 + 20 + 56,
+	.vdisplay = 800,
+	.vsync_start = 800 + 1,
+	.vsync_end = 800 + 1 + 3,
+	.vtotal = 800 + 1 + 3 + 20,
+};
+
+static const struct panel_desc edt_etml1010g3dra = {
+	.modes = &edt_etml1010g3dra_mode,
+	.num_modes = 1,
+	.bpc = 8,
+	.size = {
+		.width = 216,
+		.height = 135,
+	},
+	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
+	.bus_flags = DRM_BUS_FLAG_DE_HIGH,
+	.connector_type = DRM_MODE_CONNECTOR_LVDS,
+};
+
 static const struct drm_display_mode foxlink_fl500wvr00_a0t_mode = {
 	.clock = 32260,
 	.hdisplay = 800,
@@ -4699,6 +4724,9 @@ static const struct of_device_id platform_of_match[] = {
 	}, {
 		.compatible = "edt,etm0350g0dh6",
 		.data = &edt_etm0350g0dh6,
+	}, {
+		.compatible = "edt,etml1010g3dra",
+		.data = &edt_etml1010g3dra,
 	}, {
 		.compatible = "edt,etm043080dh6gp",
 		.data = &edt_etm043080dh6gp,
