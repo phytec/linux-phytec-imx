@@ -1510,10 +1510,8 @@ static inline int get_power_imx6(struct device *pdev)
 
         clk_axi = clk_get(pdev, "openvg_axi_clk");
 
-        if (IS_ERR(clk_axi)) {
+        if (IS_ERR(clk_axi))
             clk_axi = NULL;
-            printk("galcore: clk_get vg clock failed, disable vg!\n");
-        }
 
         priv->imx_gpu_clks[gcvCORE_VG].clk_core = clk_core;
         priv->imx_gpu_clks[gcvCORE_VG].clk_axi = clk_axi;
