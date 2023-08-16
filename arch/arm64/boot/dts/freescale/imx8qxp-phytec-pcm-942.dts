@@ -246,7 +246,12 @@
 };
 
 &usbotg3 {
+	status = "okay";
+};
+
+&usbotg3_cdns3 {
 	dr_mode = "host";
+	usb-role-switch;
 	status = "okay";
 };
 
