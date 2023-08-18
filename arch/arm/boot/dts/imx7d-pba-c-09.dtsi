@@ -67,7 +67,7 @@
 	pinctrl-0 = <&pinctrl_pcie>;
 	reset-gpio = <&gpio6 17  GPIO_ACTIVE_LOW>;
 	disable-gpio = <&gpio5 1 GPIO_ACTIVE_LOW>;
-	status = "disabled";
+	status = "okay";
 };
 
 &usbotg2 {
