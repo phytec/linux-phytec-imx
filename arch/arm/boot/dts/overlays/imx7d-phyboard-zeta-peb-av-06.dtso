@@ -9,6 +9,12 @@
 #include "../imx7d-pinfunc.h"
 
 / {
+	compatible = "phytec,imx7-phyboard-zeta-kit",
+				"phytec,imx7-phycore-som",
+				"fsl,imx7d";
+};
+
+&{/} {
 	reg_mipi_avdd_2v8: fixedregulator-mipi-avdd {
 		regulator-min-microvolt = <2800000>;
 		regulator-max-microvolt = <2800000>;

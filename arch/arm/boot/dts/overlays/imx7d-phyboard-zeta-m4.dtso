@@ -9,11 +9,12 @@
 /plugin/;
 
 / {
-	model = "PHYTEC phyCORE-i.MX7 Dual kit, 1GB DDR3";
 	compatible = "phytec,imx7-phyboard-zeta-kit",
-		     "phytec,imx7-phycore-som",
-		     "fsl,imx7d";
+				"phytec,imx7-phycore-som",
+				"fsl,imx7d";
+};
 
+&{/} {
 	m4_tcm: tcml@007f8000 {
 		compatible = "fsl, m4_tcml";
 		reg = <0x007f8000 0x8000>;
