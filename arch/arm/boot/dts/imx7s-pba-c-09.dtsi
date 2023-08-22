@@ -71,8 +71,12 @@
 &uart5 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart5>;
+	pinctrl-1 = <&pinctrl_uart5_rtscts>;
 	assigned-clocks = <&clks IMX7D_UART5_ROOT_SRC>;
 	assigned-clock-parents = <&clks IMX7D_OSC_24M_CLK>;
+	uart-has-rtscts;
+	cts-gpios = <&gpio4 12 GPIO_ACTIVE_LOW>;
+	rts-gpios = <&gpio4 13 GPIO_ACTIVE_LOW>;
 	status = "okay";
 };
 
@@ -135,6 +139,13 @@
 			MX7D_PAD_SD1_DATA2__SD1_DATA2	0x59
 			MX7D_PAD_SD1_DATA3__SD1_DATA3	0x59
 			MX7D_PAD_SD1_CD_B__GPIO5_IO0	0x59	/* X_SD1_CD_B */
+		>;
+	};
+
+	pinctrl_uart5_rtscts: uart5_rtsctsgrp {
+		fsl,pins = <
+			MX7D_PAD_I2C3_SDA__GPIO4_IO13	0x79	/* UART5_RTS */
+			MX7D_PAD_I2C3_SCL__GPIO4_IO12	0x79	/* UART5_CTS */
 		>;
 	};
 };
