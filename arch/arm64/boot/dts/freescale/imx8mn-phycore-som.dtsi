@@ -323,6 +323,11 @@
 	status = "okay";
 };
 
+&{/reserved-memory/linux,cma} {
+	size = <0 0x28000000>;
+	alloc-ranges = <0 0x80000000 0 0x40000000>;
+};
+
 &iomuxc {
 	pinctrl_fec1: fec1grp {
 		fsl,pins = <
