@@ -23,7 +23,6 @@ dtb-y += imx8mm-vm017-fpdlink-port0.dtbo
 dtb-y += imx8mm-vm017-fpdlink-port1.dtbo
 dtb-y += imx8mm-vm020.dtbo
 dtb-y += imx8mn-phyboard-polis-peb-eval-01.dtbo
-dtb-y += imx8mn-phyboard-polis-peb-av-010.dtbo
 dtb-y += imx8mn-phycore-no-spiflash.dtbo
 dtb-y += imx8mn-phycore-no-eth.dtbo
 dtb-y += imx8mp-isi-csi1.dtbo
