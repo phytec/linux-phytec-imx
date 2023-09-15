@@ -13,8 +13,8 @@
 
 / {
 	compatible = "phytec,imx7-phyboard-zeta-kit",
-				"phytec,imx7-phycore-som",
-				"fsl,imx7d";
+		     "phytec,imx7-phycore-som",
+		     "fsl,imx7d";
 };
 
 &{/} {
@@ -34,6 +34,19 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-boot-on;
+	};
+
+	panel: panel {
+		compatible = "edt,etm0700g0edh6";
+		label = "display-panel";
+		backlight = <&backlight>;
+		power-supply = <&lcd_3v3>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&lcdif_out>;
+			};
+		};
 	};
 };
 
@@ -59,31 +72,11 @@
 	pinctrl-0 = <&pinctrl_lcdif_dat
 		     &pinctrl_lcdif_ctrl
 		     &pinctrl_lpsr_lcdif_ctrl>;
-	display = <&display0>;
-	lcd-supply = <&lcd_3v3>;
 	status = "okay";
 
-	display0: display@0 {
-		bits-per-pixel = <32>;
-		bus-width = <24>;
-
-		display-timings {
-			native-mode = <&timing0>;
-			timing0: ETM0700G0EDH6 {
-				clock-frequency = <33264000>;
-				hactive = <800>;
-				vactive = <480>;
-				hfront-porch = <40>;
-				hback-porch = <88>;
-				hsync-len = <128>;
-				vback-porch = <33>;
-				vfront-porch = <10>;
-				vsync-len = <2>;
-				hsync-active = <0>;
-				vsync-active = <0>;
-				de-active = <1>;
-				pixelclk-active = <0>;
-			};
+	port {
+		lcdif_out: endpoint {
+			remote-endpoint = <&panel_in>;
 		};
 	};
 };
@@ -160,5 +153,4 @@
 			MX7D_PAD_LPSR_GPIO1_IO03__PWM3_OUT	0x30
 		>;
 	};
-
 };
