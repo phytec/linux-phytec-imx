@@ -325,6 +325,7 @@
 		pagesize = <32>;
 		reg = <0x59>;
 		size = <32>;
+		vcc-supply = <&reg_vdd_3v3_s>;
 	};
 };
 
