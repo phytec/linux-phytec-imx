@@ -21,14 +21,6 @@
 	status = "okay";
 };
 
-&isi_1 {
-	status = "disabled";
-
-	cap_device {
-		status = "disabled";
-	};
-};
-
 &isp_1 {
 	dma-coherent;
 	status = "okay";
