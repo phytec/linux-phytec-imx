@@ -10,8 +10,8 @@
 
 / {
 	compatible = "phytec,imx7-phyboard-zeta-kit",
-				"phytec,imx7-phycore-som",
-				"fsl,imx7d";
+		     "phytec,imx7-phycore-som",
+		     "fsl,imx7d";
 };
 
 &{/} {

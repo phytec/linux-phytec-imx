@@ -10,8 +10,8 @@
 
 / {
 	compatible = "phytec,imx7-phyboard-zeta-kit",
-				"phytec,imx7-phycore-som",
-				"fsl,imx7d";
+		     "phytec,imx7-phycore-som",
+		     "fsl,imx7d";
 };
 
 &{/} {
@@ -49,7 +49,6 @@
 			linux,default-trigger = "gpio";
 			default-state = "on";
 		};
-
 	};
 };
 
@@ -85,7 +84,6 @@
 			MX7D_PAD_EPDC_DATA09__GPIO2_IO9		0x79
 			MX7D_PAD_SD1_RESET_B__GPIO5_IO2		0x79
 		>;
-
 	};
 
 	pinctrl_pebdrpi_leds: pebdrpi-ledsgrp {
@@ -109,4 +107,3 @@
 		>;
 	};
 };
-
