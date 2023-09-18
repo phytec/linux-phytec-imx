@@ -358,6 +358,14 @@ csi1_i2c: &i2c4 {
 	status = "okay";
 };
 
+&usbphynop1 {
+	vcc-supply = <&reg_vdd_3v3_s>;
+};
+
+&usbphynop2 {
+	vcc-supply = <&reg_vdd_3v3_s>;
+};
+
 /* SDIO - Sterling-LWB Wifi */
 &usdhc1 {
 	assigned-clocks = <&clk IMX8MM_CLK_USDHC1>;
