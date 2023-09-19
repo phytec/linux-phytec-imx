@@ -168,6 +168,7 @@
 #define AR0521_CSI2_DT_RAW12		0x2c
 
 #define AR0521_CHIP_ID			0x0457
+#define AR0522_CHIP_ID			0x1457
 #define AR0521_DEF_WIDTH		2592
 #define AR0521_DEF_HEIGHT		1944
 
@@ -3020,9 +3021,8 @@ static int ar0521_check_chip_id(struct ar0521 *sensor)
 	if (ret)
 		return ret;
 
-	if (model_id != AR0521_CHIP_ID) {
-		dev_err(dev, "Wrong chip version: 0x%04x <-> 0x%04x\n",
-			model_id, AR0521_CHIP_ID);
+	if (model_id != AR0521_CHIP_ID && model_id != AR0522_CHIP_ID) {
+		dev_err(dev, "Wrong chip version: 0x%04x\n", model_id);
 		return -ENOENT;
 	}
 
