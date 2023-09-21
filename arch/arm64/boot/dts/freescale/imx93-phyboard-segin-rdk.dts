@@ -1,0 +1,331 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2023 PHYTEC Messtechnik GmbH
+ * Author: Wadim Egorov <w.egorov@phytec.de>, Christoph Stoidner <c.stoidner@phytec.de>
+ *
+ * Product homepage:
+ * phyBOARD-Segin carrier board is reused for the i.MX93 design.
+ * https://www.phytec.de/produkte/single-board-computer/phyboard-segin-imx6ul/
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/usb/pd.h>
+#include "imx93-phycore-som.dtsi"
+
+/ {
+	model = "PHYTEC phyBOARD-Segin-i.MX93";
+	compatible = "phytec,imx93-phyboard-segin",
+		     "phytec,imx93-phycore-som", "fsl,imx93";
+
+	chosen {
+		stdout-path = &lpuart1;
+	};
+
+	vcc1v8_audio: regulator-vcc1v8-audio {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		regulator-name = "VCC1V8_AUDIO";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+	};
+
+	vcc3v3: regulator-vcc3v3 {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usdhc2_vcc3v3>;
+		regulator-name = "VCC3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	vref_3v3: regulator-vref-3v3 {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usdhc2_vcc3v3>;
+		regulator-name = "VREF_3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	/* M-R-SN65HVD234.A0 */
+	reg_can1_en: regulator-can1 {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_flexcan1_en>;
+		regulator-name = "CAN1";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 16 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	sound: sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "phyBOARD-Segin-TLV320AIC3007";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&dailink_master>;
+		simple-audio-card,frame-master = <&dailink_master>;
+		simple-audio-card,widgets =
+			"Line", "Line In",
+			"Line", "Line Out",
+			"Speaker", "Speaker";
+		simple-audio-card,routing =
+			"Line Out", "LLOUT",
+			"Line Out", "RLOUT",
+			"Speaker", "SPOP",
+			"Speaker", "SPOM",
+			"LINE1L", "Line In",
+			"LINE1R", "Line In";
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai1>;
+		};
+
+		dailink_master: simple-audio-card,codec {
+			sound-dai = <&tlv320>;
+			clocks = <&clk IMX93_CLK_SAI1>;
+		};
+	};
+};
+
+/* Audio */
+&sai1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sai1>;
+	clocks = <&clk IMX93_CLK_SAI1_IPG>, <&clk IMX93_CLK_DUMMY>,
+		<&clk IMX93_CLK_SAI1_GATE>,
+		<&clk IMX93_CLK_DUMMY>, <&clk IMX93_CLK_DUMMY>,
+		<&clk IMX93_CLK_AUDIO_PLL>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k";
+	assigned-clocks = <&clk IMX93_CLK_SAI1>;
+	assigned-clock-parents = <&clk IMX93_CLK_AUDIO_PLL>;
+	assigned-clock-rates = <19200000>;
+	fsl,sai-mclk-direction-output;
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+/* ADC */
+&adc1 {
+	/* 1.8V */
+	vref-supply = <&buck5>;
+	status = "okay";
+};
+
+/* Ethernet */
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_eqos>;
+	phy-mode = "rmii";
+	phy-handle = <&ethphy2>;
+	assigned-clocks = <&clk IMX93_CLK_ENET_TIMER2>,
+			  <&clk IMX93_CLK_ENET>;
+	assigned-clock-parents = <&clk IMX93_CLK_SYS_PLL_PFD1_DIV2>,
+				 <&clk IMX93_CLK_SYS_PLL_PFD1_DIV2>;
+	assigned-clock-rates = <100000000>, <50000000>;
+	status = "okay";
+};
+
+/* ENET2 MDIO */
+&mdio {
+	ethphy2: ethernet-phy@2 {
+		reg = <2>;
+		micrel,led-mode = <1>;
+		compatible = "ethernet-phy-id0022.1561";
+
+		/*
+		 * HACK:
+		 * IMX93_CLK_ENET is the ref clock and should be running at 50Mhz.
+		 * Using it here to tell the PHY we are running at 50MHz is not working.
+		 * Let us simply use another clock here.
+		 */
+		/* clocks = <&clk IMX93_CLK_ENET>; */
+		clocks = <&clk IMX93_CLK_ENET_REF_PHY>;
+		clock-names = "rmii-ref";
+	};
+};
+
+/* CAN */
+&flexcan1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexcan1>;
+	xceiver-supply = <&reg_can1_en>;
+	status = "okay";
+};
+
+&lpi2c2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpi2c2>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	tlv320: audio-codec@18 {
+		compatible = "ti,tlv320aic3007";
+		reg = <0x18>;
+		AVDD-supply = <&vcc3v3>;
+		IOVDD-supply = <&vcc3v3>;
+		DRVDD-supply = <&vcc3v3>;
+		DVDD-supply = <&vcc1v8_audio>;
+		#sound-dai-cells = <0>;
+	};
+
+	i2c_rtc: rtc@68 {
+		compatible = "microcrystal,rv4162";
+		reg = <0x68>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
+	};
+};
+
+/* Console */
+&lpuart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	status = "okay";
+};
+
+/* USB  */
+&usbotg1 {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usbotg2 {
+	disable-over-current;
+	dr_mode = "host";
+	status = "okay";
+};
+
+/* SD-Card */
+&usdhc2 {
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	/*
+	 * Need to set those pinctrl states, although all pinctrls are
+	 * the same. That is needed to tell driver to enable those
+	 * different UHS modes.
+	 */
+	pinctrl-0 = <&pinctrl_usdhc2_default>, <&pinctrl_usdhc2_cd>;
+	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_cd>;
+	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_cd>;
+	cd-gpios = <&gpio3 00 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&vcc3v3>;
+	bus-width = <4>;
+	no-sdio;
+	no-mmc;
+	status = "okay";
+};
+
+&iomuxc {
+	pinctrl_sai1: sai1grp {
+		fsl,pins = <
+			MX93_PAD_UART2_RXD__SAI1_MCLK				0x1202
+			MX93_PAD_SAI1_TXFS__SAI1_TX_SYNC			0x1202
+			MX93_PAD_SAI1_TXC__SAI1_TX_BCLK				0x1202
+			MX93_PAD_SAI1_TXD0__SAI1_TX_DATA00			0x1402
+			MX93_PAD_SAI1_RXD0__SAI1_RX_DATA00			0x1402
+		>;
+	};
+
+	pinctrl_eqos: eqosgrp {
+		fsl,pins = <
+			MX93_PAD_ENET1_TD2__CCM_ENET_QOS_CLOCK_GENERATE_REF_CLK 0x4000050e
+			MX93_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0			0x57e
+			MX93_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1			0x57e
+			MX93_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0			0x50e
+			MX93_PAD_ENET1_TD1__ENET_QOS_RGMII_TD1			0x50e
+			MX93_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL		0x57e
+			MX93_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL		0x50e
+			MX93_PAD_ENET1_RXC__ENET_QOS_RX_ER			0x57e
+		>;
+	};
+
+	pinctrl_lpi2c2: lpi2c2grp {
+		fsl,pins = <
+			MX93_PAD_I2C2_SCL__LPI2C2_SCL			0x40000b9e
+			MX93_PAD_I2C2_SDA__LPI2C2_SDA			0x40000b9e
+		>;
+	};
+
+	pinctrl_uart1: uart1grp {
+		fsl,pins = <
+			MX93_PAD_UART1_RXD__LPUART1_RX			0x31e
+			MX93_PAD_UART1_TXD__LPUART1_TX			0x30e
+		>;
+	};
+
+	pinctrl_usdhc2_vcc3v3: usdhc2vcc3v3grp {
+		fsl,pins = <
+			MX93_PAD_SD2_RESET_B__GPIO3_IO07	0x31e
+		>;
+	};
+
+	pinctrl_usdhc2_cd: usdhc2cdgrp {
+		fsl,pins = <
+			MX93_PAD_SD2_CD_B__GPIO3_IO00		0x31e
+		>;
+	};
+
+	pinctrl_usdhc2_default: usdhc2grp {
+		fsl,pins = <
+			MX93_PAD_SD2_CLK__USDHC2_CLK		0x179e
+			MX93_PAD_SD2_CMD__USDHC2_CMD		0x139e
+			MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x138e
+			MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x138e
+			MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x138e
+			MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x139e
+			MX93_PAD_SD2_VSELECT__USDHC2_VSELECT	0x51e
+		>;
+	};
+
+	pinctrl_usdhc2_100mhz: usdhc2grp {
+                fsl,pins = <
+                        MX93_PAD_SD2_CLK__USDHC2_CLK            0x179e
+                        MX93_PAD_SD2_CMD__USDHC2_CMD            0x139e
+                        MX93_PAD_SD2_DATA0__USDHC2_DATA0        0x138e
+                        MX93_PAD_SD2_DATA1__USDHC2_DATA1        0x138e
+                        MX93_PAD_SD2_DATA2__USDHC2_DATA2        0x139e
+                        MX93_PAD_SD2_DATA3__USDHC2_DATA3        0x139e
+                        MX93_PAD_SD2_VSELECT__USDHC2_VSELECT    0x51e
+                >;
+        };
+
+	pinctrl_usdhc2_200mhz: usdhc2grp {
+                fsl,pins = <
+                        MX93_PAD_SD2_CLK__USDHC2_CLK            0x178e
+                        MX93_PAD_SD2_CMD__USDHC2_CMD            0x139e
+                        MX93_PAD_SD2_DATA0__USDHC2_DATA0        0x139e
+                        MX93_PAD_SD2_DATA1__USDHC2_DATA1        0x139e
+                        MX93_PAD_SD2_DATA2__USDHC2_DATA2        0x139e
+                        MX93_PAD_SD2_DATA3__USDHC2_DATA3        0x139e
+                        MX93_PAD_SD2_VSELECT__USDHC2_VSELECT    0x51e
+                >;
+        };
+
+	pinctrl_rtc: rtcgrp {
+		fsl,pins = <
+			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x31e
+		>;
+	};
+
+	pinctrl_flexcan1: flexcan1grp {
+		fsl,pins = <
+			MX93_PAD_PDM_BIT_STREAM0__CAN1_RX	0x139e
+			MX93_PAD_PDM_CLK__CAN1_TX		0x13e9
+		>;
+	};
+
+	pinctrl_flexcan1_en: flexcan1engrp {
+		fsl,pins = <
+			MX93_PAD_ENET2_TD3__GPIO4_IO16		0x31e
+		>;
+	};
+};
