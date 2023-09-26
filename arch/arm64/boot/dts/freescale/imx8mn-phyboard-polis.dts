@@ -108,6 +108,13 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-name = "VSD_3V3";
 	};
+
+	reg_vcc_3v3: regulator-vcc-3v3 {
+		compatible = "regulator-fixed";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "VCC_3V3";
+	};
 };
 
 &{/soc@0/bus@32c00000/display-subsystem} {
@@ -239,6 +246,8 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_bt>;
 		shutdown-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+		vbat-supply = <&reg_vcc_3v3>;
+		vddio-supply = <&reg_vcc_3v3>;
 	};
 };
 
