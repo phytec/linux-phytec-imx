@@ -7070,6 +7070,7 @@ int stmmac_dvr_probe(struct device *device,
 	struct stmmac_priv *priv;
 	u32 rxq;
 	int i, ret = 0;
+	int eth_id;
 
 	ndev = devm_alloc_etherdev_mqs(device, sizeof(struct stmmac_priv),
 				       MTL_MAX_TX_QUEUES, MTL_MAX_RX_QUEUES);
@@ -7313,6 +7314,10 @@ int stmmac_dvr_probe(struct device *device,
 		netdev_err(ndev, "failed to setup phy (%d)\n", ret);
 		goto error_phy_setup;
 	}
+
+	eth_id = of_alias_get_id(priv->device->of_node, "ethernet");
+	if (eth_id >= 0)
+		sprintf(ndev->name, "eth%d", eth_id);
 
 	ret = register_netdev(ndev);
 	if (ret) {
