@@ -27,6 +27,7 @@
 	panel {
 		compatible = "edt,etml1010g3dra";
 		backlight = <&backlight>;
+		power-supply = <&reg_vcc_3v3>;
 
 		port {
 			panel_in: endpoint {
