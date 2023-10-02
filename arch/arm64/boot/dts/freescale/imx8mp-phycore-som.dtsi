@@ -201,6 +201,7 @@
 		compatible = "atmel,24c32";
 		pagesize = <32>;
 		reg = <0x51>;
+		vcc-supply = <&reg_vdd_io>;
 	};
 
 	/* RTC */
@@ -215,6 +216,7 @@
 		pagesize = <32>;
 		reg = <0x59>;
 		size = <32>;
+		vcc-supply = <&reg_vdd_io>;
 	};
 };
 
