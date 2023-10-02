@@ -121,6 +121,7 @@
 		compatible = "atmel,24c32";
 		pagesize = <32>;
 		reg = <0x57>;
+		vcc-supply = <&reg_vcc_3v3_sw>;
 	};
 
 	eepromid@5f {
@@ -128,6 +129,7 @@
 		pagesize = <32>;
 		reg = <0x5f>;
 		size = <32>;
+		vcc-supply = <&reg_vcc_3v3_sw>;
 	};
 };
 
