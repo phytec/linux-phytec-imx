@@ -51,6 +51,13 @@
 		};
 	};
 
+	reg_vcc_3v3_sw: regulator-vcc-3v3-sw {
+		compatible = "regulator-fixed";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "VCC_3V3_SW";
+	};
+
 	reg_vcc_5v_sw: regulator-vcc-5v-sw {
 		compatible = "regulator-fixed";
 		regulator-always-on;
