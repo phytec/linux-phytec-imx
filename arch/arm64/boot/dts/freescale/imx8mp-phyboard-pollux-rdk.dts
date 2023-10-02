@@ -357,6 +357,7 @@ csi1_i2c: &i2c3 {
 
 /* USB */
 &usb3_phy0 {
+	vbus-supply = <&reg_vcc_5v_sw>;
 	status = "okay";
 };
 
@@ -370,6 +371,7 @@ csi1_i2c: &i2c3 {
 };
 
 &usb3_phy1 {
+	vbus-supply = <&reg_vcc_5v_sw>;
 	status = "okay";
 };
 
