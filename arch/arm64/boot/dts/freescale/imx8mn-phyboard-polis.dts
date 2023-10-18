@@ -18,6 +18,13 @@
 		stdout-path = &uart3;
 	};
 
+	bt_osc_32k: bt-lp-clock {
+		compatible = "fixed-clock";
+		clock-frequency = <32768>;
+		clock-output-names = "bt_osc_32k";
+		#clock-cells = <0>;
+	};
+
 	can_osc_40m: can-clock {
 		compatible = "fixed-clock";
 		clock-frequency = <40000000>;
@@ -232,6 +239,8 @@
 
 	bluetooth {
 		compatible = "brcm,bcm43438-bt";
+		clocks = <&bt_osc_32k>;
+		clock-names = "lpo";
 		device-wakeup-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
 		interrupts = <9 IRQ_TYPE_EDGE_BOTH>;
 		interrupt-names = "host-wakeup";
