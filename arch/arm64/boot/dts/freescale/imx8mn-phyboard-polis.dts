@@ -18,11 +18,10 @@
 		stdout-path = &uart3;
 	};
 
-	can_osc_40m: can-clock@0 {
+	can_osc_40m: can-clock {
 		compatible = "fixed-clock";
 		clock-frequency = <40000000>;
 		clock-output-names = "can_osc_40m";
-		reg = <0>;
 		#clock-cells = <0>;
 	};
 
