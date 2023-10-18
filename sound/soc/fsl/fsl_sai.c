@@ -434,6 +434,7 @@ static int fsl_sai_set_bclk(struct snd_soc_dai *dai, bool tx, u32 freq)
 	u32 ratio, savesub = freq, saveratio = 0, savediv = 0;
 	u32 id;
 	int ret = 0;
+	int found = 0;
 
 	/* Don't apply to slave mode */
 	if (sai->slave_mode[tx])
@@ -458,10 +459,14 @@ static int fsl_sai_set_bclk(struct snd_soc_dai *dai, bool tx, u32 freq)
 
 			if (clk_is_match(pp, sai->pll8k_clk) ||
 				clk_is_match(pp, sai->pll11k_clk)) {
+				found = 1;
 				break;
 			}
 			p = pp;
 		}
+
+		if (!found)
+			continue;
 
 		/* set fitting parent pll */
 		ret = clk_set_parent(p, parent_pll);
