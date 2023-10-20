@@ -566,18 +566,22 @@ static void ar0521_vv_querycap(struct ar0521 *sensor, void *args)
 static int ar0521_vv_querymode(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
-	/* TODO: Do we need to fix this into copy_from_user? */
 	struct vvcam_mode_info_array_s *array =
 		(struct vvcam_mode_info_array_s *) args;
-	int copy_ret;
+	uint32_t count = ARRAY_SIZE(ar0521_modes);
+	int ret;
 
 	dev_dbg(dev, "%s\n", __func__);
 
-	array->count = ARRAY_SIZE(ar0521_modes);
+	ret = copy_to_user(&array->count, &count, sizeof(count));
+	if (ret)
+		return -EIO;
 
-	copy_ret = copy_to_user(&array->modes, &ar0521_modes,
-				sizeof(ar0521_modes));
-	return copy_ret;
+	ret = copy_to_user(&array->modes, &ar0521_modes, sizeof(ar0521_modes));
+	if (ret)
+		ret = -EIO;
+
+	return ret;
 }
 
 static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
@@ -621,14 +625,14 @@ static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
 
 	ae_info->start_exposure = (gain * exposure_ms / 1000) * 1024;
 
-	mutex_unlock(&sensor->lock);
-
 	ret = copy_to_user(args, &sensor->vvcam_mode,
 			   sizeof(struct vvcam_mode_info_s));
 	if (ret)
-		return -EIO;
+		ret = -EIO;
 
-	return 0;
+	mutex_unlock(&sensor->lock);
+
+	return ret;
 }
 
 static int ar0521_vv_set_sensormode(struct ar0521 *sensor, void *args)
@@ -701,7 +705,12 @@ static int ar0521_vv_set_sensormode(struct ar0521 *sensor, void *args)
 
 static int ar0521_vv_s_stream(struct ar0521 *sensor, void *args)
 {
-	unsigned int enable = *(int *)args;
+	unsigned int enable = 0;
+	int ret;
+
+	ret = copy_from_user(&enable, args, sizeof(enable));
+	if (ret)
+		return -EIO;
 
 	return ar0521_s_stream(&sensor->subdev, enable);
 }
@@ -710,9 +719,14 @@ static int ar0521_vv_set_exposure(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
 	unsigned int pixclk_mhz;
-	uint32_t new_exp = *(uint32_t *) args;
+	uint32_t new_exp = 0;
 	uint32_t int_time;
 	int index;
+	int ret;
+
+	ret = copy_from_user(&new_exp, args, sizeof(new_exp));
+	if (ret)
+		return -EIO;
 
 	mutex_lock(&sensor->lock);
 
@@ -734,8 +748,13 @@ static int ar0521_vv_set_exposure(struct ar0521 *sensor, void *args)
 static int ar0521_vv_set_gain(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
-	uint32_t new_gain = *(uint32_t *) args;
+	uint32_t new_gain = 0;
 	uint32_t d_gain, a_gain;
+	int ret;
+
+	ret = copy_from_user(&new_gain, args, sizeof(new_gain));
+	if (ret)
+		return -EIO;
 
 	new_gain = new_gain * 1000 / 1024;
 
@@ -757,28 +776,33 @@ static int ar0521_vv_set_gain(struct ar0521 *sensor, void *args)
 static int ar0521_vv_set_wb(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
-	sensor_white_balance_t *wb = (sensor_white_balance_t *) args;
+	sensor_white_balance_t wb;
 	s32 new_gain;
+	int ret;
 
-	new_gain = (wb->r_gain >> 8) * 1000 +
-		   (wb->r_gain & 0xff) * 1000 / 256;
+	ret = copy_from_user(&wb, args, sizeof(wb));
+	if (ret)
+		return -EIO;
+
+	new_gain = (wb.r_gain >> 8) * 1000 +
+		   (wb.r_gain & 0xff) * 1000 / 256;
 	v4l2_ctrl_s_ctrl(sensor->gains.red_ctrl, new_gain);
-	dev_dbg(dev, "r_gain: %u --> %u\n", wb->r_gain, new_gain);
+	dev_dbg(dev, "r_gain: %u --> %u\n", wb.r_gain, new_gain);
 
-	new_gain = (wb->gr_gain >> 8) * 1000 +
-		   (wb->gr_gain & 0xff) * 1000 / 256;
+	new_gain = (wb.gr_gain >> 8) * 1000 +
+		   (wb.gr_gain & 0xff) * 1000 / 256;
 	v4l2_ctrl_s_ctrl(sensor->gains.greenr_ctrl, new_gain);
-	dev_dbg(dev, "gr_gain: %u --> %u\n", wb->gr_gain, new_gain);
+	dev_dbg(dev, "gr_gain: %u --> %u\n", wb.gr_gain, new_gain);
 
-	new_gain = (wb->gb_gain >> 8) * 1000 +
-		   (wb->gb_gain & 0xff) * 1000 / 256;
+	new_gain = (wb.gb_gain >> 8) * 1000 +
+		   (wb.gb_gain & 0xff) * 1000 / 256;
 	v4l2_ctrl_s_ctrl(sensor->gains.greenb_ctrl, new_gain);
-	dev_dbg(dev, "gb_gain: %u --> %u\n", wb->gb_gain, new_gain);
+	dev_dbg(dev, "gb_gain: %u --> %u\n", wb.gb_gain, new_gain);
 
-	new_gain = (wb->b_gain >> 8) * 1000 +
-		   (wb->b_gain & 0xff) * 1000 / 256;
+	new_gain = (wb.b_gain >> 8) * 1000 +
+		   (wb.b_gain & 0xff) * 1000 / 256;
 	v4l2_ctrl_s_ctrl(sensor->gains.blue_ctrl, new_gain);
-	dev_dbg(dev, "b_gain: %u --> %u\n", wb->b_gain, new_gain);
+	dev_dbg(dev, "b_gain: %u --> %u\n", wb.b_gain, new_gain);
 
 	return 0;
 }
@@ -786,10 +810,11 @@ static int ar0521_vv_set_wb(struct ar0521 *sensor, void *args)
 static int ar0521_vv_get_fps(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
-	uint32_t *out_fps = (uint32_t *) args;
+	uint32_t out_fps;
 	unsigned long pix_freq;
 	unsigned int fps;
 	int index;
+	int ret;
 
 	mutex_lock(&sensor->lock);
 
@@ -798,23 +823,32 @@ static int ar0521_vv_get_fps(struct ar0521 *sensor, void *args)
 
 	fps = div_u64(pix_freq * 10ULL, sensor->vlen * sensor->hlen);
 
-	*out_fps = fps * 1024 / 10;
+	out_fps = fps * 1024 / 10;
 
 	mutex_unlock(&sensor->lock);
 
 	dev_dbg(dev, "%s: %u.%u\n", __func__, fps/10, fps%10);
 
-	return 0;
+	ret = copy_to_user(args, &out_fps, sizeof(out_fps));
+	if (ret)
+		ret = -EIO;
+
+	return ret;
 }
 
 static int ar0521_vv_set_fps(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
-	uint32_t fps = *(uint32_t *) args;
+	uint32_t fps = 0;
 	unsigned long pix_freq;
 	unsigned int max_fps, min_fps;
 	unsigned int vlen, vblank;
 	int index;
+	int ret;
+
+	ret = copy_from_user(&fps, args, sizeof(fps));
+	if (ret)
+		return -EIO;
 
 	mutex_lock(&sensor->lock);
 
