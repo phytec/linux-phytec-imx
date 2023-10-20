@@ -587,15 +587,20 @@ static int ar0521_vv_querymode(struct ar0521 *sensor, void *args)
 static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
+	struct vvcam_mode_info_s *mode = (struct vvcam_mode_info_s *) args;
 	struct vvcam_ae_info_s *ae_info = &sensor->vvcam_mode.ae_info;
 	unsigned long pix_freq;
 	unsigned int pixclk_mhz;
+	unsigned int max_vlen_allowed, min_fps_allowed;
 	uint32_t int_lines, exposure_ms, gain;
 	int index;
 	int ret;
 
 	dev_dbg(dev, "%s\n", __func__);
 	dev_dbg(dev, "%s index: %u\n", __func__, sensor->vvcam_cur_mode_index);
+
+	ret = copy_from_user(&min_fps_allowed, &mode->ae_info.min_fps,
+			     sizeof(min_fps_allowed));
 
 	mutex_lock(&sensor->lock);
 
@@ -616,7 +621,12 @@ static int ar0521_vv_get_sensormode(struct ar0521 *sensor, void *args)
 				   sensor->limits.vblank.max *
 				   sensor->hlen);
 
-	ae_info->max_integration_line = sensor->vlen;
+	if (min_fps_allowed)
+		max_vlen_allowed = pix_freq / (min_fps_allowed * sensor->hlen);
+	else
+		max_vlen_allowed = sensor->vlen;
+
+	ae_info->max_integration_line = max_vlen_allowed;
 
 	int_lines = sensor->exp_ctrl->cur.val;
 	exposure_ms = int_lines * sensor->hlen / pixclk_mhz;
