@@ -88,13 +88,6 @@
 		startup-delay-us = <20>;
 	};
 
-	reg_mipi_1p0: regulator-mipi-1p0 {
-		compatible = "regulator-fixed";
-		regulator-name = "mipi_1p0";
-		regulator-min-microvolt = <1000000>;
-		regulator-max-microvolt = <1000000>;
-	};
-
 	reg_usb_otg1_vbus: regulator-usb-otg1 {
 		compatible = "regulator-fixed";
 		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
