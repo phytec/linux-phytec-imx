@@ -318,8 +318,6 @@ struct ar0521 {
 	unsigned int bpp;
 	unsigned int w_skip;
 	unsigned int h_skip;
-	unsigned int vblank;
-	unsigned int hblank;
 	unsigned int hlen;
 	unsigned int vlen;
 
@@ -333,6 +331,7 @@ struct ar0521 {
 
 	struct v4l2_ctrl *exp_ctrl;
 	struct v4l2_ctrl *vblank_ctrl;
+	struct v4l2_ctrl *hblank_ctrl;
 	struct ar0521_gains gains;
 
 	struct vvcam_mode_info_s vvcam_mode;
@@ -1782,16 +1781,63 @@ out:
 	return ret;
 }
 
-static unsigned int ar0521_get_hlength(struct ar0521 *sensor)
+static void ar0521_update_blankings(struct ar0521 *sensor)
 {
-	return clamp_t(unsigned int, sensor->fmt.width + sensor->hblank,
-		       sensor->limits.hlen.min, sensor->limits.hlen.max);
-}
+	const struct ar0521_sensor_limits *limits = &sensor->limits;
+	unsigned int width = sensor->fmt.width;
+	unsigned int height = sensor->fmt.height;
+	unsigned int hblank_min, hblank_max;
+	unsigned int vblank_min, vblank_max;
+	unsigned int hblank_value, hblank_default;
+	unsigned int vblank_value, vblank_default;
 
-static unsigned int ar0521_get_vlength(struct ar0521 *sensor)
-{
-	return clamp_t(unsigned int, sensor->fmt.height + sensor->vblank,
-		       sensor->limits.vlen.min, sensor->limits.vlen.max);
+	hblank_min = limits->hblank.min;
+	if (width + limits->hblank.min < limits->hlen.min)
+		hblank_min = limits->hlen.min - width;
+
+	vblank_min = limits->vblank.min;
+	if (height + limits->vblank.min < limits->vlen.min)
+		vblank_min = limits->vlen.min - height;
+
+	hblank_max = limits->hlen.max - width;
+	vblank_max = limits->vlen.max - height;
+
+	hblank_value = sensor->hblank_ctrl->cur.val;
+	hblank_default = sensor->hblank_ctrl->default_value;
+
+	vblank_value = sensor->vblank_ctrl->cur.val;
+	vblank_default = sensor->vblank_ctrl->default_value;
+
+	if (hblank_value < hblank_min)
+		__v4l2_ctrl_s_ctrl(sensor->hblank_ctrl, hblank_min);
+
+	if (hblank_value > hblank_max)
+		__v4l2_ctrl_s_ctrl(sensor->hblank_ctrl, hblank_max);
+
+	if (vblank_value < vblank_min)
+		__v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank_min);
+
+	if (vblank_value > vblank_max)
+		__v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank_max);
+
+	__v4l2_ctrl_modify_range(sensor->hblank_ctrl, hblank_min, hblank_max,
+				 sensor->hblank_ctrl->step,
+				 hblank_min);
+
+	__v4l2_ctrl_modify_range(sensor->vblank_ctrl, vblank_min, vblank_max,
+				 sensor->vblank_ctrl->step,
+				 vblank_min);
+
+
+	/*
+	 * If the previous value was equal the previous default value, readjust
+	 * the updated value to the new default value as well.
+	 */
+	if (hblank_value == hblank_default)
+		__v4l2_ctrl_s_ctrl(sensor->hblank_ctrl, hblank_min);
+
+	if (vblank_value == vblank_default)
+		__v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank_min);
 }
 
 static int ar0521_set_fmt(struct v4l2_subdev *sd,
@@ -1849,8 +1895,9 @@ static int ar0521_set_fmt(struct v4l2_subdev *sd,
 		sensor->bpp = sensor_format->bpp;
 		sensor->w_skip = w_skip;
 		sensor->h_skip = h_skip;
-		sensor->hlen = ar0521_get_hlength(sensor);
-		sensor->vlen = ar0521_get_vlength(sensor);
+		sensor->hlen = fmt->width + sensor->hblank_ctrl->cur.val;
+		sensor->vlen = fmt->height + sensor->vblank_ctrl->cur.val;
+		ar0521_update_blankings(sensor);
 	}
 
 	format->format = *fmt;
@@ -2184,40 +2231,52 @@ static int ar0521_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	switch (ctrl->id) {
 	case V4L2_CID_VBLANK:
+		unsigned int vlen_old;
+
 		if (sensor->is_streaming) {
 			ret = ar0521_group_param_hold(sensor);
 			if (ret)
 				break;
 		}
 
-		sensor->vblank = ctrl->val;
-		sensor->vlen = ar0521_get_vlength(sensor);
+		vlen_old = sensor->vlen;
+		sensor->vlen = sensor->fmt.height + ctrl->val;
 
 		if (sensor->is_streaming) {
 			ret = ar0521_config_frame(sensor);
-			if (ret)
+			if (ret) {
+				sensor->vlen = vlen_old;
 				break;
+			}
 
 			ret = ar0521_group_param_release(sensor);
+			if (ret)
+				sensor->vlen = vlen_old;
 		}
 
 		break;
 	case V4L2_CID_HBLANK:
+		unsigned int hlen_old;
+
 		if (sensor->is_streaming) {
 			ret = ar0521_group_param_hold(sensor);
 			if (ret)
 				break;
 		}
 
-		sensor->hblank = ctrl->val;
-		sensor->hlen = ar0521_get_hlength(sensor);
+		hlen_old = sensor->hlen;
+		sensor->hlen = sensor->fmt.width + ctrl->val;
 
 		if (sensor->is_streaming) {
 			ret = ar0521_config_frame(sensor);
-			if (ret)
+			if (ret) {
+				sensor->hlen = hlen_old;
 				break;
+			}
 
 			ret = ar0521_group_param_release(sensor);
+			if (ret)
+				sensor->hlen = hlen_old;
 		}
 
 		break;
@@ -2599,6 +2658,7 @@ static int ar0521_create_ctrls(struct ar0521 *sensor)
 {
 	struct v4l2_ctrl_config ctrl_cfg;
 	struct v4l2_ctrl *ctrl;
+	struct ar0521_sensor_limits *limits = &sensor->limits;
 	int i;
 	int ret;
 
@@ -2615,11 +2675,11 @@ static int ar0521_create_ctrls(struct ar0521 *sensor)
 
 			break;
 		case V4L2_CID_HBLANK:
-			ctrl_cfg.min = sensor->limits.hblank.min;
+			ctrl_cfg.min = limits->hlen.min - AR0521_DEF_WIDTH;
 			ctrl_cfg.def = ctrl_cfg.min;
 			break;
 		case V4L2_CID_VBLANK:
-			ctrl_cfg.min = sensor->limits.vblank.min;
+			ctrl_cfg.min = limits->vblank.min;
 			ctrl_cfg.def = ctrl_cfg.min;
 			break;
 		case V4L2_CID_LINK_FREQ:
@@ -2655,6 +2715,9 @@ static int ar0521_create_ctrls(struct ar0521 *sensor)
 			break;
 		case V4L2_CID_VBLANK:
 			sensor->vblank_ctrl = ctrl;
+			break;
+		case V4L2_CID_HBLANK:
+			sensor->hblank_ctrl = ctrl;
 			break;
 		case V4L2_CID_ANALOGUE_GAIN:
 			sensor->gains.ana_ctrl = ctrl;
@@ -2724,10 +2787,8 @@ static void ar0521_set_defaults(struct ar0521 *sensor)
 
 	sensor->w_skip = 1;
 	sensor->h_skip = 1;
-	sensor->hblank = sensor->limits.hblank.min;
-	sensor->vblank = sensor->limits.vblank.min;
 	sensor->hlen = sensor->limits.hlen.min;
-	sensor->vlen = sensor->fmt.height + sensor->vblank;
+	sensor->vlen = sensor->fmt.height + sensor->limits.vblank.min;
 	sensor->gains.red = 1000;
 	sensor->gains.greenr = 1000;
 	sensor->gains.greenb = 1000;
