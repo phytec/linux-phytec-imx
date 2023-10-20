@@ -753,16 +753,21 @@ static int ar0144_vv_querymode(struct ar0144 *sensor, void *args)
 static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
+	struct vvcam_mode_info_s *mode = (struct vvcam_mode_info_s *) args;
 	struct vvcam_ae_info_s *ae_info = &sensor->vvcam_mode.ae_info;
 	const struct ar0144_sensor_limits *limits = sensor->model->data->limits;
 	unsigned long pix_freq;
 	unsigned int pixclk_mhz;
+	unsigned int max_vlen_allowed, min_fps_allowed;
 	uint32_t int_lines, exposure_ms, gain;
 	int index;
 	int ret;
 
 	dev_dbg(dev, "%s\n", __func__);
 	dev_dbg(dev, "%s index: %u\n", __func__, sensor->vvcam_cur_mode_index);
+
+	ret = copy_from_user(&min_fps_allowed, &mode->ae_info.min_fps,
+			     sizeof(min_fps_allowed));
 
 	mutex_lock(&sensor->lock);
 
@@ -774,6 +779,7 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 	ae_info->one_line_exp_time_ns = sensor->hlen * 1000 / pixclk_mhz;
 	ae_info->cur_fps = div_u64(pix_freq * 1024ULL,
 				   sensor->vlen * sensor->hlen);
+
 	ae_info->max_fps = div_u64(pix_freq * 1024ULL,
 				   sensor->fmt.height +
 				   limits->vblank.min *
@@ -783,7 +789,12 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 				   limits->vblank.max *
 				   sensor->hlen);
 
-	ae_info->max_integration_line = sensor->vlen;
+	if (min_fps_allowed)
+		max_vlen_allowed = pix_freq / (min_fps_allowed * sensor->hlen);
+	else
+		max_vlen_allowed = sensor->vlen;
+
+	ae_info->max_integration_line = max_vlen_allowed;
 	ae_info->max_again = sensor->gains.max_again * 1024 / 1000;
 
 	int_lines = sensor->exp_ctrl->cur.val;
