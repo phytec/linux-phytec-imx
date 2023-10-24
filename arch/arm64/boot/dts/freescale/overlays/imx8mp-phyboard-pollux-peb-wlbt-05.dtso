@@ -20,17 +20,14 @@
 
 / {
 	compatible = "phytec,imx8mp-phyboard-pollux-rdk";
+};
 
-	fragment@4{
-		target-path= "/";
-		__overlay__ {
-			usdhc1_pwrseq: pwr_seq {
-				compatible = "mmc-pwrseq-simple";
-				post-power-on-delay-ms = <100>;
-				power-off-delay-us = <60>;
-				reset-gpios = <&gpio5 5 GPIO_ACTIVE_LOW>;
-			};
-		};
+&{/} {
+	usdhc1_pwrseq: pwr_seq {
+		compatible = "mmc-pwrseq-simple";
+		post-power-on-delay-ms = <100>;
+		power-off-delay-us = <60>;
+		reset-gpios = <&gpio5 5 GPIO_ACTIVE_LOW>;
 	};
 };
 
