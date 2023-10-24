@@ -13,36 +13,31 @@
 
 / {
 	compatible = "phytec,imx8mn-phyboard-polis";
+};
 
-	fragment@1 {
-		target-path= "/";
+&{/} {
+	gpio-keys {
+		compatible = "gpio-key";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_keys>;
 
-		__overlay__ {
+		button1 {
+			label = "menu";
+			linux,code = <KEY_MENU>;
+			gpios = <&gpio5 29 GPIO_ACTIVE_LOW>;
+			wakeup-source;
+		};
+	};
 
-			gpio-keys {
-				compatible = "gpio-key";
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_gpio_keys>;
+	user-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_user_leds>;
 
-				button1 {
-					label = "menu";
-					linux,code = <KEY_MENU>;
-					gpios = <&gpio5 29 GPIO_ACTIVE_LOW>;
-					wakeup-source;
-				};
-			};
-
-			user-leds {
-				compatible = "gpio-leds";
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_user_leds>;
-
-				user-led2 {
-					gpios = <&gpio5 28 GPIO_ACTIVE_HIGH>;
-					linux,default-trigger = "gpio";
-					default-state = "on";
-				};
-			};
+		user-led2 {
+			gpios = <&gpio5 28 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			default-state = "on";
 		};
 	};
 };
