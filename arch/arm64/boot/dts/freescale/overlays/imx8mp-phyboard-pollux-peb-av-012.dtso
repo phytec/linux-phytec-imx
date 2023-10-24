@@ -13,19 +13,15 @@
 
 / {
 	compatible = "phytec,imx8mp-phyboard-pollux-rdk";
+};
 
-	fragment@5 {
-		target-path= "/";
+&{/} {
+	panel2: panel2 {
+		compatible = "edt,etml1010g0dka";
 
-		__overlay__ {
-			panel2: panel2 {
-				compatible = "edt,etml1010g0dka";
-
-				port {
-					panel2_in: endpoint {
-						remote-endpoint = <&bridge_out>;
-					};
-				};
+		port {
+			panel2_in: endpoint {
+				remote-endpoint = <&bridge_out>;
 			};
 		};
 	};
