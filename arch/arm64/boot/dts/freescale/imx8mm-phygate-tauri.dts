@@ -260,6 +260,14 @@
 	status = "okay";
 };
 
+&usbphynop1 {
+	vcc-supply = <&reg_vdd_3v3_s>;
+};
+
+&usbphynop2 {
+	vcc-supply = <&reg_vdd_3v3_s>;
+};
+
 /* SD-Card */
 &usdhc2 {
 	assigned-clocks = <&clk IMX8MM_CLK_USDHC2>;
