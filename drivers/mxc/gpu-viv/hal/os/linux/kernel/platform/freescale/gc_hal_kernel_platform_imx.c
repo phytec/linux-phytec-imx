@@ -332,9 +332,11 @@ static int devfreq_cooling_handle_event_change(unsigned long event)
     }
 
     gckHARDWARE_GetFscaleValue(hardware, &curFscale, &minFscale, &maxFscale);
-    if (prev_event == 0xffffffff) /* get initial value of Fscale */
+    if (prev_event == 0xffffffff){ /* get initial value of Fscale */
         orgFscale = curFscale;
-    else if (prev_event == event)
+        prev_event = 0;
+    }
+    if (prev_event == event)
         return NOTIFY_OK;
 
     prev_event = event;
