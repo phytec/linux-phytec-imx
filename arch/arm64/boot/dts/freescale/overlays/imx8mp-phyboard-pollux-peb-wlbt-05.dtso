@@ -51,6 +51,8 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_bt>;
 		shutdown-gpios = <&gpio2 7 GPIO_ACTIVE_HIGH>;
+		vbat-supply = <&reg_vcc_3v3_sw>;
+		vddio-supply = <&reg_vcc_3v3_sw>;
 	};
 };
 
