@@ -233,6 +233,7 @@
 &usbotg1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usbotg1>;
+	dr_mode = "host";
 	srp-disable;
 	hnp-disable;
 	adp-disable;
@@ -369,6 +370,15 @@
 		reg = <0>;
 		compatible = "rohm,dh2228fv";
 		spi-max-frequency = <10000000>;
+	};
+};
+
+&lsio_gpio0{
+	usb_port_select-hog {
+		gpio-hog;
+		gpios = <30 GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "USB port select GPIO";
 	};
 };
 
