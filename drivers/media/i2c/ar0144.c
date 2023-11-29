@@ -2004,9 +2004,10 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 		sensor->bpp = sensor_format->bpp;
 		sensor->w_skip = w_skip;
 		sensor->h_skip = h_skip;
+
+		ar0144_update_blankings(sensor);
 		sensor->hlen = fmt->width + sensor->hblank_ctrl->cur.val;
 		sensor->vlen = fmt->height + sensor->vblank_ctrl->cur.val;
-		ar0144_update_blankings(sensor);
 	}
 
 	format->format = *fmt;
