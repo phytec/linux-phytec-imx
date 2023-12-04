@@ -2386,7 +2386,7 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		}
 
 		hlen_old = sensor->hlen;
-		sensor->hlen = sensor->fmt.height + ctrl->val;
+		sensor->hlen = sensor->fmt.width + ctrl->val;
 
 		if (sensor->is_streaming) {
 			ret = ar0144_config_frame(sensor);
