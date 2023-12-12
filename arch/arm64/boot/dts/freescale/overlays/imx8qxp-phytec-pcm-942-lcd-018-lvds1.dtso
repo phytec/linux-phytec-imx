@@ -1,0 +1,114 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2019-2021 PHYTEC America, LLC
+ *
+ * Enable LCD-018 LVDS displays on PCM-942
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/pinctrl/pads-imx8qxp.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+&{/} {
+	compatible = "phytec,imx8qxp-pcm-942", "phytec,imx8qxp-phycore-som", "fsl,imx8qxp";
+
+	lvds1_panel {
+		compatible = "edt,etm0700g0dh6";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvds1>;
+		enable = <&lsio_gpio2 0 GPIO_ACTIVE_HIGH>;
+		backlight = <&lvds_backlight1>;
+
+		port {
+			panel_lvds1_in: endpoint {
+				remote-endpoint = <&lvds1_out>;
+			};
+		};
+	};
+
+	lvds_backlight1: lvds_backlight@1 {
+		compatible = "pwm-backlight";
+		pwms = <&pwm_mipi_lvds1 0 100000 0>;
+
+		brightness-levels = < 0  1  2  3  4  5	6  7  8  9
+						10 11 12 13 14 15 16 17 18 19
+						20 21 22 23 24 25 26 27 28 29
+						30 31 32 33 34 35 36 37 38 39
+						40 41 42 43 44 45 46 47 48 49
+						50 51 52 53 54 55 56 57 58 59
+						60 61 62 63 64 65 66 67 68 69
+						70 71 72 73 74 75 76 77 78 79
+						80 81 82 83 84 85 86 87 88 89
+						90 91 92 93 94 95 96 97 98 99
+					100>;
+		default-brightness-level = <80>;
+	};
+};
+
+&ldb2_phy {
+	status = "okay";
+};
+
+&ldb2 {
+	status = "okay";
+
+	lvds-channel@0 {
+		fsl,data-mapping = "jeida";
+		fsl,data-width = <24>;
+		status = "okay";
+
+		port@1 {
+			reg = <1>;
+
+			lvds1_out: endpoint {
+				remote-endpoint = <&panel_lvds1_in>;
+			};
+		};
+	};
+};
+
+&dc0_pc {	/* Pixel combiner */
+	status = "okay";
+};
+
+&pwm_mipi_lvds1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm_mipi_lvds1>;
+	status = "okay";
+};
+
+&i2c0_mipi_lvds1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	edt_ft5x06_lvds1: polytouch_1@38 {
+		compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_edt_ft5x06_lvds1>;
+		reg = <0x38>;
+		interrupt-parent = <&lsio_gpio1>;
+		interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+	};
+};
+
+&iomuxc {
+	pcm942 {
+
+		pinctrl_edt_ft5x06_lvds1: edt_ft5x06grp_lvds1 {
+			fsl,pins = <
+				IMX8QXP_SPI0_SDI_LSIO_GPIO1_IO05	0x06000021
+			>;
+		};
+
+		pinctrl_pwm_mipi_lvds1: mipi_lvds1_pwm_grp {
+			fsl,pins = <
+				IMX8QXP_MIPI_DSI1_GPIO0_00_MIPI_DSI1_PWM0_OUT	0x00000020
+			>;
+		};
+	};
+};
