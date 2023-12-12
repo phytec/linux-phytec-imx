@@ -12,88 +12,71 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/display/tda998x.h>
 
-/ {
-	fragment@106 {
-		target = <&ldb2>;
-		__overlay__ {
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_lvds1>;
-			status = "okay";
+&ldb2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lvds1>;
+	status = "okay";
 
-			lvds-channel@0 {
-				#address-cells = <1>;
-				#size-cells = <0>;
-				fsl,data-mapping = "spwg";
-				fsl,data-width = <24>;
-				status = "okay";
+	lvds-channel@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
 
-				port@1 {
-					reg = <1>;
+		port@1 {
+			reg = <1>;
 
-					lvds1_output: endpoint {
-						remote-endpoint = <&tda1998x_1_input>;
-					};
-				};
+			lvds1_output: endpoint {
+				remote-endpoint = <&tda1998x_1_input>;
 			};
 		};
 	};
+};
 
-	fragment@107 {
-		target = <&i2c0_mipi_lvds1>;
-		__overlay__ {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			status = "okay";
+&i2c0_mipi_lvds1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
 
-			tda998x_1: hdmi-encoder {
-				status = "okay";
-				compatible = "nxp,tda998x";
-				reg = <0x70>;
-				interrupt-parent = <&lsio_gpio1>;
-				interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
-				pinctrl-0 = <&pinctrl_hdmi_encoder_1>;
-				pinctrl-names = "default";
-				nxp,calib-gpios = <&lsio_gpio1 5 0>;
+	tda998x_1: hdmi-encoder {
+		status = "okay";
+		compatible = "nxp,tda998x";
+		reg = <0x70>;
+		interrupt-parent = <&lsio_gpio1>;
+		interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-0 = <&pinctrl_hdmi_encoder_1>;
+		pinctrl-names = "default";
+		nxp,calib-gpios = <&lsio_gpio1 5 0>;
 
-				port {
-					tda1998x_1_input: endpoint {
-						remote-endpoint = <&lvds1_output>;
-					};
-				};
+		port {
+			tda1998x_1_input: endpoint {
+				remote-endpoint = <&lvds1_output>;
 			};
 		};
 	};
+};
 
-	fragment@108 {
-		target = <&ldb2_phy>;
-		__overlay__ {
-			status = "okay";
+&ldb2_phy {
+	status = "okay";
+};
+
+&dc0_pc {	/* Pixel combiner */
+	status = "okay";
+};
+
+&iomuxc {
+	pcm942 {
+		pinctrl_lvds1: lvds1grp {
+			fsl,pins = <
+				IMX8QXP_MIPI_DSI1_GPIO0_01_LSIO_GPIO2_IO00 0x06000021
+			>;
 		};
-	};
 
-	fragment@109 {
-		target = <&dc0_pc>;	/* Pixel combiner */
-		__overlay__ {
-			status = "okay";
-		};
-	};
-
-	fragment@110 {
-		target = <&iomuxc>;
-		__overlay__ {
-			pcm942 {
-				pinctrl_lvds1: lvds1grp {
-					fsl,pins = <
-						IMX8QXP_MIPI_DSI1_GPIO0_01_LSIO_GPIO2_IO00 0x06000021
-					>;
-				};
-
-				pinctrl_hdmi_encoder_1: hdmiencoder1 {
-						fsl,pins = <
-							IMX8QXP_SPI0_SDI_LSIO_GPIO1_IO05 0x06000021
-						>;
-				};
-			};
+		pinctrl_hdmi_encoder_1: hdmiencoder1 {
+				fsl,pins = <
+					IMX8QXP_SPI0_SDI_LSIO_GPIO1_IO05 0x06000021
+				>;
 		};
 	};
 };

@@ -8,19 +8,11 @@
 /dts-v1/;
 /plugin/;
 
-/ {
-	fragment@3 {
-		target = <&lpuart1>;
-		__overlay__ {
-			pinctrl-0 = <&pinctrl_lpuart1>, <&pinctrl_lpuart1_rtscts>;
-			uart-has-rtscts;
-		};
-	};
+&lpuart1 {
+	pinctrl-0 = <&pinctrl_lpuart1>, <&pinctrl_lpuart1_rtscts>;
+	uart-has-rtscts;
+};
 
-	fragment@4 {
-		target = <&reg_bt>;
-		__overlay__ {
-			status = "okay";
-		};
-	};
+&reg_bt {
+	status = "okay";
 };
