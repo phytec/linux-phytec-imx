@@ -58,6 +58,7 @@ dtb-y += imx8mp-vm020-csi1-fpdlink-port1.dtbo
 dtb-y += imx8mp-vm020-csi2-fpdlink-port0.dtbo
 dtb-y += imx8mp-vm020-csi2-fpdlink-port1.dtbo
 dtb-y += imx8qxp-phytec-pcm-942-bt.dtbo
+dtb-y += imx8qxp-phytec-pcm-942-gpio-fan.dtbo
 dtb-y += imx8qxp-phytec-pcm-942-lcd-018.dtbo
 dtb-y += imx8qxp-phytec-pcm-942-lvds0-peb-lvds-01.dtbo
 dtb-y += imx8qxp-phytec-pcm-942-lvds1-peb-lvds-01.dtbo
