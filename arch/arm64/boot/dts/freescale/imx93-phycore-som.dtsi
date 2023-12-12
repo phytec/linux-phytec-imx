@@ -162,6 +162,13 @@
 		reg = <0x50>;
 		pagesize = <32>;
 	};
+
+	eepromid@58 {
+		compatible = "atmel,24c32";
+		pagesize = <32>;
+		reg = <0x58>;
+		size = <32>;
+	};
 };
 
 /* eMMC */
