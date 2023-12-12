@@ -7,6 +7,7 @@
  * https://www.phytec.de/produkte/system-on-modules/phycore-imx-91-93/
  */
 
+#include <dt-bindings/leds/common.h>
 #include "imx93.dtsi"
 
 / {
@@ -24,6 +25,19 @@
 			alloc-ranges = <0 0x80000000 0 0x40000000>;
 			size = <0 0x10000000>;
 			linux,cma-default;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		led-0 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_HEARTBEAT;
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
 		};
 	};
 };
@@ -180,6 +194,12 @@
 			MX93_PAD_ENET2_TX_CTL__ENET1_RGMII_TX_CTL	0x50e
 			MX93_PAD_ENET2_TD2__ENET1_TX_CLK		0x4000050e
 			MX93_PAD_ENET1_MDC__GPIO4_IO00			0x31e
+		>;
+	};
+
+	pinctrl_leds: ledsgrp {
+		fsl,pins = <
+			MX93_PAD_I2C1_SDA__GPIO1_IO01			0x31e
 		>;
 	};
 
