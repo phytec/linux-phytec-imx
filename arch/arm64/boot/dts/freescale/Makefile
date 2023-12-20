@@ -402,9 +402,12 @@ imx93-phyboard-segin-peb-av-02-dtbs += imx93-phyboard-segin.dtb \
 			  imx93-phyboard-segin-peb-av-02.dtbo
 imx93-phyboard-segin-peb-eval-01-dtbs += imx93-phyboard-segin.dtb \
 			  imx93-phyboard-segin-peb-eval-01.dtbo
+imx93-phycore-rpmsg-dtbs += imx93-phyboard-segin.dtb \
+			  imx93-phycore-rpmsg.dtbo
 
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin-peb-av-02.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin-peb-eval-01.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx93-phycore-rpmsg.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-venice-gw72xx-0x-imx219.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-venice-gw72xx-0x-rs232-rts.dtb
