@@ -105,13 +105,6 @@
 	status = "okay";
 };
 
-/* ADC */
-&adc1 {
-	/* 1.8V */
-	vref-supply = <&buck5>;
-	status = "okay";
-};
-
 /* Power-key */
 &bbnsm_pwrkey {
 	linux,keycode = <KEY_POWER>;
