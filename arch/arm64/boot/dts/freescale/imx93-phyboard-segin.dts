@@ -196,6 +196,7 @@
 
 /* USB  */
 &usbotg1 {
+	disable-over-current;
 	dr_mode = "otg";
 	status = "okay";
 };
