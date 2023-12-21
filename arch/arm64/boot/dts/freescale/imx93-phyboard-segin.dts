@@ -229,6 +229,7 @@
 	cd-gpios = <&gpio3 00 GPIO_ACTIVE_LOW>;
 	vmmc-supply = <&reg_usdhc2_vmmc>;
 	bus-width = <4>;
+	disable-wp;
 	no-sdio;
 	no-mmc;
 	status = "okay";
