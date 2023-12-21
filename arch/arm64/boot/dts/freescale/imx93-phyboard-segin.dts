@@ -112,6 +112,12 @@
 	status = "okay";
 };
 
+/* Power-key */
+&bbnsm_pwrkey {
+	linux,keycode = <KEY_POWER>;
+	wakeup-source;
+};
+
 /* Ethernet */
 &eqos {
 	pinctrl-names = "default";
