@@ -1,0 +1,83 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2023 PHYTEC Messtechnik GmbH
+ * Author: Primoz Fiser <primoz.fiser@norik.com>
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include "imx93-pinfunc.h"
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx93-phyboard-nash";
+};
+
+&{/} {
+	backlight0: backlight0 {
+		compatible = "gpio-backlight";
+		default-on;
+		gpios = <&gpio4 28 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_backlight>;
+	};
+
+	panel0: panel0 {
+		backlight = <&backlight0>;
+		compatible = "edt,etml1010g3dra";
+		enable-gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvdsbl_en>;
+		power-supply = <&reg_vcc_3v3>;
+
+		port {
+			panel0_in: endpoint {
+				remote-endpoint = <&ldb_ch1>;
+			};
+		};
+	};
+};
+
+&lcdif {
+	assigned-clock-rates = <498000000>, <71142857>, <400000000>, <133333333>;
+	status = "okay";
+};
+
+&ldb {
+	status = "okay";
+
+	lvds-channel@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
+
+		port@1 {
+			reg = <1>;
+
+			ldb_ch1: endpoint {
+				remote-endpoint = <&panel0_in>;
+			};
+		};
+	};
+};
+
+&ldb_phy {
+	status = "okay";
+};
+
+&iomuxc {
+	pinctrl_backlight: backlight_grp {
+		fsl,pins = <
+			MX93_PAD_CCM_CLKO3__GPIO4_IO28		0x586
+		>;
+	};
+
+	pinctrl_lvdsbl_en: lvdsbl_en_grp {
+		fsl,pins = <
+			MX93_PAD_SD3_CMD__GPIO3_IO21		0x39e
+		>;
+	};
+};
