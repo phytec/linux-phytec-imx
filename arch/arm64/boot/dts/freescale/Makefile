@@ -400,6 +400,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx91p-11x11-evk.dtb imx91p-11x11-evk-mt9m114.dtb \
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-nash.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin.dtb
 
+imx93-phyboard-nash-lvds-ac200-dtbs += imx93-phyboard-nash.dtb \
+			  imx93-phyboard-nash-lvds-ac200.dtbo
 imx93-phyboard-segin-peb-av-02-dtbs += imx93-phyboard-segin.dtb \
 			  imx93-phyboard-segin-peb-av-02.dtbo
 imx93-phyboard-segin-peb-eval-01-dtbs += imx93-phyboard-segin.dtb \
@@ -407,6 +409,7 @@ imx93-phyboard-segin-peb-eval-01-dtbs += imx93-phyboard-segin.dtb \
 imx93-phycore-rpmsg-dtbs += imx93-phyboard-segin.dtb \
 			  imx93-phycore-rpmsg.dtbo
 
+dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-nash-lvds-ac200.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin-peb-av-02.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin-peb-eval-01.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phycore-rpmsg.dtb
