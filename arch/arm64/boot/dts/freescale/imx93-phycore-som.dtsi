@@ -52,6 +52,11 @@
 	memory-region = <&ele_reserved>;
 };
 
+/* PXP */
+&epxp {
+	status = "okay";
+};
+
 /* Ethernet */
 &fec {
 	pinctrl-names = "default";
