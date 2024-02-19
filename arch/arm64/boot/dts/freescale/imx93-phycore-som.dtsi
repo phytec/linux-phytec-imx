@@ -26,6 +26,12 @@
 			size = <0 0x10000000>;
 			linux,cma-default;
 		};
+
+		ele_reserved: ele-reserved@a4120000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0xa4120000 0 0x100000>;
+			no-map;
+		};
 	};
 
 	leds {
@@ -40,6 +46,10 @@
 			linux,default-trigger = "heartbeat";
 		};
 	};
+};
+
+&ele_mu {
+	memory-region = <&ele_reserved>;
 };
 
 /* Ethernet */
