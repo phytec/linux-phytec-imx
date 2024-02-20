@@ -49,7 +49,6 @@
 
 /* Ethernet */
 &fec {
-	fsl,magic-packet;
 	phy-handle = <&ethphy0>;
 	phy-mode = "rgmii-id";
 	pinctrl-names = "default";
