@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2024 PHYTEC Messtechnik GmbH
+ * Author: Primoz Fiser <primoz.fiser@norik.com>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx93-phycore-som";
+};
+
+&usdhc1 {
+	status = "disabled";
+};
