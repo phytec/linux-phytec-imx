@@ -14,15 +14,6 @@
 		     "fsl,imx7d";
 };
 
-&{/} {
-	reg_mipi_avdd_2v8: fixedregulator-mipi-avdd {
-		regulator-min-microvolt = <2800000>;
-		regulator-max-microvolt = <2800000>;
-		regulator-always-on;
-		vin-supply = <&vdd_3v3>;
-	};
-};
-
 &csi1 {
 	csi-mux-mipi = <&gpr 0x14 4>;
 	fsl,mipi-mode;
@@ -38,16 +29,16 @@
 &i2c4 {
 	status = "okay";
 
-	ov5640_mipi: camera@3c {
+	ov5640_mipi: ov5640_mipi@3c {
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_mipigpio>;
 		compatible = "ovti,ov5640_mipi";
 		reg = <0x3c>;
+		status = "okay";
 		clocks = <&clks IMX7D_CLK_DUMMY>;
 		clock-names = "csi_mclk";
 		csi_id = <0>;
 		pwn-gpios = <&gpio2 12 GPIO_ACTIVE_HIGH>;
-		AVDD-supply = <&reg_mipi_avdd_2v8>;
 		mclk = <24000000>;
 		mclk_source = <0>;
 
@@ -72,20 +63,25 @@
 };
 
 &mipi_csi {
-	clock-frequency = <240000000>;
 	status = "okay";
+	clock-frequency = <24000000>;
+	clocks = <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
+				<&clks IMX7D_MIPI_DPHY_ROOT_CLK>,
+				<&clks IMX7D_CLK_DUMMY>,
+				<&clks IMX7D_CLK_DUMMY>;
+	clock-names = "mipi_clk", "phy_clk", "disp_axi", "disp_apb";
 
 	port {
-		mipi_sensor_ep: endpoint@1 {
+		csi_mipi_ep: endpoint@1 {
+			remote-endpoint = <&csi_ep>;
+		};
+
+		mipi_sensor_ep: endpoint@2 {
 			remote-endpoint = <&ov5640_mipi_ep>;
 			data-lanes = <2>;
 			csis-hs-settle = <13>;
 			csis-clk-settle = <2>;
 			csis-wclk;
-		};
-
-		csi_mipi_ep: endpoint@2 {
-			remote-endpoint = <&csi_ep>;
 		};
 	};
 };
