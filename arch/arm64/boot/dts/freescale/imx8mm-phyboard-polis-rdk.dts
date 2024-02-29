@@ -248,6 +248,7 @@ csi1_i2c: &i2c4 {
 	pinctrl-1 = <&pinctrl_i2c4_gpio>;
 	sda-gpios = <&gpio5 21 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	scl-gpios = <&gpio5 20 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	status = "okay";
 };
 
 &mipi_csi_1 {
