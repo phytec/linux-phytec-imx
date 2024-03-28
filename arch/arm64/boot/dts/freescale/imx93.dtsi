@@ -686,17 +686,6 @@
 				fsl,ext-reset-output;
 			};
 
-			tpm4: pwm@424f0000 {
-				compatible = "fsl,imx7ulp-pwm";
-				reg = <0x424f0000 0x1000>;
-				clocks = <&clk IMX93_CLK_TPM4_GATE>;
-				assigned-clocks = <&clk IMX93_CLK_TPM4>;
-				assigned-clock-parents = <&clk IMX93_CLK_24M>;
-				assigned-clock-rates = <24000000>;
-				#pwm-cells = <3>;
-				status = "disabled";
-			};
-
 			i3c2: i3c-master@42520000 {
 				#address-cells = <3>;
 				#size-cells = <0>;
