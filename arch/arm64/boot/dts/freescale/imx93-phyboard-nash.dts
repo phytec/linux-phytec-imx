@@ -58,12 +58,19 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-name = "VCC3V3";
 	};
+
+	reg_vref_1v8: regulator-adc-vref {
+		compatible = "regulator-fixed";
+		regulator-name = "VREF_1V8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+	};
 };
 
 /* ADC */
 &adc1 {
 	/* 1.8V */
-	vref-supply = <&buck5>;
+	vref-supply = <&reg_vref_1v8>;
 	status = "okay";
 };
 
