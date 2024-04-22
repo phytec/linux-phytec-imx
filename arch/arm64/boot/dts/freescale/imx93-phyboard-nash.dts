@@ -309,7 +309,7 @@
 	};
 
 	/* need to config the SION for data and cmd pad, refer to ERR052021 */
-	pinctrl_usdhc2_100mhz: usdhc2grp {
+	pinctrl_usdhc2_100mhz: usdhc2-100mhzgrp {
 		fsl,pins = <
 			MX93_PAD_SD2_CLK__USDHC2_CLK		0x179e
 			MX93_PAD_SD2_CMD__USDHC2_CMD		0x4000139e
@@ -322,7 +322,7 @@
 	};
 
 	/* need to config the SION for data and cmd pad, refer to ERR052021 */
-	pinctrl_usdhc2_200mhz: usdhc2grp {
+	pinctrl_usdhc2_200mhz: usdhc2-200mhzgrp {
 		fsl,pins = <
 			MX93_PAD_SD2_CLK__USDHC2_CLK		0x178e
 			MX93_PAD_SD2_CMD__USDHC2_CMD		0x4000139e
