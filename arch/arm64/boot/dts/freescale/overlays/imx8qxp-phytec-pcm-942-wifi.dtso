@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2019-2021 PHYTEC America, LLC
+ *
+ * Enable WiFi on PCM-942
+ */
+
+/dts-v1/;
+/plugin/;
+
+&usdhc2 {
+	cd-gpios = <0 0 0>;
+	mmc-pwrseq = <&sdio_pwrseq>;
+	non-removable;
+	no-sd;
+	pinctrl-0 = <&pinctrl_usdhc2_wifi>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-1 = <&pinctrl_usdhc2_wifi>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-2 = <&pinctrl_usdhc2_wifi>, <&pinctrl_usdhc2_gpio>;
+
+	brcmf: wifi@1 {
+		reg = <1>;
+		compatible = "brcm,bcm4329-fmac";
+	};
+};
+
+&sdio_pwrseq {
+	status = "okay";
+};
