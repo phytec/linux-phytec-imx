@@ -368,7 +368,18 @@ dtb-$(CONFIG_ARCH_MXC) += imx8qxp-mek.dtb imx8qxp-mek-ov5640.dtb \
 dtb-$(CONFIG_ARCH_MXC) += imx8qxp-mek-dom0.dtb imx8qxp-mek-root.dtb \
 			  imx8qxp-mek-inmate.dtb
 
+
 dtb-$(CONFIG_ARCH_MXC) += imx8qxp-phytec-pcm-942.dtb
+
+imx8qxp-phytec-pcm-942-bt-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-bt.dtbo
+imx8qxp-phytec-pcm-942-gpio-fan-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-gpio-fan.dtbo
+imx8qxp-phytec-pcm-942-lcd-018-lvds0-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-lcd-018-lvds0.dtbo
+imx8qxp-phytec-pcm-942-lcd-018-lvds1-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-lcd-018-lvds1.dtbo
+imx8qxp-phytec-pcm-942-lvds0-peb-lvds-01-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-lvds0-peb-lvds-01.dtbo
+imx8qxp-phytec-pcm-942-lvds1-peb-lvds-01-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-lvds1-peb-lvds-01.dtbo
+imx8qxp-phytec-pcm-942-parallel-camera-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-parallel-camera.dtbo
+imx8qxp-phytec-pcm-942-uart2-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-uart2.dtbo
+imx8qxp-phytec-pcm-942-wifi-dtbs := imx8qxp-phytec-pcm-942.dtb imx8qxp-phytec-pcm-942-wifi.dtbo
 
 dtb-$(CONFIG_ARCH_MXC) += imx93-14x14-evk.dtb \
 			  imx93-14x14-evk-tja1103.dtb imx93-14x14-evk-rm67199.dtb \
@@ -705,3 +716,6 @@ dtb-$(CONFIG_ARCH_S32) += s32v234-evb.dtb \
 			  s32v234-sbc.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8qm-mek-sof-cs42888.dtb imx8qm-mek-sof-wm8960.dtb \
 			  imx8qm-mek-revd-sof-wm8962.dtb imx8qm-mek-sof.dtb
+
+# Enable support for device-tree overlays
+DTC_FLAGS_imx8qxp-phytec-pcm-942 += -@
