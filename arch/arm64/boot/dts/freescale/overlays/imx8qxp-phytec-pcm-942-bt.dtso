@@ -1,0 +1,18 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0
+ * Copyright (C) 2020 PHYTEC America, LLC - https://www.phytec.com
+ *
+ * Enable Bluetooth on PCM-942
+ */
+
+/dts-v1/;
+/plugin/;
+
+&lpuart1 {
+	pinctrl-0 = <&pinctrl_lpuart1>, <&pinctrl_lpuart1_rtscts>;
+	uart-has-rtscts;
+};
+
+&reg_bt {
+	status = "okay";
+};

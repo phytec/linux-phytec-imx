@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2019-2021 PHYTEC America, LLC
+ *
+ * Disable the FlexCAN 2 interface and enable UART 2
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/pinctrl/pads-imx8qxp.h>
+
+&{/} {
+	compatible = "phytec,imx8qxp-pcm-942", "phytec,imx8qxp-phycore-som", "fsl,imx8qxp";
+};
+
+&flexcan2 {
+	status = "disabled";
+};
+
+&lpuart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpuart2>;
+	status = "okay";
+};
+
+&iomuxc {
+	pcm942 {
+		pinctrl_lpuart2: lpuart2grp {
+			fsl,pins = <
+				IMX8QXP_UART2_TX_ADMA_UART2_TX	   0x06000020
+				IMX8QXP_UART2_RX_ADMA_UART2_RX	   0x06000020
+			>;
+		};
+	};
+};
