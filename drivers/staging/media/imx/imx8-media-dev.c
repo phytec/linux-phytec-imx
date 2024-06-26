@@ -105,6 +105,7 @@ struct mxc_sensor_info {
 	int				id;
 	struct v4l2_subdev		*sd;
 	struct fwnode_handle *fwnode;
+	struct fwnode_handle 		*source_ep;
 	bool mipi_mode;
 };
 
@@ -519,8 +520,10 @@ static int mxc_md_create_links(struct mxc_md *mxc_md)
 
 			source = &sensor->sd->entity;
 			sink = find_entity_by_name(mxc_md, mipi_csi2->sd_name);
-			source_pad = 0;
-			sink_pad = source_pad;
+			source_pad = media_entity_get_fwnode_pad(source,
+								 sensor->source_ep,
+								 MEDIA_PAD_FL_SOURCE);
+			sink_pad = MXC_MIPI_CSI2_VC0_PAD_SINK;
 
 			mipi_vc = (mipi_csi2->vchannel) ? 4 : 1;
 			for (j = 0; j < mipi_vc; j++) {
@@ -958,7 +961,7 @@ static int mxc_md_register_platform_entities(struct mxc_md *mxc_md,
 static int register_sensor_entities(struct mxc_md *mxc_md)
 {
 	struct device_node *parent = mxc_md->pdev->dev.of_node;
-	struct device_node *node, *ep, *rem;
+	struct device_node *node, *ep, *rem, *remote_ep;
 	struct v4l2_fwnode_endpoint endpoint;
 	struct i2c_client *client;
 	struct v4l2_async_subdev *asd;
@@ -1014,13 +1017,21 @@ static int register_sensor_entities(struct mxc_md *mxc_md)
 
 		/* remote port---sensor node */
 		rem = of_graph_get_remote_port_parent(ep);
-		of_node_put(ep);
 		if (!rem) {
 			v4l2_info(&mxc_md->v4l2_dev,
 				  "Remote device at %s not found\n",
 				  ep->full_name);
 			continue;
 		}
+		remote_ep = of_graph_get_remote_endpoint(ep);
+		of_node_put(ep);
+		if (!remote_ep) {
+			v4l2_info(&mxc_md->v4l2_dev,
+				  "Remote endpoint at %s not found\n",
+				  ep->full_name);
+			continue;
+		}
+		mxc_md->sensor[index].source_ep = of_fwnode_handle(remote_ep);
 
 		/*
 		 * Need to wait sensor driver probed for the first time
