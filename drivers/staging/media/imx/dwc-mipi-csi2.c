@@ -396,10 +396,46 @@ static const struct csi2h_pix_format dwc_csi2h_formats[] = {
 		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
 		.fmt_reg = 0x2A,
 	}, {
+		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
+		.fmt_reg = 0x2A,
+	}, {
+		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
+		.fmt_reg = 0x2A,
+	}, {
+		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
+		.fmt_reg = 0x2A,
+	}, {
 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
 		.fmt_reg = 0x2B,
 	}, {
+		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
+		.fmt_reg = 0x2B,
+	}, {
+		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
+		.fmt_reg = 0x2B,
+	}, {
+		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
+		.fmt_reg = 0x2B,
+	}, {
 		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
+		.fmt_reg = 0x2C,
+	}, {
+		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
+		.fmt_reg = 0x2C,
+	}, {
+		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
+		.fmt_reg = 0x2C,
+	}, {
+		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
+		.fmt_reg = 0x2C,
+	}, {
+		.code = MEDIA_BUS_FMT_Y8_1X8,
+		.fmt_reg = 0x2A,
+	}, {
+		.code = MEDIA_BUS_FMT_Y10_1X10,
+		.fmt_reg = 0x2B,
+	}, {
+		.code = MEDIA_BUS_FMT_Y12_1X12,
 		.fmt_reg = 0x2C,
 	}, {
 		/* sentinel */
@@ -701,15 +737,21 @@ static void disp_mix_gasket_config(struct dwc_mipi_csi2_host *csi2h)
 	case MEDIA_BUS_FMT_VYUY8_2X8:
 		fmt_val = DT_YUV422_8;
 		break;
+	case MEDIA_BUS_FMT_Y8_1X8:
 	case MEDIA_BUS_FMT_SBGGR8_1X8:
+	case MEDIA_BUS_FMT_SGBRG8_1X8:
+	case MEDIA_BUS_FMT_SGRBG8_1X8:
+	case MEDIA_BUS_FMT_SRGGB8_1X8:
 		fmt_val = DT_RAW8;
 		break;
+	case MEDIA_BUS_FMT_Y10_1X10:
 	case MEDIA_BUS_FMT_SBGGR10_1X10:
 	case MEDIA_BUS_FMT_SGBRG10_1X10:
 	case MEDIA_BUS_FMT_SGRBG10_1X10:
 	case MEDIA_BUS_FMT_SRGGB10_1X10:
 		fmt_val = DT_RAW10;
 		break;
+	case MEDIA_BUS_FMT_Y12_1X12:
 	case MEDIA_BUS_FMT_SBGGR12_1X12:
 	case MEDIA_BUS_FMT_SGBRG12_1X12:
 	case MEDIA_BUS_FMT_SGRBG12_1X12:
