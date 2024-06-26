@@ -1070,7 +1070,7 @@ static int dwc_mipi_csi2_param_init(struct dwc_mipi_csi2_host *csi2h)
 			ipi_cfg->vactive_lines   = 0x320;
 			ipi_cfg->controller_mode = 0;
 			ipi_cfg->color_mode_16   = 0;
-			ipi_cfg->embeded_data    = 0;
+			ipi_cfg->embeded_data    = 1;
 		}
 	}
 
