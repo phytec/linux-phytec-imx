@@ -1196,6 +1196,47 @@ static int dwc_mipi_csi2_set_fmt(struct v4l2_subdev *sd,
 
 	v4l2_info(&csi2h->sd, "format: %#x\n", mf->code);
 
+	switch (mf->code) {
+	case MEDIA_BUS_FMT_RGB888_1X24:
+		csi2h->ipi_cfg[0].data_type = DT_RGB888;
+		break;
+	case MEDIA_BUS_FMT_RGB565_1X16:
+		csi2h->ipi_cfg[0].data_type = DT_RGB565;
+		break;
+	case MEDIA_BUS_FMT_YUYV8_2X8:
+	case MEDIA_BUS_FMT_YVYU8_2X8:
+	case MEDIA_BUS_FMT_UYVY8_2X8:
+	case MEDIA_BUS_FMT_VYUY8_2X8:
+		csi2h->ipi_cfg[0].data_type = DT_YUV422_8;
+		break;
+	case MEDIA_BUS_FMT_Y8_1X8:
+	case MEDIA_BUS_FMT_SBGGR8_1X8:
+	case MEDIA_BUS_FMT_SGBRG8_1X8:
+	case MEDIA_BUS_FMT_SGRBG8_1X8:
+	case MEDIA_BUS_FMT_SRGGB8_1X8:
+		csi2h->ipi_cfg[0].data_type = DT_RAW8;
+		csi2h->ipi_cfg[0].color_mode_16 = 1;
+		break;
+	case MEDIA_BUS_FMT_Y10_1X10:
+	case MEDIA_BUS_FMT_SBGGR10_1X10:
+	case MEDIA_BUS_FMT_SGBRG10_1X10:
+	case MEDIA_BUS_FMT_SGRBG10_1X10:
+	case MEDIA_BUS_FMT_SRGGB10_1X10:
+		csi2h->ipi_cfg[0].data_type = DT_RAW10;
+		csi2h->ipi_cfg[0].color_mode_16 = 1;
+		break;
+	case MEDIA_BUS_FMT_Y12_1X12:
+	case MEDIA_BUS_FMT_SBGGR12_1X12:
+	case MEDIA_BUS_FMT_SGBRG12_1X12:
+	case MEDIA_BUS_FMT_SGRBG12_1X12:
+	case MEDIA_BUS_FMT_SRGGB12_1X12:
+		csi2h->ipi_cfg[0].data_type = DT_RAW12;
+		csi2h->ipi_cfg[0].color_mode_16 = 1;
+		break;
+	default:
+		v4l2_err(&csi2h->sd, "%s, unsupported format %#x\n", __func__, mf->code);
+	}
+
 	return 0;
 }
 
