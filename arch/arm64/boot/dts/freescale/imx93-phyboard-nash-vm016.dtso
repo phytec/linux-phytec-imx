@@ -1,0 +1,81 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2024 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmüller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx93-phyboard-nash";
+};
+
+&{/} {
+	vm016_csi1_clk: vm016-csi1-ext-clk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+	};
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&isi_0 {
+	status = "okay";
+
+	cap_device {
+		status = "okay";
+	};
+};
+
+&lpi2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	camera@10 {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		compatible = "onsemi,ar0144";
+		reg = <0x10>;
+		clocks = <&vm016_csi1_clk>;
+		clock-names = "ext";
+
+		port@0 {
+			reg = <0>;
+
+			vm016_csi_ep: endpoint {
+				remote-endpoint = <&mipi_csi_ep>;
+				bus-type = <4>; /* MIPI CSI-2 D-PHY */
+				link-frequencies = /bits/ 64 <222750000>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+			};
+		};
+	};
+};
+
+&media_blk_ctrl {
+	status = "okay";
+};
+
+&mipi_csi {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	port@0 {
+		reg = <0>;
+		mipi_csi_ep: endpoint {
+			remote-endpoint = <&vm016_csi_ep>;
+			data-lanes = <2>;
+			cfg-clk-range = <28>;
+			hs-clk-range = <0x16>;
+			bus-type = <4>;
+		};
+	};
+};
