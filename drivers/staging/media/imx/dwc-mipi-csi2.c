@@ -291,6 +291,7 @@ enum data_type {
 	DT_RAW8		= 0x2A,
 	DT_RAW10	= 0x2B,
 	DT_RAW12	= 0x2C,
+	DT_USER16	= 0x31,
 };
 
 enum pg_mode {
@@ -742,7 +743,7 @@ static void disp_mix_gasket_config(struct dwc_mipi_csi2_host *csi2h)
 	case MEDIA_BUS_FMT_SGBRG8_1X8:
 	case MEDIA_BUS_FMT_SGRBG8_1X8:
 	case MEDIA_BUS_FMT_SRGGB8_1X8:
-		fmt_val = DT_RAW8;
+		fmt_val = DT_USER16;
 		break;
 	case MEDIA_BUS_FMT_Y10_1X10:
 	case MEDIA_BUS_FMT_SBGGR10_1X10:
