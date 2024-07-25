@@ -1,0 +1,102 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2024 PHYTEC Messtechnik GmbH
+ * Author: Andrej Picej <andrej.picej@norik.com>
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx93-pinfunc.h"
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx93-phyboard-segin";
+};
+
+&{/} {
+	reg_wl_en: regulator-wl-en {
+		compatible = "regulator-fixed";
+		regulator-name = "wlan_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_wl>;
+		gpio = <&gpio4 7 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		startup-delay-us = <100>;
+	};
+};
+
+&lpuart5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart5_bt &pinctrl_bt>;
+	/*
+	* Disable Bluetooth for now as HW modification is needed on the
+	* PEB-WLBT-05 to get it working. J9 and J10 solder pads on PEB-WLBT-05
+	* need to be resolder to connect 2+3 pads (crossing RTS and CTS lines).
+	*/
+	status = "disabled";
+
+	bluetooth {
+		compatible = "brcm,bcm43438-bt";
+		shutdown-gpios = <&gpio4 13 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+		max-speed = <2000000>;
+		vbat-supply = <&reg_vcc_3v3>;
+		vddio-supply = <&reg_vcc_3v3>;
+	};
+};
+
+&usdhc3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc3_wl>;
+	vmmc-supply = <&reg_wl_en>;
+	bus-width = <4>;
+	non-removable;
+	no-1-8-v;
+	status = "okay";
+
+	brmcf: wifi@1 {
+		compatible = "brcm,bcm4329-fmac";
+		reg = <1>;
+	};
+};
+
+&iomuxc {
+	pinctrl_bt: btgrp {
+		fsl,pins = <
+			MX93_PAD_ENET1_RD3__GPIO4_IO13  0x31e   /* BT ENABLE */
+			MX93_PAD_I2C1_SCL__GPIO1_IO00   0x31e   /* HOST WAKEUP */
+		>;
+	};
+
+	pinctrl_uart5_bt: uart5grp-bt {
+		fsl,pins = <
+			MX93_PAD_DAP_TDO_TRACESWO__LPUART5_TX   0x31e
+			MX93_PAD_DAP_TDI__LPUART5_RX            0x31e
+			MX93_PAD_DAP_TCLK_SWCLK__LPUART5_CTS_B  0x31e
+			MX93_PAD_DAP_TMS_SWDIO__LPUART5_RTS_B   0x31e
+		>;
+	};
+
+	pinctrl_usdhc3_wl: usdhc3grp-wl {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO22__USDHC3_CLK		0x178e
+			MX93_PAD_GPIO_IO23__USDHC3_CMD 		0x4000139e
+			MX93_PAD_GPIO_IO24__USDHC3_DATA0        0x4000139e
+			MX93_PAD_GPIO_IO25__USDHC3_DATA1        0x4000139e
+			MX93_PAD_GPIO_IO26__USDHC3_DATA2        0x4000139e
+			MX93_PAD_GPIO_IO27__USDHC3_DATA3        0x4000139e
+		>;
+	};
+
+	pinctrl_wl: wlgrp {
+		fsl,pins = <
+			MX93_PAD_ENET1_TXC__GPIO4_IO07  0x31e /* WLAN ENABLE */
+		>;
+	};
+};
