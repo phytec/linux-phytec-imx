@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2024 PHYTEC Messtechnik GmbH
+ * Author: Primoz Fiser <primoz.fiser@norik.com>
+ */
+
+#include "imx93-pinfunc.h"
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx93-phyboard-nash";
+};
+
+/*
+ * NOTE: We add pinctrl_jtag here to imx93_soc node. However this could be any
+ * arbitrary node that is enabled and has a driver bound to it. This is needed
+ * since jtag doesn't have any driver associated with it and is thus hard to
+ * apply the correct pinmuxing from the DT otherwise.
+ */
+&imx93_soc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_jtag>;
+};
+
+&iomuxc {
+	pinctrl_jtag: jtaggrp {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO24__JTAG_MUX_TDO		0x31e
+			MX93_PAD_GPIO_IO25__JTAG_MUX_TCK		0x31e
+			MX93_PAD_GPIO_IO26__JTAG_MUX_TDI		0x31e
+			MX93_PAD_GPIO_IO27__JTAG_MUX_TMS		0x31e
+		>;
+	};
+};
