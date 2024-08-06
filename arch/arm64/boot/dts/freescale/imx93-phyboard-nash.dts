@@ -149,7 +149,6 @@
 };
 
 &lpspi6 {
-	fsl,spi-num-chipselects = <1>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpspi6>;
 	cs-gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;
