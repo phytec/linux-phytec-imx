@@ -20,6 +20,38 @@
 		stdout-path = &uart1;
 	};
 
+	backlight1: backlight1 {
+		compatible = "pwm-backlight";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvds1>;
+		default-brightness-level = <6>;
+		pwms = <&pwm3 0 50000 0>;
+		power-supply = <&reg_lvds1_reg_en>;
+		enable-gpios = <&gpio2 20 GPIO_ACTIVE_LOW>;
+		brightness-levels= <0 4 8 16 32 64 128 255>;
+	};
+
+	panel1: panel1 {
+		compatible = "edt,etml1010g3dra";
+		backlight = <&backlight1>;
+		power-supply = <&reg_vcc_3v3_sw>;
+
+		port {
+			panel1_in: endpoint {
+				remote-endpoint = <&lvds1_out>;
+			};
+		};
+	};
+
+	reg_lvds1_reg_en: regulator-lvds1 {
+		compatible = "regulator-fixed";
+		regulator-name = "lvds1_reg_en";
+		regulator-min-microvolt = <12000000>;
+		regulator-max-microvolt = <12000000>;
+		gpio = <&gpio1 9 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
 	reg_vcc_5v_sw: regulator-vcc-5v-sw {
 		compatible = "regulator-fixed";
 		regulator-always-on;
@@ -168,6 +200,39 @@
 			type = <PCA9532_TYPE_LED>;
 		};
 	};
+};
+
+&lcdif2 {
+	status = "okay";
+};
+
+/* LVDS1 */
+&ldb {
+	status = "okay";
+
+	lvds-channel@1 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
+
+		port@1 {
+			reg = <1>;
+
+			lvds1_out: endpoint {
+				remote-endpoint = <&panel1_in>;
+			};
+		};
+	};
+};
+
+&ldb_phy {
+	status = "okay";
+};
+
+&pwm3 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm3>;
 };
 
 &snvs_pwrkey {
@@ -369,6 +434,19 @@
 			MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10     0x60
 			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x60 /* open drain, pull up */
 			MX8MP_IOMUXC_GPIO1_IO14__GPIO1_IO14     0x40
+		>;
+	};
+
+	pinctrl_lvds1: lvds1grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20		0x12
+			MX8MP_IOMUXC_GPIO1_IO09__GPIO1_IO09	0x12
+		>;
+	};
+
+	pinctrl_pwm3: pwm3grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SPDIF_TX__PWM3_OUT		0x12
 		>;
 	};
 
