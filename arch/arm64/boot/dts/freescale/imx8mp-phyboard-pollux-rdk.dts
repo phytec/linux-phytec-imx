@@ -165,6 +165,26 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
 	xceiver-supply = <&reg_can2_stby>;
+};
+
+/* HDMI */
+&irqsteer_hdmi {
+	status = "okay";
+};
+
+&hdmi_blk_ctrl {
+	status = "okay";
+};
+
+&hdmi_pavi {
+	status = "okay";
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&hdmiphy {
 	status = "okay";
 };
 
@@ -203,6 +223,10 @@
 };
 
 &lcdif2 {
+	status = "okay";
+};
+
+&lcdif3 {
 	status = "okay";
 };
 
@@ -359,6 +383,9 @@
 };
 
 &iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
 	pinctrl_ecspi1: ecspi1grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_ECSPI1_MISO__ECSPI1_MISO   0x80
@@ -411,6 +438,15 @@
 	pinctrl_flexcan2_reg: flexcan2reggrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI5_RXD0__GPIO3_IO21	0x154
+		>;
+	};
+
+	pinctrl_hog: hoggrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_HDMI_DDC_SCL__HDMIMIX_HDMI_SCL	0x400001c3
+			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA	0x400001c3
+			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD		0x40000019
+			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x40000019
 		>;
 	};
 
