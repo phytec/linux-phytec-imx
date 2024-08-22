@@ -472,7 +472,7 @@ imx93-phycore-no-eth-dtbs += imx93-phyboard-nash.dtb \
 			  imx93-phycore-no-eth.dtbo
 imx93-phycore-rpmsg-dtbs += imx93-phyboard-nash.dtb \
 			  imx93-phyboard-segin.dtb \
-			  imx93-phycore-rpmsg.dtb
+			  imx93-phycore-rpmsg.dtbo
 
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-nash-jtag.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-nash-peb-av-10.dtb
