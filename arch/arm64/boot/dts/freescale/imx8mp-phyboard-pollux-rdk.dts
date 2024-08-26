@@ -70,6 +70,14 @@
 		startup-delay-us = <100>;
 		off-on-delay-us = <12000>;
 	};
+
+	reg_vcc_3v3_sw: regulator-vcc-3v3-sw {
+		compatible = "regulator-fixed";
+		regulator-name = "VCC_3V3_SW";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
 };
 
 /* TPM */
