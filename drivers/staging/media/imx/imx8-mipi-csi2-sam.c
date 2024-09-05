@@ -1883,8 +1883,7 @@ static void mipi_csis_imx8mp_phy_reset(struct csi_state *state)
 {
 	int ret = 0;
 	struct v4l2_subdev *sen_sd;
-
-	struct v4l2_subdev_mbus_code_enum code = {
+	struct v4l2_subdev_format format = {
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 
@@ -1893,27 +1892,27 @@ static void mipi_csis_imx8mp_phy_reset(struct csi_state *state)
 	if (!sen_sd)
 		goto csi_phy_initial_cfg;
 
-	ret = v4l2_subdev_call(sen_sd, pad, enum_mbus_code, NULL, &code);
+	ret = v4l2_subdev_call(sen_sd, pad, get_fmt, NULL, &format);
 	if (ret < 0 && ret != -ENOIOCTLCMD) {
-		v4l2_err(&state->sd, "enum_mbus_code error !!!\n");
+		v4l2_err(&state->sd, "get_fmt error !!!\n");
 		return;
 	} else if (ret == -ENOIOCTLCMD)
 		goto csi_phy_initial_cfg;
 
 	/* temporary place */
 	if (state->mix_gpr) {
-		if ((code.code == MEDIA_BUS_FMT_SRGGB8_1X8) ||
-				(code.code == MEDIA_BUS_FMT_SGRBG8_1X8) ||
-				(code.code == MEDIA_BUS_FMT_SGBRG8_1X8) ||
-				(code.code == MEDIA_BUS_FMT_SBGGR8_1X8)) {
+		if ((format.format.code == MEDIA_BUS_FMT_SRGGB8_1X8) ||
+		    (format.format.code == MEDIA_BUS_FMT_SGRBG8_1X8) ||
+		    (format.format.code == MEDIA_BUS_FMT_SGBRG8_1X8) ||
+		    (format.format.code == MEDIA_BUS_FMT_SBGGR8_1X8)) {
 			mipi_csis_imx8mp_dewarp_ctl_data_type(state,
 					 ISP_DEWARP_CTRL_DATA_TYPE_RAW8);
 			v4l2_dbg(1, debug, &state->sd,
 					"%s: bus fmt is 8 bit!\n", __func__);
-		} else if ((code.code == MEDIA_BUS_FMT_SRGGB10_1X10) ||
-				(code.code == MEDIA_BUS_FMT_SGRBG10_1X10) ||
-				(code.code == MEDIA_BUS_FMT_SGBRG10_1X10) ||
-				(code.code == MEDIA_BUS_FMT_SBGGR10_1X10)) {
+		} else if ((format.format.code == MEDIA_BUS_FMT_SRGGB10_1X10) ||
+			   (format.format.code == MEDIA_BUS_FMT_SGRBG10_1X10) ||
+			   (format.format.code == MEDIA_BUS_FMT_SGBRG10_1X10) ||
+			   (format.format.code == MEDIA_BUS_FMT_SBGGR10_1X10)) {
 			mipi_csis_imx8mp_dewarp_ctl_data_type(state,
 					ISP_DEWARP_CTRL_DATA_TYPE_RAW10);
 			v4l2_dbg(1, debug, &state->sd,
