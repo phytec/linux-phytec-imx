@@ -1007,6 +1007,7 @@ static void disp_mix_gasket_config(struct csi_state *state)
 	regmap_read(gasket, DISP_MIX_GASKET_0_CTRL, &val);
 	if (fmt_val == GASKET_0_CTRL_DATA_TYPE_YUV422_8)
 		val |= GASKET_0_CTRL_DUAL_COMP_ENABLE;
+	val &= ~GASKET_0_CTRL_DATA_TYPE_MASK;
 	val |= GASKET_0_CTRL_DATA_TYPE(fmt_val);
 	regmap_write(gasket, DISP_MIX_GASKET_0_CTRL, val);
 
