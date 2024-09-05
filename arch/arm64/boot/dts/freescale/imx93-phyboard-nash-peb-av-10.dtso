@@ -22,7 +22,7 @@
 		pinctrl-0 = <&pinctrl_backlight>;
 		brightness-levels= <0 4 8 16 32 64 128 255>;
 		default-brightness-level = <6>;
-		enable-gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+		enable-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
 		power-supply = <&reg_vcc_3v3>;
 		pwms = <&tpm5 2 50000 0>;
 	};
@@ -30,7 +30,6 @@
 	panel {
 		compatible = "edt,etml1010g3dra";
 		backlight = <&backlight>;
-		enable-gpios = <&gpio2 7 GPIO_ACTIVE_HIGH>;
 		power-supply = <&reg_vcc_3v3>;
 
 		port {
