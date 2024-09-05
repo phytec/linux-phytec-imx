@@ -1112,7 +1112,9 @@ static int mipi_csis_s_power(struct v4l2_subdev *mipi_sd, int on)
 static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
 {
 	struct csi_state *state = mipi_sd_to_csi_state(mipi_sd);
+	struct media_pad *source_pad;
 	struct v4l2_subdev *sen_sd;
+	u64 streams_mask = BIT(0);
 	int ret;
 
 	v4l2_dbg(1, debug, mipi_sd, "%s: %d, state: 0x%x\n",
@@ -1124,12 +1126,18 @@ static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
 		return -EINVAL;
 	}
 
+	source_pad = csis_get_remote_sensor_pad(state);
+	if (!source_pad) {
+		v4l2_err(&state->sd, "%s, No remote pad found!\n", __func__);
+		return -EINVAL;
+	}
+
 	if (enable) {
 		pm_runtime_get_sync(state->dev);
 		mipi_csis_clear_counters(state);
 		mipi_csis_start_stream(state);
 
-		ret = v4l2_subdev_call(sen_sd, video, s_stream, enable);
+		ret = v4l2_subdev_enable_streams(sen_sd, source_pad->index, streams_mask);
 		if (ret) {
 			mipi_csis_stop_stream(state);
 			pm_runtime_put(state->dev);
@@ -1139,7 +1147,7 @@ static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
 		dump_csis_regs(state, __func__);
 		dump_gasket_regs(state, __func__);
 	} else {
-		ret = v4l2_subdev_call(sen_sd, video, s_stream, enable);
+		v4l2_subdev_disable_streams(sen_sd, source_pad->index, streams_mask);
 		mipi_csis_stop_stream(state);
 		if (debug > 0)
 			mipi_csis_log_counters(state, true);
