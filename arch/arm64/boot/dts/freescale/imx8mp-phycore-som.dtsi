@@ -238,6 +238,11 @@
 	status = "okay";
 };
 
+&{/reserved-memory/linux,cma} {
+	size = <0 0x28000000>;
+	alloc-ranges = <0 0x60000000 0 0x60000000>;
+};
+
 &gpio1 {
 	gpio-line-names = "", "", "X_PMIC_WDOG_B", "",
 		"", "", "", "", "", "",
