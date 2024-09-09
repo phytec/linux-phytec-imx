@@ -172,6 +172,7 @@
 		 <&clk IMX8MP_AUDIO_PLL2_OUT>;
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 	fsl,sai-synchronous-rx;
+	fsl,sai-mclk-direction-output;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai2>;
 	status = "okay";
