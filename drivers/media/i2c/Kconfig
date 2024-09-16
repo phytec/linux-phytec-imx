@@ -51,6 +51,15 @@ config VIDEO_AR0144
 	  To compile this driver as a module, choose M here: the
 	  module will be called ar0144.
 
+config VIDEO_PHYCAM_AR0521
+	tristate "ON Semiconductor AR0521 sensor support (PHYTEC Edition)"
+	help
+	  This driver supports AR0521 cameras from Onsemiconductor, monochrome
+	  and colour models are supported via its MIPI interface.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called phycam_ar0521.
+
 config VIDEO_AR0521
 	tristate "ON Semiconductor AR0521 sensor support"
 	help
