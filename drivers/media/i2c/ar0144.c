@@ -352,6 +352,7 @@ struct ar0144 {
 	bool embedded_stat;
 
 	struct ar0144_model *model;
+	enum ar0144_color color;
 	struct ar0144_businfo info;
 	struct ar0144_pll_config *pll;
 
@@ -1722,7 +1723,7 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	mono_op = sensor->model->color == AR0144_MODEL_MONOCHROME;
+	mono_op = sensor->color == AR0144_MODEL_MONOCHROME;
 
 	ret = ar0144_update_bits(sensor, AR0144_DIGITAL_TEST, BIT_MONOCHROME_OP,
 				 mono_op ? BIT_MONOCHROME_OP : 0);
@@ -1980,7 +1981,7 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 	crop = ar0144_get_pad_crop(sensor, state, format->pad,
 				   V4L2_SUBDEV_FORMAT_ACTIVE);
 
-	if (sensor->model->color == AR0144_MODEL_COLOR)
+	if (sensor->color == AR0144_MODEL_COLOR)
 		fmt->colorspace = V4L2_COLORSPACE_RAW;
 	else
 		fmt->colorspace = V4L2_COLORSPACE_SRGB;
@@ -2290,7 +2291,7 @@ static int ar0144_set_digital_gain(struct ar0144 *sensor,
 
 	switch (ctrl->id) {
 	case V4L2_CID_DIGITAL_GAIN:
-		if (sensor->model->color == AR0144_MODEL_MONOCHROME) {
+		if (sensor->color == AR0144_MODEL_MONOCHROME) {
 			ret = ar0144_write(sensor, AR0144_GLOBAL_GAIN,
 					   (coarse << 7) | fine);
 			return ret;
@@ -3002,7 +3003,7 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 		case V4L2_CID_X_DIGITAL_GAIN_GREENR:
 		case V4L2_CID_X_DIGITAL_GAIN_BLUE:
 		case V4L2_CID_X_DIGITAL_GAIN_GREENB:
-			if (sensor->model->color == AR0144_MODEL_MONOCHROME)
+			if (sensor->color == AR0144_MODEL_MONOCHROME)
 				continue;
 
 			break;
@@ -3094,19 +3095,19 @@ static int ar0144_create_ctrls(struct ar0144 *sensor)
 			sensor->gains.dig_ctrl = ctrl;
 			break;
 		case V4L2_CID_X_DIGITAL_GAIN_RED:
-			if (sensor->model->color == AR0144_MODEL_COLOR)
+			if (sensor->color == AR0144_MODEL_COLOR)
 				sensor->gains.red_ctrl = ctrl;
 			break;
 		case V4L2_CID_X_DIGITAL_GAIN_GREENB:
-			if (sensor->model->color == AR0144_MODEL_COLOR)
+			if (sensor->color == AR0144_MODEL_COLOR)
 				sensor->gains.greenb_ctrl = ctrl;
 			break;
 		case V4L2_CID_X_DIGITAL_GAIN_GREENR:
-			if (sensor->model->color == AR0144_MODEL_COLOR)
+			if (sensor->color == AR0144_MODEL_COLOR)
 				sensor->gains.greenr_ctrl = ctrl;
 			break;
 		case V4L2_CID_X_DIGITAL_GAIN_BLUE:
-			if (sensor->model->color == AR0144_MODEL_COLOR)
+			if (sensor->color == AR0144_MODEL_COLOR)
 				sensor->gains.blue_ctrl = ctrl;
 			break;
 		default:
@@ -3491,7 +3492,7 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 
 	switch (sensor->model->chip) {
 	case AR0144:
-		if (sensor->model->color == AR0144_MODEL_MONOCHROME) {
+		if (sensor->color == AR0144_MODEL_MONOCHROME) {
 			sensor->formats = ar0144_mono_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0144_mono_formats);
 			sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
@@ -3502,7 +3503,7 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 		}
 		break;
 	case AR0234:
-		if (sensor->model->color == AR0144_MODEL_MONOCHROME) {
+		if (sensor->color == AR0144_MODEL_MONOCHROME) {
 			sensor->formats = ar0234_mono_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0234_mono_formats);
 			sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
@@ -3602,9 +3603,11 @@ static int ar0144_check_chip_id(struct ar0144 *sensor)
 
 	if (sensor->model->color == AR0144_MODEL_UNKNOWN) {
 		if (customer_rev & BIT_COLOR)
-			sensor->model->color = AR0144_MODEL_COLOR;
+			sensor->color = AR0144_MODEL_COLOR;
 		else
-			sensor->model->color = AR0144_MODEL_MONOCHROME;
+			sensor->color = AR0144_MODEL_MONOCHROME;
+	} else {
+		sensor->color = sensor->model->color;
 	}
 
 out:
