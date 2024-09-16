@@ -2817,14 +2817,15 @@ static void ar0521_set_defaults(struct ar0521 *sensor)
 	sensor->fmt.width = AR0521_DEF_WIDTH;
 	sensor->fmt.height = AR0521_DEF_HEIGHT;
 	sensor->fmt.field = V4L2_FIELD_NONE;
-	sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
 
 	if (sensor->model == AR0521_MODEL_MONOCHROME) {
 		sensor->formats = ar0521_mono_formats;
 		sensor->num_fmts = ARRAY_SIZE(ar0521_mono_formats);
+		sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
 	} else {
 		sensor->formats = ar0521_col_formats;
 		sensor->num_fmts = ARRAY_SIZE(ar0521_col_formats);
+		sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
 	}
 
 	sensor->fmt.code = sensor->formats[sensor->num_fmts - 1].code;
