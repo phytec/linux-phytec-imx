@@ -3443,25 +3443,28 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 	sensor->fmt.width = data->def_width;
 	sensor->fmt.height = data->def_height;
 	sensor->fmt.field = V4L2_FIELD_NONE;
-	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
 
 	switch (sensor->model->chip) {
 	case AR0144:
 		if (sensor->model->color == AR0144_MODEL_MONOCHROME) {
 			sensor->formats = ar0144_mono_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0144_mono_formats);
+			sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
 		} else {
 			sensor->formats = ar0144_col_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0144_col_formats);
+			sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
 		}
 		break;
 	case AR0234:
 		if (sensor->model->color == AR0144_MODEL_MONOCHROME) {
 			sensor->formats = ar0234_mono_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0234_mono_formats);
+			sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
 		} else {
 			sensor->formats = ar0234_col_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0234_col_formats);
+			sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
 		}
 		break;
 	}
