@@ -711,10 +711,10 @@ static void ar0144_vv_querycap(struct ar0144 *sensor, void *args)
 		strscpy((char *)cap->bus_info, csi_id, sizeof(cap->bus_info));
 	} else {
 		dev_warn(dev, "%s: No isp-bus-info found\n", __func__);
-		strcpy((char *)cap->bus_info, "csi0");
+		strscpy((char *)cap->bus_info, "csi0", sizeof(cap->bus_info));
 	}
 
-	strcpy((char *)cap->driver, "phycam");
+	strscpy((char *)cap->driver, "phycam", sizeof(cap->driver));
 	if (i2c->adapter)
 		cap->bus_info[VVCAM_CAP_BUS_INFO_I2C_ADAPTER_NR_POS] =
 			(__u8)i2c->adapter->nr;
