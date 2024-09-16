@@ -1628,10 +1628,12 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 static int ar0144_config_parallel(struct ar0144 *sensor)
 {
 	int ret;
+	unsigned int bpp;
+
+	bpp = sensor->bpp + sensor->info.bus.parallel.data_shift;
 
 	ret = ar0144_write(sensor, AR0144_DATA_FORMAT_BITS,
-			   BIT_DATA_FMT_IN(sensor->bpp) |
-			   BIT_DATA_FMT_OUT(sensor->bpp));
+			   BIT_DATA_FMT_IN(bpp) | BIT_DATA_FMT_OUT(bpp));
 	if (ret)
 		return ret;
 
@@ -3263,15 +3265,18 @@ static int ar0144_calculate_pll(struct ar0144 *sensor,
 	unsigned long pix_clk;
 	unsigned long pix_target;
 	unsigned long diff, diff_old;
-	unsigned int lanes = sensor->info.num_lanes;
+	unsigned int lanes;
 	unsigned int div, mul, vt_sys_div, vt_pix_div;
 	unsigned int op_multiplier = 2;
 	unsigned int pix_clk_multiplier = 1;
 
-	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL)
+	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL) {
+		lanes = 1;
 		pix_target = link_freq;
-	else
+	} else {
+		lanes = sensor->info.num_lanes;
 		pix_target = ar0144_clk_mul_div(link_freq, 2 * lanes, bpp);
+	}
 
 	if (sensor->model->chip == AR0234)
 		pix_clk_multiplier = lanes;
@@ -3428,6 +3433,7 @@ static int ar0144_setup_pll(struct ar0144 *sensor)
 static void ar0144_set_defaults(struct ar0144 *sensor)
 {
 	struct ar0144_model_data *data = sensor->model->data;
+	unsigned char bus_width;
 
 	sensor->crop.left = data->def_offset_x;
 	sensor->crop.top = data->def_offset_y;
@@ -3458,6 +3464,12 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 			sensor->num_fmts = ARRAY_SIZE(ar0234_col_formats);
 		}
 		break;
+	}
+
+	/* In case of parallel bus data-shifting re-calculate num_fmts */
+	if (sensor->info.bus_type == V4L2_MBUS_PARALLEL) {
+		bus_width = sensor->info.bus.parallel.bus_width;
+		sensor->num_fmts = bpp_to_index(sensor, bus_width) + 1;
 	}
 
 	sensor->fmt.code = sensor->formats[sensor->num_fmts - 1].code;
@@ -3556,11 +3568,36 @@ static int ar0144_parse_parallel_props(struct ar0144 *sensor,
 				       struct fwnode_handle *ep,
 				       struct v4l2_fwnode_endpoint *bus_cfg)
 {
+	struct v4l2_mbus_config_parallel *parallel_bus;
 	unsigned int tmp;
 
 	sensor->info.bus.parallel = bus_cfg->bus.parallel;
-	/* Required for PLL calculation */
-	sensor->info.num_lanes = 1;
+	parallel_bus = &sensor->info.bus.parallel;
+
+	if (parallel_bus->bus_width != 8 &&
+	    parallel_bus->bus_width != 10 &&
+	    parallel_bus->bus_width != 12) {
+		dev_err(sensor->dev, "Wrong bus width configured");
+		return -EINVAL;
+	}
+
+	if (parallel_bus->data_shift != 0 &&
+	    parallel_bus->data_shift != 2 &&
+	    parallel_bus->data_shift != 4) {
+		dev_err(sensor->dev, "Wrong data shift configured");
+		return -EINVAL;
+	}
+
+	if ((sensor->model->chip == AR0144 &&
+	    parallel_bus->bus_width + parallel_bus->data_shift > 12) ||
+	    (sensor->model->chip == AR0234 &&
+	    parallel_bus->bus_width + parallel_bus->data_shift > 10) ||
+	    (parallel_bus->bus_width + parallel_bus->data_shift < 8)) {
+		dev_err(sensor->dev,
+		    "Wrong combined bus width configured for %s",
+		    sensor->model->chip == AR0234 ? "AR0234" : "AR0144");
+		return -EINVAL;
+	}
 
 	tmp = AR0144_NO_SLEW_RATE;
 	fwnode_property_read_u32(ep, "onsemi,slew-rate-dat", &tmp);
