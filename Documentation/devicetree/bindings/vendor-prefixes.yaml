@@ -995,6 +995,8 @@ patternProperties:
     description: Onion Corporation
   "^onnn,.*":
     description: ON Semiconductor Corp.
+  "^onsemi,.*":
+    description: ON Semiconductor Corp.
   "^ontat,.*":
     description: On Tat Industrial Company
   "^opalkelly,.*":
