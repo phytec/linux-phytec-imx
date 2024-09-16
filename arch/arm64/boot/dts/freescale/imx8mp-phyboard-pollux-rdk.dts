@@ -226,14 +226,17 @@
 		reg = <0x62>;
 
 		led-1 {
+			label = "red:user1";
 			type = <PCA9532_TYPE_LED>;
 		};
 
 		led-2 {
+			label = "green:user2";
 			type = <PCA9532_TYPE_LED>;
 		};
 
 		led-3 {
+			label = "blue:user3";
 			type = <PCA9532_TYPE_LED>;
 		};
 	};
