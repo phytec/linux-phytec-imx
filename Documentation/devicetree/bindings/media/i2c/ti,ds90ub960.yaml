@@ -60,6 +60,18 @@ properties:
         description:
           Enable manual strobe position and EQ level
 
+      ti,aeq-strobe-min:
+        $ref: /schemas/types.yaml#/definitions/int32
+        minimum: -7
+        maximum: 0
+        description: AEQ Strobe minimum available setting
+
+      ti,aeq-strobe-max:
+        $ref: /schemas/types.yaml#/definitions/int32
+        minimum: 0
+        maximum: 7
+        description: AEQ Strobe maximum available setting
+
     patternProperties:
       '^link@[0-3]$':
         type: object
@@ -113,6 +125,16 @@ properties:
             $ref: /schemas/types.yaml#/definitions/uint32
             maximum: 14
             description: Manual EQ level
+
+          ti,aeq-eq-min:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            maximum: 14
+            description: AEQ min EQ level
+
+          ti,aeq-eq-max:
+            $ref: /schemas/types.yaml#/definitions/uint32
+            maximum: 14
+            description: AEQ max EQ level
 
 	ti,bc-gpio:
             $ref: /schemas/types.yaml#/definitions/uint32
