@@ -4068,7 +4068,10 @@ static int ub960_probe(struct i2c_client *client)
 	 */
 	priv->reg_current.indirect_target = 0xff;
 	priv->reg_current.rxport = 0xff;
-	priv->reg_current.txport = 0xff;
+	if (priv->hw_data->num_txports == 1)
+		priv->reg_current.txport = 0;
+	else
+		priv->reg_current.txport = 0xff;
 
 	priv->interval.numerator = 1;
 	priv->interval.denominator = 30;
@@ -4179,6 +4182,12 @@ static void ub960_remove(struct i2c_client *client)
 	mutex_destroy(&priv->reg_lock);
 }
 
+static const struct ub960_hw_data ds90ub954_hw = {
+	.model = "ub954",
+	.num_rxports = 2,
+	.num_txports = 1,
+};
+
 static const struct ub960_hw_data ds90ub960_hw = {
 	.model = "ub960",
 	.num_rxports = 4,
@@ -4194,6 +4203,7 @@ static const struct ub960_hw_data ds90ub9702_hw = {
 };
 
 static const struct i2c_device_id ub960_id[] = {
+	{ "ds90ub954-q1", (kernel_ulong_t)&ds90ub954_hw },
 	{ "ds90ub960-q1", (kernel_ulong_t)&ds90ub960_hw },
 	{ "ds90ub9702-q1", (kernel_ulong_t)&ds90ub9702_hw },
 	{}
@@ -4201,6 +4211,7 @@ static const struct i2c_device_id ub960_id[] = {
 MODULE_DEVICE_TABLE(i2c, ub960_id);
 
 static const struct of_device_id ub960_dt_ids[] = {
+	{ .compatible = "ti,ds90ub954-q1", .data = &ds90ub954_hw },
 	{ .compatible = "ti,ds90ub960-q1", .data = &ds90ub960_hw },
 	{ .compatible = "ti,ds90ub9702-q1", .data = &ds90ub9702_hw },
 	{}
