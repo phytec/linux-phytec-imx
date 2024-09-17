@@ -536,6 +536,7 @@ struct ub960_data {
 
 	bool streaming;
 	bool fsync_enabled;
+	bool enable_fsync;
 
 	u8 stored_fwd_ctl;
 
@@ -2711,7 +2712,8 @@ static int ub960_enable_streams(struct v4l2_subdev *sd,
 			return ret;
 	}
 
-	ub960_set_fsync_period(priv);
+	if (priv->enable_fsync)
+		ub960_set_fsync_period(priv);
 
 	/* Enable TX port if not yet enabled */
 	if (!priv->stream_enable_mask[source_pad]) {
@@ -2858,7 +2860,8 @@ static int ub960_disable_streams(struct v4l2_subdev *sd,
 	if (!priv->stream_enable_mask[source_pad]) {
 		ub960_disable_tx_port(priv,
 				      ub960_pad_to_port(priv, source_pad));
-		ub960_fsync_disabled(priv);
+		if (priv->enable_fsync)
+			ub960_fsync_disabled(priv);
 	}
 
 	ub960_update_streaming_status(priv);
@@ -3720,6 +3723,7 @@ static int ub960_parse_dt_rxports(struct ub960_data *priv)
 	strobe_max = 3;
 
 	priv->strobe.manual = fwnode_property_read_bool(links_fwnode, "ti,manual-strobe");
+	priv->enable_fsync = fwnode_property_read_bool(links_fwnode, "ti,framesync");
 
 	ret = fwnode_property_read_u32(links_fwnode, "ti,aeq-strobe-min", &strobe_min);
 	if (ret && ret != -EINVAL)
