@@ -157,8 +157,11 @@ struct ub953_data {
 
 	struct v4l2_async_notifier	notifier;
 
-	struct v4l2_subdev	*source_sd;
-	u16			source_sd_pad;
+	struct {
+		struct v4l2_subdev *sd;
+		u16 pad;
+		struct fwnode_handle *ep_fwnode;
+	} source;
 
 	u64			enabled_source_streams;
 
@@ -497,8 +500,8 @@ static int ub953_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
 	if (pad != UB953_PAD_SOURCE)
 		return -EINVAL;
 
-	ret = v4l2_subdev_call(priv->source_sd, pad, get_frame_desc,
-			       priv->source_sd_pad, &source_fd);
+	ret = v4l2_subdev_call(priv->source.sd, pad, get_frame_desc,
+			       priv->source.pad, &source_fd);
 	if (ret)
 		return ret;
 
@@ -680,7 +683,7 @@ static int ub953_enable_streams(struct v4l2_subdev *sd,
 						       UB953_PAD_SINK,
 						       &streams_mask);
 
-	ret = v4l2_subdev_enable_streams(priv->source_sd, priv->source_sd_pad,
+	ret = v4l2_subdev_enable_streams(priv->source.sd, priv->source.pad,
 					 sink_streams);
 	if (ret)
 		return ret;
@@ -702,7 +705,7 @@ static int ub953_disable_streams(struct v4l2_subdev *sd,
 						       UB953_PAD_SINK,
 						       &streams_mask);
 
-	ret = v4l2_subdev_disable_streams(priv->source_sd, priv->source_sd_pad,
+	ret = v4l2_subdev_disable_streams(priv->source.sd, priv->source.pad,
 					  sink_streams);
 	if (ret)
 		return ret;
@@ -746,7 +749,7 @@ static int ub953_notify_bound(struct v4l2_async_notifier *notifier,
 	int ret;
 
 	ret = media_entity_get_fwnode_pad(&source_subdev->entity,
-					  source_subdev->fwnode,
+					  priv->source.ep_fwnode,
 					  MEDIA_PAD_FL_SOURCE);
 	if (ret < 0) {
 		dev_err(dev, "Failed to find pad for %s\n",
@@ -754,16 +757,16 @@ static int ub953_notify_bound(struct v4l2_async_notifier *notifier,
 		return ret;
 	}
 
-	priv->source_sd = source_subdev;
-	priv->source_sd_pad = ret;
+	priv->source.sd = source_subdev;
+	priv->source.pad = ret;
 
-	ret = media_create_pad_link(&source_subdev->entity, priv->source_sd_pad,
+	ret = media_create_pad_link(&source_subdev->entity, priv->source.pad,
 				    &priv->sd.entity, 0,
 				    MEDIA_LNK_FL_ENABLED |
 					    MEDIA_LNK_FL_IMMUTABLE);
 	if (ret) {
 		dev_err(dev, "Unable to link %s:%u -> %s:0\n",
-			source_subdev->name, priv->source_sd_pad,
+			source_subdev->name, priv->source.pad,
 			priv->sd.name);
 		return ret;
 	}
@@ -1147,25 +1150,41 @@ static int ub953_parse_dt(struct ub953_data *priv)
 	if (!ep_fwnode)
 		return dev_err_probe(dev, -ENOENT, "no endpoint found\n");
 
+	priv->source.ep_fwnode = fwnode_graph_get_remote_endpoint(ep_fwnode);
+	if (!priv->source.ep_fwnode) {
+		ret = -ENODEV;
+		dev_err_probe(dev, ret, "no remote source endpoint\n");
+		goto err_put_ep_fwnode;
+	}
+
 	ret = v4l2_fwnode_endpoint_parse(ep_fwnode, &vep);
-
-	fwnode_handle_put(ep_fwnode);
-
-	if (ret)
-		return dev_err_probe(dev, ret,
-				     "failed to parse sink endpoint data\n");
+	if (ret) {
+		dev_err_probe(dev, ret, "failed to parse sink endpoint data\n");
+		goto err_put_source_ep;
+	}
 
 	nlanes = vep.bus.mipi_csi2.num_data_lanes;
-	if (nlanes != 1 && nlanes != 2 && nlanes != 4)
-		return dev_err_probe(dev, -EINVAL,
-				     "bad number of data-lanes: %u\n", nlanes);
+	if (nlanes != 1 && nlanes != 2 && nlanes != 4) {
+		ret = -EINVAL;
+		dev_err_probe(dev, ret, "bad number of data-lanes: %u\n", nlanes);
+		goto err_put_source_ep;
+	}
 
 	priv->num_data_lanes = nlanes;
 
 	priv->non_continous_clk = vep.bus.mipi_csi2.flags &
 				  V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
 
+	fwnode_handle_put(ep_fwnode);
+
 	return 0;
+
+err_put_source_ep:
+	fwnode_handle_put(priv->source.ep_fwnode);
+err_put_ep_fwnode:
+	fwnode_handle_put(ep_fwnode);
+
+	return ret;
 }
 
 static int ub953_hw_init(struct ub953_data *priv)
@@ -1343,12 +1362,12 @@ static int ub953_probe(struct i2c_client *client)
 
 	ret = ub953_hw_init(priv);
 	if (ret)
-		goto err_mutex_destroy;
+		goto err_put_source_ep;
 
 	ret = ub953_gpiochip_probe(priv);
 	if (ret) {
 		dev_err_probe(dev, ret, "Failed to init gpiochip\n");
-		goto err_mutex_destroy;
+		goto err_put_source_ep;
 	}
 
 	ret = ub953_register_clkout(priv);
@@ -1373,6 +1392,8 @@ err_subdev_uninit:
 	ub953_subdev_uninit(priv);
 err_gpiochip_remove:
 	ub953_gpiochip_remove(priv);
+err_put_source_ep:
+	fwnode_handle_put(priv->source.ep_fwnode);
 err_mutex_destroy:
 	mutex_destroy(&priv->reg_lock);
 
@@ -1389,6 +1410,7 @@ static void ub953_remove(struct i2c_client *client)
 	ub953_subdev_uninit(priv);
 
 	ub953_gpiochip_remove(priv);
+	fwnode_handle_put(priv->source.ep_fwnode);
 	mutex_destroy(&priv->reg_lock);
 }
 
