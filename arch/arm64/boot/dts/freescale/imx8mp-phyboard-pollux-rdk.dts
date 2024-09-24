@@ -295,6 +295,8 @@ csi1_i2c: &i2c3 {
 	status = "okay";
 
 	lvds-channel@1 {
+		#address-cells = <1>;
+		#size-cells = <0>;
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <24>;
 		status = "okay";
