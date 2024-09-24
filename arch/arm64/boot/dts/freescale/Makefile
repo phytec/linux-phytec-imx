@@ -143,11 +143,35 @@ imx8mp-phyboard-pollux-rdk-no-rtc-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-
 imx8mp-phyboard-pollux-rdk-no-spiflash-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phycore-no-spiflash.dtbo
 imx8mp-phyboard-pollux-rdk-rpmsg-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phycore-rpmsg.dtbo
 imx8mp-phyboard-pollux-vm016-csi1-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-vm016-csi1.dtbo
+imx8mp-phyboard-pollux-vm016-csi1-fpdlink-port0-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm016-csi1-fpdlink-port0.dtbo
+imx8mp-phyboard-pollux-vm016-csi1-fpdlink-port1-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm016-csi1-fpdlink-port1.dtbo
 imx8mp-phyboard-pollux-vm016-csi2-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-vm016-csi2.dtbo
+imx8mp-phyboard-pollux-vm016-csi2-fpdlink-port0-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm016-csi2-fpdlink-port0.dtbo
+imx8mp-phyboard-pollux-vm016-csi2-fpdlink-port1-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm016-csi2-fpdlink-port1.dtbo
 imx8mp-phyboard-pollux-vm017-csi1-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-vm017-csi1.dtbo
+imx8mp-phyboard-pollux-vm017-csi1-fpdlink-port0-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm017-csi1-fpdlink-port0.dtbo
+imx8mp-phyboard-pollux-vm017-csi1-fpdlink-port1-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm017-csi1-fpdlink-port1.dtbo
 imx8mp-phyboard-pollux-vm017-csi2-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-vm017-csi2.dtbo
+imx8mp-phyboard-pollux-vm017-csi2-fpdlink-port0-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm017-csi2-fpdlink-port0.dtbo
+imx8mp-phyboard-pollux-vm017-csi2-fpdlink-port1-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm017-csi2-fpdlink-port1.dtbo
 imx8mp-phyboard-pollux-vm020-csi1-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-vm020-csi1.dtbo
+imx8mp-phyboard-pollux-vm020-csi1-fpdlink-port0-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm020-csi1-fpdlink-port0.dtbo
+imx8mp-phyboard-pollux-vm020-csi1-fpdlink-port1-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm020-csi1-fpdlink-port1.dtbo
 imx8mp-phyboard-pollux-vm020-csi2-dtbs += imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-vm020-csi2.dtbo
+imx8mp-phyboard-pollux-vm020-csi2-fpdlink-port0-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm020-csi2-fpdlink-port0.dtbo
+imx8mp-phyboard-pollux-vm020-csi2-fpdlink-port1-dtbs += imx8mp-phyboard-pollux-rdk.dtb \
+			  imx8mp-phyboard-pollux-vm020-csi2-fpdlink-port1.dtbo
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-isi-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-isi-csi2.dtb
@@ -160,11 +184,23 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk-no-rtc.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk-no-spiflash.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk-rpmsg.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm016-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm016-csi1-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm016-csi1-fpdlink-port1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm016-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm016-csi2-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm016-csi2-fpdlink-port1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm017-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm017-csi1-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm017-csi1-fpdlink-port1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm017-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm017-csi2-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm017-csi2-fpdlink-port1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm020-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm020-csi1-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm020-csi1-fpdlink-port1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm020-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm020-csi2-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-vm020-csi2-fpdlink-port1.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-ab2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-navq.dtb imx8mp-navq-ov5640-ov5645.dts imx8mp-navq-ov5647-ov5640.dts
