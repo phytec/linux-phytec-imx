@@ -12,6 +12,7 @@
 #include <linux/clk.h>
 #include <linux/debugfs.h>
 #include <linux/device.h>
+#include <linux/of.h>
 #include <linux/regulator/consumer.h>
 #include <linux/gpio/consumer.h>
 #include <linux/delay.h>
@@ -181,6 +182,8 @@
 #define AR0521_FREQ_MENU_10BIT		1
 #define AR0521_FREQ_MENU_12BIT		2
 
+#define AR0521_DEFAULT_RESET_DELAY_MS	0
+
 
 enum {
 	V4L2_CID_USER_BASE_AR0521		= V4L2_CID_USER_BASE + 0x2500,
@@ -347,6 +350,7 @@ struct ar0521 {
 
 	struct mutex lock;
 
+	unsigned int reset_delay_ms;
 	int power_user;
 	int trigger_pin;
 	int trigger;
@@ -1256,6 +1260,7 @@ static void ar0521_reset(struct ar0521 *sensor)
 
 	wait_usecs = 160000 / ext_freq_mhz;
 	usleep_range(wait_usecs, wait_usecs + 1000);
+	msleep(sensor->reset_delay_ms);
 }
 
 static int ar0521_unset_trigger(struct ar0521 *sensor)
@@ -3458,6 +3463,10 @@ static int ar0521_of_probe(struct device *dev, struct ar0521 *sensor)
 	}
 
 	sensor->reset_gpio = gpio;
+
+	sensor->reset_delay_ms = AR0521_DEFAULT_RESET_DELAY_MS;
+	of_property_read_u32(dev->of_node, "onsemi,reset-delay-ms",
+			     &sensor->reset_delay_ms);
 
 	ep = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);
 
