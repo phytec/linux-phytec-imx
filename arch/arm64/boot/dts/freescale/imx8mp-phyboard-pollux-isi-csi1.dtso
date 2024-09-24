@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+&cameradev {
+	status = "okay";
+};
+
+&csi1_i2c {
+	status = "okay";
+};
+
+&isi_0 {
+	dma-coherent;
+	status = "okay";
+
+	cap_device {
+		status = "okay";
+	};
+};
+
+&mipi_csi_0 {
+	status = "okay";
+};
