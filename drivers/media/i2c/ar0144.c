@@ -11,6 +11,7 @@
 #include <linux/i2c.h>
 #include <linux/clk.h>
 #include <linux/device.h>
+#include <linux/of.h>
 #include <linux/regulator/consumer.h>
 #include <linux/gpio/consumer.h>
 #include <linux/delay.h>
@@ -171,6 +172,7 @@
 
 #define AR0144_CHIP_VERSION		0x0356
 #define AR0234_CHIP_VERSION		0x0a56
+#define AR0144_DEFAULT_RESET_DELAY	0
 
 
 enum {
@@ -372,6 +374,7 @@ struct ar0144 {
 
 	struct mutex lock;
 
+	unsigned int reset_delay_ms;
 	int power_user;
 	bool is_streaming;
 	bool trigger;
@@ -1443,6 +1446,7 @@ static void ar0144_reset(struct ar0144 *sensor)
 
 	wait_usecs = 160000 / ext_freq_mhz;
 	usleep_range(wait_usecs, wait_usecs + 1000);
+	msleep(sensor->reset_delay_ms);
 }
 
 static int ar0144_power_on(struct ar0144 *sensor)
@@ -3748,6 +3752,10 @@ static int ar0144_of_probe(struct ar0144 *sensor)
 	}
 
 	sensor->reset_gpio = gpio;
+
+	sensor->reset_delay_ms = AR0144_DEFAULT_RESET_DELAY;
+	of_property_read_u32(dev->of_node, "onsemi,reset-delay-ms",
+			     &sensor->reset_delay_ms);
 
 	ep = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);
 	if (!ep)
