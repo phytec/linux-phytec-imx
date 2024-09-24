@@ -235,7 +235,7 @@
 	status = "okay";
 };
 
-&i2c2 {
+csi2_i2c: &i2c2 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default", "gpio";
 	pinctrl-0 = <&pinctrl_i2c2>;
@@ -272,7 +272,7 @@
 	};
 };
 
-&i2c3 {
+csi1_i2c: &i2c3 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default", "gpio";
 	pinctrl-0 = <&pinctrl_i2c3>;
