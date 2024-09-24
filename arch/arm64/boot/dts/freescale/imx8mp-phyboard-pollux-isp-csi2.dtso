@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2022 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/imx8mp-clock.h>
+
+&cameradev {
+	status = "okay";
+};
+
+&csi2_i2c {
+	status = "okay";
+};
+
+&isp_1 {
+	dma-coherent;
+	status = "okay";
+};
+
+&dewarp {
+	status = "okay";
+};
+
+&mipi_csi_1 {
+	assigned-clocks = <&clk IMX8MP_CLK_MEDIA_CAM2_PIX>;
+	assigned-clock-parents = <&clk IMX8MP_SYS_PLL2_1000M>;
+	assigned-clock-rates = <500000000>;
+	clock-frequency = <500000000>;
+
+	status = "okay";
+};

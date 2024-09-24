@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2023 PHYTEC Messtechnik GmbH
+ * Author: Stefan Riedmüller <s.riedmueller@phytec.de>
+ */
+
+/dts-v1/;
+/plugin/;
+
+&{/} {
+	vm020_csi1_clk: vm020-csi1-ext-clk {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <27000000>;
+	};
+};
+
+&csi1_i2c {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	camera@10 {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		compatible = "onsemi,ar0234";
+		reg = <0x10>;
+		clocks = <&vm020_csi1_clk>;
+		clock-names = "ext";
+		isp-bus-info = "csi0";
+
+		port@0 {
+			reg = <0>;
+
+			vm020_csi1_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				bus-type = <4>; /* MIPI CSI-2 D-PHY */
+				link-frequencies = /bits/ 64 <450000000>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+				clock-noncontinuous = <1>;
+			};
+		};
+	};
+};
+
+&mipi_csi_0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	port@0 {
+		reg = <0>;
+		mipi_csi0_ep: endpoint {
+			remote-endpoint = <&vm020_csi1_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
