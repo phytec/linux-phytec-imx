@@ -20,7 +20,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_fan>;
 		cooling-levels = <1 90 150 200 255>;
-		pwms = <&tpm6 1 6666666 PWM_POLARITY_INVERTED>;
+		pwms = <&tpm6 1 40000 PWM_POLARITY_INVERTED>;
 		#cooling-cells = <2>;
 	};
 };
