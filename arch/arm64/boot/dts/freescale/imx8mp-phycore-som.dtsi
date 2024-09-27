@@ -98,6 +98,10 @@
 	status = "okay";
 };
 
+&gpu_reserved {
+	reg = <0 0x80000000 0 0x10000000>;
+};
+
 &ml_vipsi {
 	status = "okay";
 };
