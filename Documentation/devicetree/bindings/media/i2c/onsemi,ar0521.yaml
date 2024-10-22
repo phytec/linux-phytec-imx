@@ -36,7 +36,7 @@ properties:
     maxItems: 1
     description: Chip reset GPIO
 
-  reset-delay-ms:
+  onsemi,reset-delay-ms:
     description: Reset delay in milliseconds applied after sensor reset.
     $ref: /schemas/types.yaml#/definitions/uint32
     default: 0
