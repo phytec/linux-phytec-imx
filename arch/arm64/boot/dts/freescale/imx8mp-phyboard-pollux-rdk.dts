@@ -333,6 +333,11 @@ csi1_i2c: &i2c3 {
 	pinctrl-0 = <&pinctrl_pwm3>;
 };
 
+/* sdma2 DMA controller is needed for both: HDMI and SAI2 audio on PEB-AV-10 */
+&sdma2 {
+	status = "okay";
+};
+
 &snvs_pwrkey {
 	status = "okay";
 };
