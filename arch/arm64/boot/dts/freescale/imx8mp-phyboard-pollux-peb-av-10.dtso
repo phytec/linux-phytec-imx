@@ -179,10 +179,6 @@
 	#sound-dai-cells = <0>;
 };
 
-&sdma2 {
-	status = "okay";
-};
-
 &iomuxc {
 
 	pinctrl_i2c4: i2c4grp {
