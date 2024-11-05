@@ -1835,8 +1835,10 @@ int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver
 	if (aic3x->model == AIC3X_MODEL_3007) {
 		ret = regmap_register_patch(aic3x->regmap, aic3007_class_d,
 					    ARRAY_SIZE(aic3007_class_d));
-		if (ret != 0)
+		if (ret != 0) {
 			dev_err(dev, "Failed to init class D: %d\n", ret);
+			return ret;
+		}
 	}
 
 	ret = devm_snd_soc_register_component(dev, &soc_component_dev_aic3x, &aic3x_dai, 1);
