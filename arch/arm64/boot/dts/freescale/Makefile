@@ -869,11 +869,13 @@ dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-verdin-rm692c9.dtb
 imx8mm-phygate-tauri-l-rs232-rs232-dtbs		:= imx8mm-phygate-tauri-l.dtb imx8mm-phygate-tauri-l-rs232-rs232.dtbo
 imx8mm-phygate-tauri-l-rs232-cts-rts-dtbs	:= imx8mm-phygate-tauri-l.dtb imx8mm-phygate-tauri-l-rs232-rts-cts.dtbo
 imx8mm-phygate-tauri-l-rs232-rs485-dtbs		:= imx8mm-phygate-tauri-l.dtb imx8mm-phygate-tauri-l-rs232-rs485.dtbo
+imx8mm-phygate-tauri-l-rs232-rs485-switchable-dtbs := imx8mm-phygate-tauri-l.dtb imx8mm-phygate-tauri-l-rs232-rs485-switchable.dtbo
 imx8mm-phygate-tauri-l-analog-io-dtbs		:= imx8mm-phygate-tauri-l.dtb imx8mm-phygate-tauri-l-analog-io.dtbo
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phygate-tauri-l-rs232-rs232.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phygate-tauri-l-rs232-cts-rts.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phygate-tauri-l-rs232-rs485.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mm-phygate-tauri-l-rs232-rs485-switchable.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phygate-tauri-l-analog-io.dtb
 
 dtb-$(CONFIG_ARCH_S32) += s32g274a-evb.dtb
