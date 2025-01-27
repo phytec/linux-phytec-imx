@@ -1287,6 +1287,12 @@ properties:
           - const: phytec,imx93-phycore-som    # phyCORE-i.MX93 SoM
           - const: fsl,imx93
 
+      - description: PHYTEC phyCORE-i.MX91 SoM based boards
+        items:
+          - const: phytec,imx91-phyboard-segin # phyBOARD-Segin with i.MX91
+          - const: phytec,imx91-phycore-som    # phyCORE-i.MX91 SoM
+          - const: fsl,imx91
+
       - description:
           Freescale Vybrid Platform Device Tree Bindings
 
