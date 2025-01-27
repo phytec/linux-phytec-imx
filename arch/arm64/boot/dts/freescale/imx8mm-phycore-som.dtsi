@@ -97,6 +97,11 @@
 		"", "", "nENABLE_FLATLINK";
 };
 
+/* GPU */
+&gpu {
+	status = "okay";
+};
+
 /* I2C1 */
 &i2c1 {
 	clock-frequency = <400000>;
@@ -296,6 +301,23 @@
 	pinctrl-1 = <&pinctrl_usdhc3_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc3_200mhz>;
 	non-removable;
+	status = "okay";
+};
+
+/* VPU */
+&vpu_g1 {
+	status = "okay";
+};
+
+&vpu_g2 {
+	status = "okay";
+};
+
+&vpu_h1 {
+	status = "okay";
+};
+
+&vpu_v4l2 {
 	status = "okay";
 };
 
