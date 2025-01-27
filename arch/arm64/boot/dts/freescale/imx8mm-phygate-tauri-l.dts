@@ -26,6 +26,10 @@
 		#clock-cells = <0>;
 	};
 
+	display-subsystem {
+		status = "disabled";
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
