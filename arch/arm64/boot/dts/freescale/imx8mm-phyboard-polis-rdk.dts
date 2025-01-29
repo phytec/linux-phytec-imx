@@ -121,7 +121,7 @@
 };
 
 &aips4 {
-	csi-upstream@32e20000 {
+	csi1: csi-upstream@32e20000 {
 		compatible = "fsl,imx8mm-csi", "fsl,imx7-csi";
 		reg = <0x32e20000 0x1000>;
 		interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
@@ -129,7 +129,7 @@
 		clock-names = "mclk";
 		power-domains = <&disp_blk_ctrl IMX8MM_DISPBLK_PD_CSI_BRIDGE>;
 		dma-coherent;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			csi_up_ep: endpoint {

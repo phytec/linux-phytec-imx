@@ -85,6 +85,10 @@
 	};
 };
 
+&csi1 {
+	status = "okay";
+};
+
 &csi1_mipi_csi {
 	status = "okay";
 
