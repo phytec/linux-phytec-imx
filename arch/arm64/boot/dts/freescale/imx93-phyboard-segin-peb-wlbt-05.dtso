@@ -33,11 +33,10 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart5_bt &pinctrl_bt>;
 	/*
-	* Disable Bluetooth for now as HW modification is needed on the
-	* PEB-WLBT-05 to get it working. J9 and J10 solder pads on PEB-WLBT-05
-	* need to be resolder to connect 2+3 pads (crossing RTS and CTS lines).
+	* NOTE: J9 and J10 solder pads on PEB-WLBT-05 need to be resolder to
+	* connect 2+3 pads (crossing RTS and CTS lines).
 	*/
-	status = "disabled";
+	status = "okay";
 
 	bluetooth {
 		compatible = "brcm,bcm43438-bt";
