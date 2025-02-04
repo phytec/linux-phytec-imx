@@ -370,11 +370,13 @@ ethernet1: &fec { /* GB_ETH1 */
 
 &uart2 { /* UART2 */
 	pinctrl-names = "default";
+	fsl,dte-mode;
 	pinctrl-0 = <&pinctrl_uart2>;
 };
 
 &uart3 { /* UART1 */
 	pinctrl-names = "default";
+	fsl,dte-mode;
 	pinctrl-0 = <&pinctrl_uart3>;
 };
 
@@ -697,8 +699,8 @@ ethernet1: &fec { /* GB_ETH1 */
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI3_TXC__UART2_DTE_RX	0x140	/* UART2_RXD */
 			MX8MP_IOMUXC_SAI3_TXFS__UART2_DTE_TX	0x140	/* UART2_TXD */
-			MX8MP_IOMUXC_SD1_DATA5__UART2_DTE_RTS	0x14	/* UART2_RTS */
-			MX8MP_IOMUXC_SD1_DATA4__UART2_DTE_CTS	0x14	/* UART2_CTS */
+			MX8MP_IOMUXC_SD1_DATA5__UART2_DTE_RTS	0x140	/* UART2_RTS */
+			MX8MP_IOMUXC_SD1_DATA4__UART2_DTE_CTS	0x140	/* UART2_CTS */
 		>;
 	};
 
