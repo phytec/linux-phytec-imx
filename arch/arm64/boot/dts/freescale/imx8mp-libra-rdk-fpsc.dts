@@ -263,6 +263,39 @@ ethernet0: &eqos {
 	status = "okay";
 };
 
+/* USB1 Type-C */
+&usb3_phy0 {
+	status = "okay";
+};
+
+&usb3_0 {
+	fsl,over-current-active-low;
+	fsl,power-active-low;
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+/* USB2 4-port USB3.0 HUB */
+&usb3_phy1 {
+	vbus-supply = <&reg_vdd_5v0>;
+	status = "okay";
+};
+
+&usb3_1 {
+	fsl,permanently-attached;
+	fsl,disable-port-power-control;
+	status = "okay";
+};
+
+&usb_dwc3_1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
 /* debug console */
 &uart4 {
 	status = "okay";
