@@ -246,6 +246,16 @@ ethernet0: &eqos {
 	status = "okay";
 };
 
+&rv3028 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_rtc>;
+	interrupt-parent = <&gpio5>;
+	interrupts = <25 IRQ_TYPE_LEVEL_LOW>;
+	aux-voltage-chargeable = <1>;
+	wakeup-source;
+	trickle-resistor-ohms = <3000>;
+};
+
 &reg_vdd_io {
 	regulator-max-microvolt = <1800000>;
 	regulator-min-microvolt = <1800000>;
@@ -311,6 +321,12 @@ ethernet0: &eqos {
 };
 
 &iomuxc {
+	pinctrl_rtc: rtcgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_UART2_TXD__GPIO5_IO25	0x1C0
+		>;
+	};
+
 	pinctrl_lvds0: lvds0grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_UART1_TXD__GPIO5_IO23	0x12
