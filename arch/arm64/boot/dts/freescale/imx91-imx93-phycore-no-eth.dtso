@@ -8,7 +8,7 @@
 /plugin/;
 
 / {
-	compatible = "phytec,imx93-phycore-som";
+	compatible = "phytec,imx91-phycore-som", "phytec,imx93-phycore-som";
 };
 
 &ethphy1 {
