@@ -111,6 +111,31 @@
 	wakeup-source;
 };
 
+/* Ethernet */
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_eqos>;
+	phy-mode = "rmii";
+	phy-handle = <&ethphy2>;
+	assigned-clocks = <&clk IMX91_CLK_ENET_TIMER>,
+			  <&clk IMX91_CLK_ENET1_QOS_TSN>;
+	assigned-clock-parents = <&clk IMX91_CLK_SYS_PLL_PFD1_DIV2>,
+				 <&clk IMX91_CLK_SYS_PLL_PFD1_DIV2>;
+	assigned-clock-rates = <100000000>, <50000000>;
+	status = "okay";
+};
+
+/* ENET2 MDIO */
+&mdio {
+	ethphy2: ethernet-phy@2 {
+		reg = <2>;
+		micrel,led-mode = <1>;
+		compatible = "ethernet-phy-id0022.1561";
+		clocks = <&clk IMX91_CLK_ENET2_REGULAR>;
+		clock-names = "rmii-ref";
+	};
+};
+
 /* CAN */
 &flexcan1 {
 	pinctrl-names = "default";
@@ -200,6 +225,22 @@
 			MX91_PAD_SAI1_TXC__SAI1_TX_BCLK				0x1202
 			MX91_PAD_SAI1_TXD0__SAI1_TX_DATA0			0x1402
 			MX91_PAD_SAI1_RXD0__SAI1_RX_DATA0			0x1402
+		>;
+	};
+
+	pinctrl_eqos: eqosgrp {
+		fsl,pins = <
+			MX91_PAD_ENET1_TD2__ENET_QOS_CLOCK_GENERATE_CLK	   0x4000050e
+			MX91_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0                  0x57e
+			MX91_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1                  0x57e
+			MX91_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0                  0x50e
+			/* name 'ENET1_RGMII' is missleading, but ref manual sais for
+			 * that mux mode (ALT==0x00) it is 'ENET_QOS_RGMII_TD1'.
+			 */
+			MX91_PAD_ENET1_TD1__ENET1_RGMII_TD1			0x50e
+			MX91_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL            0x57e
+			MX91_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL            0x50e
+			MX91_PAD_ENET1_RXC__ENET_QOS_RX_ER                      0x57e
 		>;
 	};
 
