@@ -89,6 +89,7 @@
 		pinctrl-0 = <&pinctrl_edt_ft5x06>;
 		interrupt-parent = <&gpio4>;
 		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&gpio4 1 GPIO_ACTIVE_LOW>;
 		touchscreen-size-x = <1792>;
 		touchscreen-size-y = <1024>;
 		vcc-supply = <&reg_vcc_3v3>;
@@ -113,6 +114,7 @@
 
 	pinctrl_edt_ft5x06: edtft5x06grp {
 		fsl,pins = <
+			MX91_PAD_ENET1_MDIO__GPIO4_IO1 0x31e
 			MX91_PAD_ENET1_RD2__GPIO4_IO12 0x1133e
 		>;
 	};
