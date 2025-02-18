@@ -110,7 +110,7 @@
 
 	pinctrl_edt_ft5x06: edtft5x06grp {
 		fsl,pins = <
-			MX93_PAD_ENET1_MDIO__GPIO4_IO01	0x31e
+			MX93_PAD_ENET1_MDIO__GPIO4_IO01	0x11e
 			MX93_PAD_ENET1_RD2__GPIO4_IO12	0x1133e
 		>;
 	};
