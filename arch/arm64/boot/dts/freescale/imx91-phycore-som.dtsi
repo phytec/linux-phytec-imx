@@ -228,7 +228,7 @@
 
 	pinctrl_leds: ledsgrp {
 		fsl,pins = <
-			MX91_PAD_I2C1_SDA__GPIO1_IO1			0x31e
+			MX91_PAD_I2C1_SDA__GPIO1_IO1			0x11e
 		>;
 	};
 
