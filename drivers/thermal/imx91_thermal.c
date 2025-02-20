@@ -13,6 +13,7 @@
 #include <linux/platform_device.h>
 #include <linux/nvmem-consumer.h>
 #include <linux/thermal.h>
+#include "thermal_hwmon.h"
 
 #define CTRL0			0x0
 
@@ -217,6 +218,8 @@ static int imx91_tmu_probe(struct platform_device *pdev)
 		return ret;
 	}
 	tmu->sensors.hw_id = 0;
+
+	devm_thermal_add_hwmon_sysfs(&pdev->dev, tmu->sensors.tzd);
 
 	for (i = 0; i < thermal_zone_get_num_trips(tmu->sensors.tzd); i++) {
 		ret = thermal_zone_get_trip(tmu->sensors.tzd, i, &trip);
