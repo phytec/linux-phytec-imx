@@ -111,6 +111,10 @@
 	wakeup-source;
 };
 
+&ethphy1 {
+	ti,leds-polarity = <0>;
+};
+
 /* Ethernet */
 &eqos {
 	pinctrl-names = "default";
