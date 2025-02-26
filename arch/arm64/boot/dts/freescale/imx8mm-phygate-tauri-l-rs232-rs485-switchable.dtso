@@ -14,11 +14,6 @@
 /dts-v1/;
 /plugin/;
 
-&{/} {
-	compatible = "phytec,imx8mm-phygate-tauri-l";
-
-};
-
 /* UART2 - RS232  */
 &uart2 {
 	pinctrl-names = "default";

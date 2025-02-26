@@ -11,10 +11,6 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 
-/{
-	compatible = "phytec,imx8mm-phygate-tauri-l";
-};
-
 &{/}{
 	leds-expander {
 		compatible = "gpio-leds";
