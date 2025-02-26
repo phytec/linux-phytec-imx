@@ -479,6 +479,20 @@ static int dp83822_config_init(struct phy_device *phydev)
 
 static int dp8382x_config_init(struct phy_device *phydev)
 {
+	struct device *dev = &phydev->mdio.dev;
+	u32 leds_polarity;
+
+	if (!device_property_read_u32(dev, "ti,leds-polarity", &leds_polarity)) {
+		/* Set LED_2_Polarity and LED_Link_Polarity */
+		phy_modify_mmd(phydev, DP83822_DEVADDR, 0x469,
+			       BIT(6), leds_polarity ? BIT(6) : 0);
+		phy_modify_mmd(phydev, DP83822_DEVADDR, 0x18,
+			       BIT(7), leds_polarity ? BIT(7) : 0);
+
+		phydev_dbg(phydev, "LEDs polarity set to %s\n",
+			   leds_polarity ? "active-high" : "active-low");
+	}
+
 	return dp8382x_disable_wol(phydev);
 }
 
