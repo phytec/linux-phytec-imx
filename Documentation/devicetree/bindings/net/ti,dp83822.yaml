@@ -27,6 +27,11 @@ properties:
   reg:
     maxItems: 1
 
+  ti,leds-polarity:
+    description: Configure PHY LEDs polarity 0:active-low 1:active-high.
+    $ref: /schemas/types.yaml#/definitions/uint32
+    enum: [0, 1]
+
   ti,link-loss-low:
     type: boolean
     description: |
