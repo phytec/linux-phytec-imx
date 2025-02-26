@@ -80,6 +80,10 @@
 	wakeup-source;
 };
 
+&ethphy1 {
+	ti,leds-polarity = <1>;
+};
+
 /* Ethernet */
 &eqos {
 	phy-mode = "rgmii-id";
