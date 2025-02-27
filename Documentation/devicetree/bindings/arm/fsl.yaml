@@ -1249,6 +1249,13 @@ properties:
               - fsl,imx95-15x15-evk       # i.MX95 15x15 EVK Board
           - const: fsl,imx95
 
+      - description: Phytec i.MX 95 based Boards
+        items:
+          - enum:
+              - phytec,imx95-libra-rdk-fpsc # Libra i.MX 95 FPSC board
+          - const: fsl,imx95
+          - const: phytec,imx95-phycore-fpsc  # phyCORE-i.MX 95 FPSC
+
       - description: i.MXRT1050 based Boards
         items:
           - enum:
