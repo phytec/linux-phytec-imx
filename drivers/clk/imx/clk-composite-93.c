@@ -119,6 +119,32 @@ static int imx93_clk_composite_divider_set_rate(struct clk_hw *hw, unsigned long
 	u32 val;
 	int ret;
 
+	/**
+	 * Limit MEDIAMIX display pixel (media_disp_pix) and MEDIAMIX camera pixel
+	 * (cam_pix_root) clocks to 52MHz @ 3.3V due to errata ERR052675: I/O: High
+	 * frequency operation impacted due voltage stress when operating at 3.3V.
+	 * No silicon fix is planned.
+	 */
+	if (((strcmp(clk_hw_get_name(hw), "media_disp_pix_root") == 0) ||
+	     (strcmp(clk_hw_get_name(hw), "cam_pix_root") == 0)) &&
+		 (rate > 52000000)) {
+
+		/* Identify PHYTEC PCL-077 3.3V SOM via the eMMC "no-1-8-v" flag */
+		struct device_node *np = of_find_node_by_path("/soc@0/bus@42800000/mmc@42850000");
+
+		if (np) {
+			struct property *prop = of_find_property(np, "no-1-8-v", NULL);
+
+			of_node_put(np);
+
+			if (prop) {
+				pr_err("ERR052675: %s clk rate limited to 52MHz@3.3V\n",
+					   clk_hw_get_name(hw));
+				return -ERANGE;
+			}
+		}
+	}
+
 	value = divider_get_val(rate, parent_rate, divider->table, divider->width, divider->flags);
 	if (value < 0)
 		return value;
