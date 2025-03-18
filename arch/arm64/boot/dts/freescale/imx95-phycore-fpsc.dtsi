@@ -480,19 +480,25 @@
 	      >;
 	};
 
-	/* no devicetree support */
-	pinctrl_usb0: usb0grp {
-		fsl,pins = <
-			IMX95_PAD_SAI1_TXFS__AONMIX_TOP_GPIO1_IO_BIT11	0x51e	/* USB1_PWR_EN */
-			IMX95_PAD_GPIO_IO33__GPIO5_IO_BIT13		0x51e	/* USB1_OC */
-		>;
-	};
-
-	/* no devicetree support */
-	pinctrl_usb1: usb1grp {
+	/*
+	 * usb2 <=> USB 2.0 <=> USB2 PAD
+	 * pinctrl not used on SoM
+	 */
+	pinctrl_usb2: usb2grp {
 		fsl,pins = <
 			IMX95_PAD_SAI1_TXD0__AONMIX_TOP_GPIO1_IO_BIT13	0x51e	/* USB2_PWR_EN */
 			IMX95_PAD_GPIO_IO34__GPIO5_IO_BIT14		0x51e	/* USB2_OC */
+		>;
+	};
+
+	/*
+	 * usb3 <=> USB 3.0 <=> USB1 PAD
+	 * pinctrl not used on SoM
+	 */
+	pinctrl_usb3: usb3grp {
+		fsl,pins = <
+			IMX95_PAD_SAI1_TXFS__AONMIX_TOP_GPIO1_IO_BIT11	0x51e	/* USB1_PWR_EN */
+			IMX95_PAD_GPIO_IO33__GPIO5_IO_BIT13		0x51e	/* USB1_OC */
 		>;
 	};
 
