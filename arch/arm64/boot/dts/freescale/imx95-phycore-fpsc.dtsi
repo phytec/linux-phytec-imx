@@ -48,6 +48,11 @@
 			linux,cma-default;
 			reusable;
 		};
+
+		vpu_boot: vpu_boot@a0000000 {
+			reg = <0 0xe0000000 0 0x100000>;
+			no-map;
+		};
 	};
 };
 
@@ -632,12 +637,9 @@
 	pinctrl-0 = <&pinctrl_usdhc3>;
 };
 
-&vpu0 {
-	status = "disabled";
-};
-
 &vpuctrl {
-	status = "disabled";
+	boot = <&vpu_boot>;
+	sram = <&sram1>;
 };
 
 &tpm3 { /* PWM1 */
