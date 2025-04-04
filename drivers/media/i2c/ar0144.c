@@ -343,8 +343,6 @@ struct ar0144 {
 	struct v4l2_ctrl_handler ctrls;
 	struct media_pad pad;
 
-	struct v4l2_mbus_framefmt fmt;
-	struct v4l2_rect crop;
 	unsigned int bpp;
 	unsigned int w_skip;
 	unsigned int h_skip;
@@ -764,6 +762,8 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 	struct vvcam_mode_info_s *mode = (struct vvcam_mode_info_s *) args;
 	struct vvcam_ae_info_s *ae_info = &sensor->vvcam_mode.ae_info;
 	const struct ar0144_sensor_limits *limits = sensor->model->data->limits;
+	struct v4l2_subdev_state *state;
+	struct v4l2_mbus_framefmt *fmt;
 	unsigned long pix_freq;
 	unsigned int pixclk_mhz;
 	unsigned int max_vlen_allowed, min_fps_allowed;
@@ -777,7 +777,8 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 	ret = copy_from_user(&min_fps_allowed, &mode->ae_info.min_fps,
 			     sizeof(min_fps_allowed));
 
-	mutex_lock(&sensor->lock);
+	state = v4l2_subdev_lock_and_get_active_state(&sensor->subdev);
+	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
 
 	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
@@ -789,11 +790,11 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 				   sensor->vlen * sensor->hlen);
 
 	ae_info->max_fps = div_u64(pix_freq * 1024ULL,
-				   sensor->fmt.height +
+				   fmt->height +
 				   limits->vblank.min *
 				   sensor->hlen);
 	ae_info->min_fps = div_u64(pix_freq * 1024ULL,
-				   sensor->fmt.height +
+				   fmt->height +
 				   limits->vblank.max *
 				   sensor->hlen);
 
@@ -817,7 +818,7 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 	if (ret)
 		ret = -EIO;
 
-	mutex_unlock(&sensor->lock);
+	v4l2_subdev_unlock_state(state);
 
 	return ret;
 }
@@ -826,7 +827,7 @@ static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
 	struct v4l2_subdev *sd = &sensor->subdev;
-	struct v4l2_subdev_state state;
+	struct v4l2_subdev_state *state;
 	struct v4l2_subdev_selection sel;
 	struct v4l2_subdev_format format;
 	struct v4l2_rect ar0144_frames[] = {
@@ -880,19 +881,25 @@ static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
 	format.format.height = modes[index].size.bounds_height;
 	format.format.code = sensor->formats[bpp_to_index(sensor, bpp)].code;
 
-	ret = ar0144_set_selection(sd, &state, &sel);
-	if (ret)
-		return ret;
+	state = v4l2_subdev_lock_and_get_active_state(sd);
 
-	ret = ar0144_set_fmt(sd, &state, &format);
+	ret = ar0144_set_selection(sd, state, &sel);
 	if (ret)
-		return ret;
+		goto out;
+
+	ret = ar0144_set_fmt(sd, state, &format);
+	if (ret)
+		goto out;
 
 	memcpy(&sensor->vvcam_mode, &modes[index],
 	       sizeof(struct vvcam_mode_info_s));
 	sensor->vvcam_cur_mode_index = index;
 
 	return 0;
+
+out:
+	v4l2_subdev_unlock_state(state);
+	return ret;
 }
 
 static int ar0144_vv_s_stream(struct ar0144 *sensor, void *args)
@@ -1033,6 +1040,8 @@ static int ar0144_vv_set_fps(struct ar0144 *sensor, void *args)
 {
 	struct device *dev = sensor->subdev.dev;
 	const struct ar0144_sensor_limits *limits = sensor->model->data->limits;
+	struct v4l2_subdev_state *state;
+	struct v4l2_mbus_framefmt *fmt;
 	uint32_t fps = 0;
 	unsigned long pix_freq;
 	unsigned int max_fps, min_fps;
@@ -1044,16 +1053,17 @@ static int ar0144_vv_set_fps(struct ar0144 *sensor, void *args)
 	if (ret)
 		return -EIO;
 
-	mutex_lock(&sensor->lock);
+	state = v4l2_subdev_lock_and_get_active_state(&sensor->subdev);
+	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
 
 	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
 
 	max_fps = div_u64(pix_freq * 10ULL,
-			  sensor->fmt.height + limits->vblank.min *
+			  fmt->height + limits->vblank.min *
 			  sensor->hlen);
 	min_fps = div_u64(pix_freq * 10ULL,
-			  sensor->fmt.height + limits->vblank.max *
+			  fmt->height + limits->vblank.max *
 			  sensor->hlen);
 
 	fps = fps * 10 / 1024;
@@ -1061,11 +1071,11 @@ static int ar0144_vv_set_fps(struct ar0144 *sensor, void *args)
 	clamp_t(unsigned int, fps, min_fps, max_fps);
 
 	vlen = div_u64(pix_freq * 10ULL, fps * sensor->hlen);
-	vblank = vlen - sensor->fmt.height;
+	vblank = vlen - fmt->height;
 
 	__v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank);
 
-	mutex_unlock(&sensor->lock);
+	v4l2_subdev_unlock_state(state);
 
 	dev_dbg(dev, "%s: %u.%u (vblank: %u)\n", __func__,
 		fps/10, fps%10, vblank);
@@ -1571,22 +1581,28 @@ static int ar0144_config_pll(struct ar0144 *sensor)
 	return 0;
 }
 
-static int ar0144_config_frame(struct ar0144 *sensor)
+static int ar0144_config_frame(struct ar0144 *sensor, struct v4l2_subdev_state *state)
 {
-	unsigned int height = sensor->fmt.height * sensor->h_skip;
-	unsigned int width = sensor->fmt.width * sensor->w_skip;
+	struct v4l2_mbus_framefmt *fmt;
+	struct v4l2_rect *crop;
+	unsigned int width, height;
 	int ret;
 	u16 x_end, y_end;
 
-	ret = ar0144_write(sensor, AR0144_Y_ADDR_START, sensor->crop.top);
+	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
+	crop = v4l2_subdev_get_pad_crop(&sensor->subdev, state, 0);
+	height = fmt->height * sensor->h_skip;
+	width = fmt->width * sensor->w_skip;
+
+	ret = ar0144_write(sensor, AR0144_Y_ADDR_START, crop->top);
 	if (ret)
 		return ret;
 
-	ret = ar0144_write(sensor, AR0144_X_ADDR_START, sensor->crop.left);
+	ret = ar0144_write(sensor, AR0144_X_ADDR_START, crop->left);
 	if (ret)
 		return ret;
 
-	y_end = sensor->crop.top + height - 1;
+	y_end = crop->top + height - 1;
 
 	if (sensor->embedded_stat)
 		y_end -= 2;
@@ -1597,7 +1613,7 @@ static int ar0144_config_frame(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	x_end = sensor->crop.left + width - 1;
+	x_end = crop->left + width - 1;
 	ret = ar0144_write(sensor, AR0144_X_ADRR_END, x_end);
 	if (ret)
 		return ret;
@@ -1704,7 +1720,7 @@ static int ar0144_config_mipi(struct ar0144 *sensor)
 	return ret;
 }
 
-static int ar0144_stream_on(struct ar0144 *sensor)
+static int ar0144_stream_on(struct ar0144 *sensor, struct v4l2_subdev_state *state)
 {
 	u16 mono_op;
 	int ret;
@@ -1723,7 +1739,7 @@ static int ar0144_stream_on(struct ar0144 *sensor)
 	if (ret)
 		return ret;
 
-	ret = ar0144_config_frame(sensor);
+	ret = ar0144_config_frame(sensor, state);
 	if (ret)
 		return ret;
 
@@ -1760,11 +1776,12 @@ static int ar0144_stream_off(struct ar0144 *sensor)
 static int ar0144_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
+	struct v4l2_subdev_state *state;
 	int ret = 0;
 
 	dev_dbg(sd->dev, "%s enable: %d\n", __func__, enable);
 
-	mutex_lock(&sensor->lock);
+	state = v4l2_subdev_lock_and_get_active_state(&sensor->subdev);
 
 	if (enable && sensor->is_streaming) {
 		ret = -EBUSY;
@@ -1775,12 +1792,12 @@ static int ar0144_s_stream(struct v4l2_subdev *sd, int enable)
 		goto out;
 
 	if (enable)
-		ret = ar0144_stream_on(sensor);
+		ret = ar0144_stream_on(sensor, state);
 	else
 		ret = ar0144_stream_off(sensor);
 
 out:
-	mutex_unlock(&sensor->lock);
+	v4l2_subdev_unlock_state(state);
 	return ret;
 }
 
@@ -1803,34 +1820,6 @@ static int ar0144_g_frame_interval(struct v4l2_subdev *sd,
 	mutex_unlock(&sensor->lock);
 
 	return 0;
-}
-
-static struct v4l2_rect *ar0144_get_pad_crop(struct ar0144 *sensor,
-					     struct v4l2_subdev_state *state,
-					     unsigned int pad, u32 which)
-{
-	switch (which) {
-	case V4L2_SUBDEV_FORMAT_TRY:
-		return v4l2_subdev_get_try_crop(&sensor->subdev, state, pad);
-	case V4L2_SUBDEV_FORMAT_ACTIVE:
-		return &sensor->crop;
-	default:
-		return NULL;
-	}
-}
-
-static struct v4l2_mbus_framefmt *ar0144_get_pad_fmt(struct ar0144 *sensor,
-					    struct v4l2_subdev_state *state,
-					    unsigned int pad, u32 which)
-{
-	switch (which) {
-	case V4L2_SUBDEV_FORMAT_TRY:
-		return v4l2_subdev_get_try_format(&sensor->subdev, state, pad);
-	case V4L2_SUBDEV_FORMAT_ACTIVE:
-		return &sensor->fmt;
-	default:
-		return NULL;
-	}
 }
 
 static unsigned int ar0144_find_skipfactor(unsigned int input,
@@ -1876,20 +1865,12 @@ static int ar0144_enum_frame_size(struct v4l2_subdev *sd,
 				  struct v4l2_subdev_state *state,
 				  struct v4l2_subdev_frame_size_enum *fse)
 {
-	struct ar0144 *sensor = to_ar0144(sd);
-	struct v4l2_mbus_framefmt *fmt;
 	struct v4l2_rect *crop;
-	int ret = 0;
 
-	mutex_lock(&sensor->lock);
+	crop = v4l2_subdev_get_pad_crop(sd, state, fse->pad);
 
-	fmt = ar0144_get_pad_fmt(sensor, state, fse->pad, fse->which);
-	crop = ar0144_get_pad_crop(sensor, state, fse->pad, fse->which);
-
-	if (fse->index >= 4 || fse->code != fmt->code) {
-		ret = -EINVAL;
-		goto out;
-	}
+	if (fse->index >= 4)
+		return -EINVAL;
 
 	fse->min_width = crop->width / (1u << fse->index);
 	fse->max_width = fse->min_width;
@@ -1897,17 +1878,16 @@ static int ar0144_enum_frame_size(struct v4l2_subdev *sd,
 	fse->max_height = fse->min_height;
 
 	if (fse->min_width <= 1 || fse->min_height <= 1)
-		ret = -EINVAL;
-out:
-	mutex_unlock(&sensor->lock);
-	return ret;
+		return -EINVAL;
+
+	return 0;
 }
 
-static void ar0144_update_blankings(struct ar0144 *sensor)
+static void ar0144_update_blankings(struct ar0144 *sensor, struct v4l2_mbus_framefmt *fmt)
 {
 	const struct ar0144_sensor_limits *limits = sensor->model->data->limits;
-	unsigned int width = sensor->fmt.width;
-	unsigned int height = sensor->fmt.height;
+	unsigned int width = fmt->width;
+	unsigned int height = fmt->height;
 	unsigned int hblank_min, hblank_max;
 	unsigned int vblank_min, vblank_max;
 	unsigned int hblank_value, hblank_default;
@@ -1968,22 +1948,23 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 	const struct ar0144_format *sensor_format;
+	struct v4l2_subdev_state *active_state;
 	struct v4l2_mbus_framefmt *fmt;
 	struct v4l2_rect *crop;
 	unsigned int width, height;
 	unsigned int w_skip, h_skip;
 
-	mutex_lock(&sensor->lock);
-
 	if (sensor->is_streaming &&
-	    format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-		mutex_unlock(&sensor->lock);
+	    format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
 		return -EBUSY;
-	}
 
-	fmt = ar0144_get_pad_fmt(sensor, state, format->pad, format->which);
-	crop = ar0144_get_pad_crop(sensor, state, format->pad,
-				   V4L2_SUBDEV_FORMAT_ACTIVE);
+	fmt = v4l2_subdev_get_pad_format(sd, state, format->pad);
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+		active_state = v4l2_subdev_get_locked_active_state(sd);
+		crop = v4l2_subdev_get_pad_crop(sd, active_state, format->pad);
+	} else {
+		crop = v4l2_subdev_get_pad_crop(sd, state, format->pad);
+	}
 
 	if (sensor->color == AR0144_MODEL_COLOR)
 		fmt->colorspace = V4L2_COLORSPACE_RAW;
@@ -2016,30 +1997,12 @@ static int ar0144_set_fmt(struct v4l2_subdev *sd,
 		sensor->w_skip = w_skip;
 		sensor->h_skip = h_skip;
 
-		ar0144_update_blankings(sensor);
+		ar0144_update_blankings(sensor, fmt);
 		sensor->hlen = fmt->width + sensor->hblank_ctrl->cur.val;
 		sensor->vlen = fmt->height + sensor->vblank_ctrl->cur.val;
 	}
 
 	format->format = *fmt;
-
-	mutex_unlock(&sensor->lock);
-	return 0;
-}
-
-static int ar0144_get_fmt(struct v4l2_subdev *sd,
-			  struct v4l2_subdev_state *state,
-			  struct v4l2_subdev_format *format)
-{
-	struct ar0144 *sensor = to_ar0144(sd);
-	struct v4l2_mbus_framefmt *fmt;
-
-	mutex_lock(&sensor->lock);
-
-	fmt = ar0144_get_pad_fmt(sensor, state, format->pad, format->which);
-	format->format = *fmt;
-
-	mutex_unlock(&sensor->lock);
 
 	return 0;
 }
@@ -2062,52 +2025,43 @@ static int ar0144_set_selection(struct v4l2_subdev *sd,
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 	const struct ar0144_sensor_limits *limits = sensor->model->data->limits;
-	struct v4l2_rect *_crop;
+	struct v4l2_rect *crop;
 	unsigned int max_w, max_h;
 	int ret = 0;
 
 	if (sel->target != V4L2_SEL_TGT_CROP)
 		return -EINVAL;
 
-	mutex_lock(&sensor->lock);
+	crop = v4l2_subdev_get_pad_crop(sd, state, sel->pad);
 
-	if (sensor->is_streaming &&
-	    (sel->r.width != sensor->crop.width ||
-	     sel->r.height != sensor->crop.height)) {
-		ret = -EBUSY;
-		goto out;
-	}
-
-	_crop = ar0144_get_pad_crop(sensor, state, sel->pad, sel->which);
+	if (sensor->is_streaming && (sel->r.width != crop->width || sel->r.height != crop->height))
+		return -EBUSY;
 
 	/* Check againts max, min values */
 	max_w = limits->x.max - limits->x.min + 1;
 	max_h = limits->y.max - limits->y.min + 1;
 
-	_crop->top = min_t(unsigned int, ALIGN(sel->r.top, 2), max_h);
-	_crop->left = min_t(unsigned int, ALIGN(sel->r.left, 2), max_w);
-	_crop->width = min_t(unsigned int, sel->r.width, max_w - _crop->left);
-	_crop->height = min_t(unsigned int, sel->r.height, max_h - _crop->top);
+	crop->top = min_t(unsigned int, ALIGN(sel->r.top, 2), max_h);
+	crop->left = min_t(unsigned int, ALIGN(sel->r.left, 2), max_w);
+	crop->width = min_t(unsigned int, sel->r.width, max_w - crop->left);
+	crop->height = min_t(unsigned int, sel->r.height, max_h - crop->top);
 
-	if (sensor->is_streaming) {
+	if (sensor->is_streaming && sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
 		ret = ar0144_group_param_hold(sensor);
 		if (ret)
-			goto out;
+			return ret;
 
-		ret = ar0144_config_frame(sensor);
+		ret = ar0144_config_frame(sensor, state);
 		if (ret)
-			goto out;
+			return ret;
 
 		ret = ar0144_group_param_release(sensor);
 		if (ret)
-			goto out;
+			return ret;
 	}
 
-	sel->r = *_crop;
-
-out:
-	mutex_unlock(&sensor->lock);
-	return ret;
+	sel->r = *crop;
+	return 0;
 }
 
 static int ar0144_get_selection(struct v4l2_subdev *sd,
@@ -2115,7 +2069,7 @@ static int ar0144_get_selection(struct v4l2_subdev *sd,
 				struct v4l2_subdev_selection *sel)
 {
 	struct ar0144 *sensor = to_ar0144(sd);
-	struct v4l2_rect *_crop;
+	struct v4l2_rect *crop;
 	unsigned int x_min = sensor->model->data->limits->x.min;
 	unsigned int y_min = sensor->model->data->limits->y.min;
 	unsigned int x_max = sensor->model->data->limits->x.max;
@@ -2123,12 +2077,8 @@ static int ar0144_get_selection(struct v4l2_subdev *sd,
 
 	switch (sel->target) {
 	case V4L2_SEL_TGT_CROP:
-		mutex_lock(&sensor->lock);
-
-		_crop = ar0144_get_pad_crop(sensor, state, sel->pad, sel->which);
-		sel->r = *_crop;
-
-		mutex_unlock(&sensor->lock);
+		crop = v4l2_subdev_get_pad_crop(sd, state, sel->pad);
+		sel->r = *crop;
 		break;
 	case V4L2_SEL_TGT_CROP_DEFAULT:
 		sel->r.left = 4;
@@ -2170,11 +2120,11 @@ static int ar0144_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
 {
 	struct ar0144 *sensor = to_ar0144(sd);
 	struct ar0144_businfo *info = &sensor->info;
+	struct v4l2_subdev_state *state;
 	struct v4l2_mbus_framefmt *fmt;
 
-	mutex_lock(&sensor->lock);
-
-	fmt = &sensor->fmt;
+	state = v4l2_subdev_lock_and_get_active_state(sd);
+	fmt = v4l2_subdev_get_pad_format(sd, state, pad);
 
 	memset(fd, 0, sizeof(*fd));
 
@@ -2203,7 +2153,7 @@ static int ar0144_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
 		fd->entry[0].pixelcode = fmt->code;
 	}
 
-	mutex_unlock(&sensor->lock);
+	v4l2_subdev_unlock_state(state);
 
 	return 0;
 }
@@ -2226,7 +2176,7 @@ static const struct v4l2_subdev_pad_ops ar0144_subdev_pad_ops = {
 	.enum_mbus_code		= ar0144_enum_mbus_code,
 	.enum_frame_size	= ar0144_enum_frame_size,
 	.set_fmt		= ar0144_set_fmt,
-	.get_fmt		= ar0144_get_fmt,
+	.get_fmt		= v4l2_subdev_get_fmt,
 	.set_selection		= ar0144_set_selection,
 	.get_selection		= ar0144_get_selection,
 	.get_mbus_config	= ar0144_get_mbus_config,
@@ -2406,8 +2356,13 @@ static int ar0144_set_digital_gain(struct ar0144 *sensor,
 static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct ar0144 *sensor = ctrl->priv;
+	struct v4l2_subdev_state *state;
+	struct v4l2_mbus_framefmt *fmt;
 	int ret = 0;
 	u16 val;
+
+	state = v4l2_subdev_get_locked_active_state(&sensor->subdev);
+	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
 
 	switch (ctrl->id) {
 	case V4L2_CID_VBLANK:
@@ -2420,10 +2375,10 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		}
 
 		vlen_old = sensor->vlen;
-		sensor->vlen = sensor->fmt.height + ctrl->val;
+		sensor->vlen = fmt->height + ctrl->val;
 
 		if (sensor->is_streaming) {
-			ret = ar0144_config_frame(sensor);
+			ret = ar0144_config_frame(sensor, state);
 			if (ret) {
 				sensor->vlen = vlen_old;
 				break;
@@ -2445,10 +2400,10 @@ static int ar0144_s_ctrl(struct v4l2_ctrl *ctrl)
 		}
 
 		hlen_old = sensor->hlen;
-		sensor->hlen = sensor->fmt.width + ctrl->val;
+		sensor->hlen = fmt->width + ctrl->val;
 
 		if (sensor->is_streaming) {
-			ret = ar0144_config_frame(sensor);
+			ret = ar0144_config_frame(sensor, state);
 			if (ret) {
 				sensor->hlen = hlen_old;
 				break;
@@ -3492,38 +3447,45 @@ static int ar0144_setup_pll(struct ar0144 *sensor)
 static void ar0144_set_defaults(struct ar0144 *sensor)
 {
 	struct ar0144_model_data *data = sensor->model->data;
+	struct v4l2_subdev_state *state;
+	struct v4l2_mbus_framefmt *fmt;
+	struct v4l2_rect *crop;
 	unsigned char bus_width;
 
-	sensor->crop.left = data->def_offset_x;
-	sensor->crop.top = data->def_offset_y;
-	sensor->crop.width = data->def_width;
-	sensor->crop.height = data->def_height;
+	state = v4l2_subdev_lock_and_get_active_state(&sensor->subdev);
+	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
+	crop = v4l2_subdev_get_pad_crop(&sensor->subdev, state, 0);
 
-	sensor->fmt.width = data->def_width;
-	sensor->fmt.height = data->def_height;
-	sensor->fmt.field = V4L2_FIELD_NONE;
+	crop->left = data->def_offset_x;
+	crop->top = data->def_offset_y;
+	crop->width = data->def_width;
+	crop->height = data->def_height;
+
+	fmt->width = data->def_width;
+	fmt->height = data->def_height;
+	fmt->field = V4L2_FIELD_NONE;
 
 	switch (sensor->model->chip) {
 	case AR0144:
 		if (sensor->color == AR0144_MODEL_MONOCHROME) {
 			sensor->formats = ar0144_mono_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0144_mono_formats);
-			sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
+			fmt->colorspace = V4L2_COLORSPACE_SRGB;
 		} else {
 			sensor->formats = ar0144_col_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0144_col_formats);
-			sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
+			fmt->colorspace = V4L2_COLORSPACE_RAW;
 		}
 		break;
 	case AR0234:
 		if (sensor->color == AR0144_MODEL_MONOCHROME) {
 			sensor->formats = ar0234_mono_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0234_mono_formats);
-			sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
+			fmt->colorspace = V4L2_COLORSPACE_SRGB;
 		} else {
 			sensor->formats = ar0234_col_formats;
 			sensor->num_fmts = ARRAY_SIZE(ar0234_col_formats);
-			sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
+			fmt->colorspace = V4L2_COLORSPACE_RAW;
 		}
 		break;
 	}
@@ -3534,18 +3496,20 @@ static void ar0144_set_defaults(struct ar0144 *sensor)
 		sensor->num_fmts = bpp_to_index(sensor, bus_width) + 1;
 	}
 
-	sensor->fmt.code = sensor->formats[sensor->num_fmts - 1].code;
+	fmt->code = sensor->formats[sensor->num_fmts - 1].code;
 	sensor->bpp = sensor->formats[sensor->num_fmts - 1].bpp;
 
 	sensor->w_skip = 1;
 	sensor->h_skip = 1;
 	sensor->hlen = data->limits->hlen.min;
-	sensor->vlen = sensor->fmt.height + data->limits->vblank.min;
+	sensor->vlen = fmt->height + data->limits->vblank.min;
 	sensor->gains.red = 1000;
 	sensor->gains.greenr = 1000;
 	sensor->gains.greenb = 1000;
 	sensor->gains.blue = 1000;
 	sensor->gains.min_ref = 1000;
+
+	v4l2_subdev_unlock_state(state);
 }
 
 static int ar0144_subdev_registered(struct v4l2_subdev *sd)
@@ -3874,9 +3838,14 @@ static int ar0144_probe(struct i2c_client *i2c)
 	if (ret)
 		goto out_media;
 
-	ret = ar0144_check_chip_id(sensor);
+	sd->state_lock = &sensor->lock;
+	ret = v4l2_subdev_init_finalize(sd);
 	if (ret)
 		goto out_media;
+
+	ret = ar0144_check_chip_id(sensor);
+	if (ret)
+		goto out_v4l2_init;
 
 	ret = v4l2_async_register_subdev_sensor(&sensor->subdev);
 	if (ret)
@@ -3886,6 +3855,8 @@ static int ar0144_probe(struct i2c_client *i2c)
 
 out:
 	v4l2_ctrl_handler_free(&sensor->ctrls);
+out_v4l2_init:
+	v4l2_subdev_cleanup(sd);
 out_media:
 	media_entity_cleanup(&sd->entity);
 	mutex_destroy(&sensor->lock);
@@ -3899,6 +3870,7 @@ static void ar0144_remove(struct i2c_client *i2c)
 
 	v4l2_async_unregister_subdev(sd);
 	v4l2_ctrl_handler_free(&sensor->ctrls);
+	v4l2_subdev_cleanup(sd);
 	media_entity_cleanup(&sd->entity);
 	mutex_destroy(&sensor->lock);
 }
