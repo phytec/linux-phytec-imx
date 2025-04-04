@@ -630,7 +630,62 @@ dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-i3c.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-evk.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc.dtb
 imx95-libra-rdk-fpsc-lvds-dtbs := imx95-libra-rdk-fpsc.dtb imx95-libra-rdk-fpsc-lvds.dtbo
+imx95-libra-rdk-fpsc-vm016-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm016-csi1.dtbo
+imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi1.dtbo
+imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi1.dtbo
+imx95-libra-rdk-fpsc-vm016-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm016-csi2.dtbo
+imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi2.dtbo
+imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi2.dtbo
+imx95-libra-rdk-fpsc-vm017-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm017-csi1.dtbo
+imx95-libra-rdk-fpsc-vm017-fpdlink-port0-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm017-fpdlink-port0-csi1.dtbo
+imx95-libra-rdk-fpsc-vm017-fpdlink-port1-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm017-fpdlink-port1-csi1.dtbo
+imx95-libra-rdk-fpsc-vm017-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm017-csi2.dtbo
+imx95-libra-rdk-fpsc-vm017-fpdlink-port0-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm017-fpdlink-port0-csi2.dtbo
+imx95-libra-rdk-fpsc-vm017-fpdlink-port1-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm017-fpdlink-port1-csi2.dtbo
+imx95-libra-rdk-fpsc-vm020-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm020-csi1.dtbo
+imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi1.dtbo
+imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi1.dtbo
+imx95-libra-rdk-fpsc-vm020-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm020-csi2.dtbo
+imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi2.dtbo
+imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi2.dtbo
 dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-lvds.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-lvds.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm017-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm017-fpdlink-port0-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm017-fpdlink-port1-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm017-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm017-fpdlink-port0-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm017-fpdlink-port1-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm020-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm020-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-evk-flexspi-m2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-evk-mqs.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-evk-aud-hat.dtb
