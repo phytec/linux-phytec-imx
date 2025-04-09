@@ -252,10 +252,10 @@
 	status = "okay";
 
 	eeprom@51 {
-		compatible = "atmel,24c32";
+		compatible = "atmel,24c02";
 		vcc-supply = <&reg_vdd_1v8>;
 		reg = <0x51>;
-		pagesize = <32>;
+		pagesize = <16>;
 	};
 
 };
