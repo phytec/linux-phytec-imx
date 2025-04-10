@@ -162,6 +162,10 @@
 	tpm@0 {
 		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
 		reg = <0>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <17 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tpm>;
 		spi-max-frequency = <10000000>;
 	};
 };
@@ -275,6 +279,12 @@
 	pinctrl_rtc: rtcgrp {
 		fsl,pins = <
 			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x31e
+		>;
+	};
+
+	pinctrl_tpm: tpmgrp {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO17__GPIO2_IO17		0x31e
 		>;
 	};
 
