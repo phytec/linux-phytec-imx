@@ -319,7 +319,7 @@
 	pinctrl_flexcan1: flexcan1grp {
 		fsl,pins = <
 			MX91_PAD_PDM_BIT_STREAM0__CAN1_RX	0x139e
-			MX91_PAD_PDM_CLK__CAN1_TX		0x1382
+			MX91_PAD_PDM_CLK__CAN1_TX		0x139e
 		>;
 	};
 
