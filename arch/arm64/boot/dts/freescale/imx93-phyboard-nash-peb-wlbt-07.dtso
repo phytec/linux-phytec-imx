@@ -33,6 +33,12 @@
 	};
 };
 
+/*
+ * NOTE: When uSDHC3 port is multiplexed on GPIO_IO[27:22] pads, it only
+ * supports 50 MHz mode, due to introduction of potential variations in
+ * trace impedance, drive strength, and timing skew. Refer to i.MX 93
+ * Application Processors Data Sheet, Rev. 3, page 60 for more details.
+ */
 &usdhc3 {
 	#address-cells = <1>;
 	#size-cells = <0>;
