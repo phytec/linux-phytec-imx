@@ -10,6 +10,11 @@
 	model = "PHYTEC phyCORE-i.MX95 FPSC";
 	compatible = "phytec,imx95-phycore-fpsc", "fsl,imx95";
 
+	aliases {
+		rtc0 = &rv3028;
+		rtc1 = &scmi_bbm;
+	};
+
 	memory@80000000 {
 		device_type = "memory";
 		reg = <0x00000000 0x80000000 0x00000000 0x80000000>;

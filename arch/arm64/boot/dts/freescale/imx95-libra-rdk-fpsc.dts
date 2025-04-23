@@ -287,6 +287,24 @@
 	vpcie-supply = <&reg_vdd_3v3>;
 };
 
+&rv3028 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_rtc>;
+	interrupt-parent = <&gpio2>;
+	interrupts = <18 IRQ_TYPE_LEVEL_LOW>;
+	aux-voltage-chargeable = <1>;
+	wakeup-source;
+	trickle-resistor-ohms = <3000>;
+};
+
+&gpio2 {
+	gpio-line-names = "", "", "", "", "",
+			  "", "", "", "", "",
+			  "", "", "", "", "",
+			  "", "RGMII2_nINT", "GPIO4", "RTC_nINT", "",
+			  "LVDS_BL_EN";
+};
+
 &scmi_iomuxc {
 	pinctrl_lvds0: lvds0grp {
 		fsl,pins = <
@@ -304,6 +322,11 @@
 		fsl,pins = <
 			IMX95_PAD_UART2_TXD__AONMIX_TOP_LPUART2_TX	0x31e
 			IMX95_PAD_UART2_RXD__AONMIX_TOP_LPUART2_RX	0x31e
+		>;
+	};
+	pinctrl_rtc: rtcgrp {
+		fsl,pins = <
+			IMX95_PAD_GPIO_IO18__GPIO2_IO_BIT18	0x31e
 		>;
 	};
 };
