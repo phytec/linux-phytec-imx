@@ -629,7 +629,10 @@ dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-i2c-spi-slave.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-i3c.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-evk.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc.dtb
-imx95-libra-rdk-fpsc-lvds-dtbs := imx95-libra-rdk-fpsc.dtb imx95-libra-rdk-fpsc-lvds.dtbo
+imx95-libra-rdk-fpsc-lvds-etml1010g3dra-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-lvds-etml1010g3dra.dtbo
+imx95-libra-rdk-fpsc-lvds-ph128800t006-zhc01-dtbs := imx95-libra-rdk-fpsc.dtb \
+			   imx95-libra-rdk-fpsc-lvds-ph128800t006-zhc01.dtbo
 imx95-libra-rdk-fpsc-vm016-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
 			   imx95-libra-rdk-fpsc-vm016-csi1.dtbo
 imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi1-dtbs := imx95-libra-rdk-fpsc.dtb \
@@ -666,8 +669,8 @@ imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
 			   imx95-libra-rdk-fpsc-vm020-fpdlink-port0-csi2.dtbo
 imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi2-dtbs := imx95-libra-rdk-fpsc.dtb \
 			   imx95-libra-rdk-fpsc-vm020-fpdlink-port1-csi2.dtbo
-dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-lvds.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-lvds.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-lvds-etml1010g3dra.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-lvds-ph128800t006-zhc01.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-fpdlink-port0-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-libra-rdk-fpsc-vm016-fpdlink-port1-csi1.dtb

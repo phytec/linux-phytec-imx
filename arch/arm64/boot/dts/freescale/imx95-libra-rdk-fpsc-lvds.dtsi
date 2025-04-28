@@ -44,11 +44,6 @@
 	status = "okay";
 };
 
-&panel0_lvds {
-	compatible = "edt,etml1010g3dra";
-	status = "okay";
-};
-
 &pixel_interleaver {
         #address-cells = <1>;
         #size-cells = <0>;
