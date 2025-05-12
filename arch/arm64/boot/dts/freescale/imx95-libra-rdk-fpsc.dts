@@ -163,6 +163,14 @@
 	};
 };
 
+&lpi2c1 {
+	temperature-sensor@4f {
+		compatible = "nxp,p3t1755";
+		reg = <0x4f>;
+		vs-supply = <&reg_vdd_1v8>;
+	};
+};
+
 &lpi2c3 {
 	#address-cells = <1>;
 	#size-cells = <0>;
