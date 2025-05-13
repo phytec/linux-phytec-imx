@@ -341,7 +341,7 @@
 };
 
 &thermal_zones {
-	a55-thermal {
+	a55 {
 		trips {
 			atrip2: trip2 {
 				temperature = <55000>;
