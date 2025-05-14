@@ -733,3 +733,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_tpm5>;
 };
+
+&wdog3 {
+	status = "okay";
+};
