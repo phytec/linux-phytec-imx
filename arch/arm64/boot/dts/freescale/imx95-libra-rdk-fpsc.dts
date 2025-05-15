@@ -220,13 +220,6 @@
 			output-low;
 			line-name = "UART1_BT_RS_SEL";
 		};
-
-		uart1_rs232_485_sel: rs232-485-hog {
-			gpio-hog;
-			gpios = <15 0>;
-			output-high;
-			line-name = "UART1_RS232_485_SEL";
-		};
 	};
 };
 
