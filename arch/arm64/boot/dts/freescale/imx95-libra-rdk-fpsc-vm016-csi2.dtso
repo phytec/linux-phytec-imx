@@ -118,6 +118,7 @@
 };
 
 &isi {
+	dma-coherent;
 	status = "okay";
 
 	ports {
