@@ -2014,6 +2014,12 @@ static int ar0521_get_selection(struct v4l2_subdev *sd,
 		crop = v4l2_subdev_get_pad_crop(sd, state, sel->pad);
 		sel->r = *crop;
 		break;
+	case V4L2_SEL_TGT_CROP_DEFAULT:
+		sel->r.left = 4;
+		sel->r.top = 4;
+		sel->r.width = AR0521_DEF_WIDTH;
+		sel->r.height = AR0521_DEF_HEIGHT;
+		break;
 	case V4L2_SEL_TGT_CROP_BOUNDS:
 		sel->r.left = x_min;
 		sel->r.top = y_min;
