@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2025 PHYTEC Messtechnik GmbH
+ * Author: Primoz Fiser <primoz.fiser@norik.com>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "phytec,imx93-phycore-som";
+};
+
+&{/} {
+	ethosu {
+		compatible = "arm,ethosu";
+		memory-region = <&ethosu_mem>;
+		power-domains = <&mlmix>;
+		fsl,cm33-proc = <&cm33>;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+
+		ethosu_mem: ethosu_region@88000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0x88000000 0x0 0x8000000>;
+			reusable;
+		};
+	};
+};
