@@ -78,7 +78,7 @@
 		#size-cells = <0>;
 
 		ethphy1: ethernet-phy@1 {
-			compatible = "ethernet-phy-id2000.a111", "ethernet-phy-ieee802.3-c22";
+			compatible = "ethernet-phy-id2000", "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
 			reset-gpios = <&gpio4 23 GPIO_ACTIVE_HIGH>;
 			reset-assert-us = <30>;
