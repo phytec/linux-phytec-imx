@@ -23,6 +23,14 @@
 		stdout-path = &lpuart1;
 	};
 
+	current-sense {
+		compatible = "current-sense-amplifier";
+		io-channels = <&adc1 1>;
+		sense-gain-div = <2>;
+		sense-gain-mult = <50>;
+		sense-resistor-micro-ohms = <35000>;
+	};
+
 	reg_can1_stb: regulator-can1-stb {
 		compatible = "regulator-fixed";
 		gpio = <&gpio4 16 GPIO_ACTIVE_LOW>;
