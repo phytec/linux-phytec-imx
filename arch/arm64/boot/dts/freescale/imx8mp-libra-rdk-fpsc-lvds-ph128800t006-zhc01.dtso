@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2025 PHYTEC Messtechnik GmbH
+ */
+
+#include "imx8mp-libra-rdk-fpsc-lvds.dtsi"
+
+&panel0_lvds {
+	compatible = "powertip,ph128800t006-zhc01";
+	status = "okay";
+};

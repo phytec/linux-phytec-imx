@@ -41,11 +41,6 @@
 			       <506800000>;
 };
 
-&panel0_lvds {
-	compatible = "edt,etml1010g3dra";
-	status = "okay";
-};
-
 &pwm1 {
 	status = "okay";
 };
