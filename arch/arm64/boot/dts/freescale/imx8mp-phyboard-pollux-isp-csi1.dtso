@@ -7,19 +7,4 @@
 /dts-v1/;
 /plugin/;
 
-&cameradev {
-	status = "okay";
-};
-
-&isp_0 {
-	dma-coherent;
-	status = "okay";
-};
-
-&dewarp {
-	status = "okay";
-};
-
-&mipi_csi_0 {
-	status = "okay";
-};
+#include "imx8mp-phycore-isp-csi1.dtsi"
