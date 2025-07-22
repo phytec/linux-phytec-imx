@@ -4,9 +4,6 @@
  * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
  */
 
-/dts-v1/;
-/plugin/;
-
 &{/} {
 	des_csi1_clk: deserializer-csi1-clk {
 		#clock-cells = <0>;

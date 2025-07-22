@@ -4,9 +4,6 @@
  * Author: Stefan Riedmueller <s.riedmueller@phytec.de>
  */
 
-/dts-v1/;
-/plugin/;
-
 #include "imx8mp-phyboard-pollux-csi1-fpdlink.dtsi"
 
 &des_csi1_port0_link {
