@@ -168,10 +168,61 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-evk.dtb imx8mp-evk-rm67191.dtb imx8mp-evk-it626
 			  imx8mp-evk-usdhc1-m2.dtb imx8mp-evk-rm67199.dtb \
 			  imx8mp-evk-dpdk.dtb imx8mp-evk-8mic-swpdm.dtb imx8mp-evk-rpmsg-lpv.dtb imx8mp-evk-revA3-8mic-revE.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc.dtb
+
 imx8mp-libra-rdk-fpsc-lvds-etml1010g3dra-dtbs := imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-lvds-etml1010g3dra.dtbo
 imx8mp-libra-rdk-fpsc-lvds-ph128800t006-zhc01-dtbs := imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-lvds-ph128800t006-zhc01.dtbo
+imx8mp-libra-rdk-fpsc-vm016-csi1-dtbs += imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-vm016-csi1.dtbo
+imx8mp-libra-rdk-fpsc-vm016-csi1-fpdlink-port0-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm016-csi1-fpdlink-port0.dtbo
+imx8mp-libra-rdk-fpsc-vm016-csi1-fpdlink-port1-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm016-csi1-fpdlink-port1.dtbo
+imx8mp-libra-rdk-fpsc-vm016-csi2-dtbs += imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-vm016-csi2.dtbo
+imx8mp-libra-rdk-fpsc-vm016-csi2-fpdlink-port0-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm016-csi2-fpdlink-port0.dtbo
+imx8mp-libra-rdk-fpsc-vm016-csi2-fpdlink-port1-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm016-csi2-fpdlink-port1.dtbo
+imx8mp-libra-rdk-fpsc-vm017-csi1-dtbs += imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-vm017-csi1.dtbo
+imx8mp-libra-rdk-fpsc-vm017-csi1-fpdlink-port0-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm017-csi1-fpdlink-port0.dtbo
+imx8mp-libra-rdk-fpsc-vm017-csi1-fpdlink-port1-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm017-csi1-fpdlink-port1.dtbo
+imx8mp-libra-rdk-fpsc-vm017-csi2-dtbs += imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-vm017-csi2.dtbo
+imx8mp-libra-rdk-fpsc-vm017-csi2-fpdlink-port0-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm017-csi2-fpdlink-port0.dtbo
+imx8mp-libra-rdk-fpsc-vm017-csi2-fpdlink-port1-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm017-csi2-fpdlink-port1.dtbo
+imx8mp-libra-rdk-fpsc-vm020-csi1-dtbs += imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-vm020-csi1.dtbo
+imx8mp-libra-rdk-fpsc-vm020-csi1-fpdlink-port0-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm020-csi1-fpdlink-port0.dtbo
+imx8mp-libra-rdk-fpsc-vm020-csi1-fpdlink-port1-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm020-csi1-fpdlink-port1.dtbo
+imx8mp-libra-rdk-fpsc-vm020-csi2-dtbs += imx8mp-libra-rdk-fpsc.dtb imx8mp-libra-rdk-fpsc-vm020-csi2.dtbo
+imx8mp-libra-rdk-fpsc-vm020-csi2-fpdlink-port0-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm020-csi2-fpdlink-port0.dtbo
+imx8mp-libra-rdk-fpsc-vm020-csi2-fpdlink-port1-dtbs += imx8mp-libra-rdk-fpsc.dtb \
+			  imx8mp-libra-rdk-fpsc-vm020-csi2-fpdlink-port1.dtbo
+
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-lvds-etml1010g3dra.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-lvds-ph128800t006-zhc01.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm016-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm016-csi1-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm016-csi1-fpdlink-port1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm016-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm016-csi2-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm016-csi2-fpdlink-port1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm017-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm017-csi1-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm017-csi1-fpdlink-port1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm017-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm017-csi2-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm017-csi2-fpdlink-port1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm020-csi1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm020-csi1-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm020-csi1-fpdlink-port1.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm020-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm020-csi2-fpdlink-port0.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-libra-rdk-fpsc-vm020-csi2-fpdlink-port1.dtb
+
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-msc-sm2s-ep1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk.dtb
 
