@@ -13,10 +13,6 @@
 	status = "okay";
 };
 
-&csi2_i2c {
-	status = "okay";
-};
-
 &isp_1 {
 	dma-coherent;
 	status = "okay";
