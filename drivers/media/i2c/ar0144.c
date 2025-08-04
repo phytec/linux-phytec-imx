@@ -777,7 +777,7 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 	ret = copy_from_user(&min_fps_allowed, &mode->ae_info.min_fps,
 			     sizeof(min_fps_allowed));
 
-	state = v4l2_subdev_lock_and_get_active_state(&sensor->subdev);
+	state = v4l2_subdev_get_locked_active_state(&sensor->subdev);
 	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
 
 	index = bpp_to_index(sensor, sensor->bpp);
@@ -817,8 +817,6 @@ static int ar0144_vv_get_sensormode(struct ar0144 *sensor, void *args)
 			   sizeof(struct vvcam_mode_info_s));
 	if (ret)
 		ret = -EIO;
-
-	v4l2_subdev_unlock_state(state);
 
 	return ret;
 }
@@ -881,25 +879,21 @@ static int ar0144_vv_set_sensormode(struct ar0144 *sensor, void *args)
 	format.format.height = modes[index].size.bounds_height;
 	format.format.code = sensor->formats[bpp_to_index(sensor, bpp)].code;
 
-	state = v4l2_subdev_lock_and_get_active_state(sd);
+	state = v4l2_subdev_get_locked_active_state(sd);
 
 	ret = ar0144_set_selection(sd, state, &sel);
 	if (ret)
-		goto out;
+		return ret;
 
 	ret = ar0144_set_fmt(sd, state, &format);
 	if (ret)
-		goto out;
+		return ret;
 
 	memcpy(&sensor->vvcam_mode, &modes[index],
 	       sizeof(struct vvcam_mode_info_s));
 	sensor->vvcam_cur_mode_index = index;
 
 	return 0;
-
-out:
-	v4l2_subdev_unlock_state(state);
-	return ret;
 }
 
 static int ar0144_vv_s_stream(struct ar0144 *sensor, void *args)
@@ -927,8 +921,6 @@ static int ar0144_vv_set_exposure(struct ar0144 *sensor, void *args)
 	if (ret)
 		return -EIO;
 
-	mutex_lock(&sensor->lock);
-
 	index = bpp_to_index(sensor, sensor->bpp);
 	pixclk_mhz = sensor->pll[index].pix_freq / 1000000;
 
@@ -936,8 +928,6 @@ static int ar0144_vv_set_exposure(struct ar0144 *sensor, void *args)
 	int_time = new_exp * pixclk_mhz / sensor->hlen;
 
 	__v4l2_ctrl_s_ctrl(sensor->exp_ctrl, int_time);
-
-	mutex_unlock(&sensor->lock);
 
 	dev_dbg(dev, "%s: %u --> %u\n", __func__, new_exp, int_time);
 
@@ -962,11 +952,11 @@ static int ar0144_vv_set_gain(struct ar0144 *sensor, void *args)
 	if (new_gain > sensor->gains.max_again) {
 		a_gain = sensor->gains.max_again;
 		d_gain = new_gain * 1000 / a_gain;
-		v4l2_ctrl_s_ctrl(sensor->gains.ana_ctrl, a_gain);
-		v4l2_ctrl_s_ctrl(sensor->gains.dig_ctrl, d_gain);
+		__v4l2_ctrl_s_ctrl(sensor->gains.ana_ctrl, a_gain);
+		__v4l2_ctrl_s_ctrl(sensor->gains.dig_ctrl, d_gain);
 	} else {
-		v4l2_ctrl_s_ctrl(sensor->gains.ana_ctrl, new_gain);
-		v4l2_ctrl_s_ctrl(sensor->gains.dig_ctrl, 1000);
+		__v4l2_ctrl_s_ctrl(sensor->gains.ana_ctrl, new_gain);
+		__v4l2_ctrl_s_ctrl(sensor->gains.dig_ctrl, 1000);
 	}
 
 	return 0;
@@ -985,22 +975,22 @@ static int ar0144_vv_set_wb(struct ar0144 *sensor, void *args)
 
 	new_gain = (wb.r_gain >> 8) * 1000 +
 		   (wb.r_gain & 0xff) * 1000 / 256;
-	v4l2_ctrl_s_ctrl(sensor->gains.red_ctrl, new_gain);
+	__v4l2_ctrl_s_ctrl(sensor->gains.red_ctrl, new_gain);
 	dev_dbg(dev, "r_gain: %u --> %u\n", wb.r_gain, new_gain);
 
 	new_gain = (wb.gr_gain >> 8) * 1000 +
 		   (wb.gr_gain & 0xff) * 1000 / 256;
-	v4l2_ctrl_s_ctrl(sensor->gains.greenr_ctrl, new_gain);
+	__v4l2_ctrl_s_ctrl(sensor->gains.greenr_ctrl, new_gain);
 	dev_dbg(dev, "gr_gain: %u --> %u\n", wb.gr_gain, new_gain);
 
 	new_gain = (wb.gb_gain >> 8) * 1000 +
 		   (wb.gb_gain & 0xff) * 1000 / 256;
-	v4l2_ctrl_s_ctrl(sensor->gains.greenb_ctrl, new_gain);
+	__v4l2_ctrl_s_ctrl(sensor->gains.greenb_ctrl, new_gain);
 	dev_dbg(dev, "gb_gain: %u --> %u\n", wb.gb_gain, new_gain);
 
 	new_gain = (wb.b_gain >> 8) * 1000 +
 		   (wb.b_gain & 0xff) * 1000 / 256;
-	v4l2_ctrl_s_ctrl(sensor->gains.blue_ctrl, new_gain);
+	__v4l2_ctrl_s_ctrl(sensor->gains.blue_ctrl, new_gain);
 	dev_dbg(dev, "b_gain: %u --> %u\n", wb.b_gain, new_gain);
 
 	return 0;
@@ -1015,16 +1005,12 @@ static int ar0144_vv_get_fps(struct ar0144 *sensor, void *args)
 	int index;
 	int ret;
 
-	mutex_lock(&sensor->lock);
-
 	index = bpp_to_index(sensor, sensor->bpp);
 	pix_freq = sensor->pll[index].pix_freq;
 
 	fps = div_u64(pix_freq * 10ULL, sensor->vlen * sensor->hlen);
 
 	out_fps = fps * 1024 / 10;
-
-	mutex_unlock(&sensor->lock);
 
 	dev_dbg(dev, "%s: %u.%u\n", __func__, fps/10, fps%10);
 
@@ -1053,7 +1039,7 @@ static int ar0144_vv_set_fps(struct ar0144 *sensor, void *args)
 	if (ret)
 		return -EIO;
 
-	state = v4l2_subdev_lock_and_get_active_state(&sensor->subdev);
+	state = v4l2_subdev_get_locked_active_state(&sensor->subdev);
 	fmt = v4l2_subdev_get_pad_format(&sensor->subdev, state, 0);
 
 	index = bpp_to_index(sensor, sensor->bpp);
@@ -1074,8 +1060,6 @@ static int ar0144_vv_set_fps(struct ar0144 *sensor, void *args)
 	vblank = vlen - fmt->height;
 
 	__v4l2_ctrl_s_ctrl(sensor->vblank_ctrl, vblank);
-
-	v4l2_subdev_unlock_state(state);
 
 	dev_dbg(dev, "%s: %u.%u (vblank: %u)\n", __func__,
 		fps/10, fps%10, vblank);
