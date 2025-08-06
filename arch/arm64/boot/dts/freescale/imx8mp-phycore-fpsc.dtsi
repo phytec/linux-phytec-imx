@@ -109,13 +109,11 @@ ethernet1: &fec { /* GB_ETH1 */
 &flexcan1 { /* CAN1 */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
-	status = "okay";
 };
 
 &flexcan2 { /* CAN2 */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
-	status = "okay";
 };
 
 &flexspi { /* QSPI */
