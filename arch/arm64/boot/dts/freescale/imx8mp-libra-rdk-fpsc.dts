@@ -278,6 +278,7 @@ ethernet0: &eqos {
 
 /* USB1 Type-C */
 &usb3_phy0 {
+	vbus-supply = <&reg_vdd_5v0>;
 	status = "okay";
 };
 
