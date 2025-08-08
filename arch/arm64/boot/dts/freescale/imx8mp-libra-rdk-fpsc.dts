@@ -268,11 +268,10 @@ ethernet0: &eqos {
 	status = "okay";
 };
 
-/* RS232/RS485 */
+/* RS232 */
 &uart3 {
 	assigned-clocks = <&clk IMX8MP_CLK_UART3>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
-	uart-has-rtscts;
 	status = "okay";
 };
 
