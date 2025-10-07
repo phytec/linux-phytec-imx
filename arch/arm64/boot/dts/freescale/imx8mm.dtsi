@@ -1250,8 +1250,6 @@
 				};
 
 				port@1 {
-					reg = <1>;
-
 					mipi_dsi_out: endpoint {
 					};
 				};
