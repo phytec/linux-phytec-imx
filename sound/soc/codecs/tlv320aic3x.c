@@ -1403,9 +1403,13 @@ static int aic3x_set_power(struct snd_soc_component *component, int power)
 			gpiod_set_value(aic3x->gpio_reset, 0);
 		}
 
-		if (aic3x->model == AIC3X_MODEL_3007)
-			regmap_multi_reg_write_bypassed(aic3x->regmap, aic3007_class_d,
-							ARRAY_SIZE(aic3007_class_d));
+		if (aic3x->model == AIC3X_MODEL_3007) {
+			ret = regmap_multi_reg_write_bypassed(aic3x->regmap,
+							      aic3007_class_d,
+							      ARRAY_SIZE(aic3007_class_d));
+			if (ret)
+				goto out;
+		}
 
 		/* Sync reg_cache with the hardware */
 		regcache_cache_only(aic3x->regmap, false);
