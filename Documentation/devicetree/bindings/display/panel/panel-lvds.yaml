@@ -48,6 +48,8 @@ properties:
           - hydis,hv070wx2-1e0
           # Riverdi 10.1" 1280x800 capacitive touch DSI panel
           - riverdi,rvt101hvdnwc00-b
+          # Sharp LQ070Y3LG05 7.0" WVGA (800x480) langscape TFT LCD LVDS panel
+          - sharp,lq070y3lg05
           - tbs,a711-panel
 
       - const: panel-lvds
