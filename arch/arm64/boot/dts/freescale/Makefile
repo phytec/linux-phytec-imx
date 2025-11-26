@@ -109,6 +109,8 @@ imx8mm-phyboard-polis-peb-av-10-etml1010g3dra-dtbs += imx8mm-phyboard-polis-rdk.
 	imx8mm-phyboard-polis-peb-av-10-etml1010g3dra.dtbo
 imx8mm-phyboard-polis-peb-av-10-ph128800t006-dtbs += imx8mm-phyboard-polis-rdk.dtb \
 	imx8mm-phyboard-polis-peb-av-10-ph128800t006.dtbo
+imx8mm-phyboard-polis-peb-av-19-lq070y3lg05-dtbs += imx8mm-phyboard-polis-rdk.dtb \
+	imx8mm-phyboard-polis-peb-av-19-lq070y3lg05.dtbo
 imx8mm-phyboard-polis-peb-eval-01-dtbs += imx8mm-phyboard-polis-rdk.dtb imx8mm-phyboard-polis-peb-eval-01.dtbo
 imx8mm-phyboard-polis-vm016-dtbs += imx8mm-phyboard-polis-rdk.dtb imx8mm-phyboard-polis-vm016.dtbo
 imx8mm-phyboard-polis-vm016-fpdlink-port0-dtbs += imx8mm-phyboard-polis-rdk.dtb imx8mm-phyboard-polis-vm016-fpdlink-port0.dtbo
@@ -126,6 +128,7 @@ imx8mm-phycore-rpmsg-dtbs += imx8mm-phyboard-polis-rdk.dtb imx8mm-phycore-rpmsg.
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-peb-av-10.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-peb-av-10-etml1010g3dra.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-peb-av-10-ph128800t006.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-peb-av-19-lq070y3lg05.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-peb-eval-01.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-vm016.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phyboard-polis-vm016-fpdlink-port0.dtb
