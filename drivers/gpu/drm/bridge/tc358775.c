@@ -574,24 +574,6 @@ static int tc358775_parse_dt(struct device_node *np, struct tc_data *tc)
 	return 0;
 }
 
-static int tc_bridge_attach(struct drm_bridge *bridge,
-			    enum drm_bridge_attach_flags flags)
-{
-	struct tc_data *tc = bridge_to_tc(bridge);
-
-	/* Attach the panel-bridge to the dsi bridge */
-	return drm_bridge_attach(bridge->encoder, tc->panel_bridge,
-				 &tc->bridge, flags);
-}
-
-static const struct drm_bridge_funcs tc_bridge_funcs = {
-	.attach = tc_bridge_attach,
-	.pre_enable = tc_bridge_pre_enable,
-	.enable = tc_bridge_enable,
-	.mode_valid = tc_mode_valid,
-	.post_disable = tc_bridge_post_disable,
-};
-
 static int tc_attach_host(struct tc_data *tc)
 {
 	struct device *dev = &tc->i2c->dev;
@@ -627,6 +609,29 @@ static int tc_attach_host(struct tc_data *tc)
 
 	return 0;
 }
+
+static int tc_bridge_attach(struct drm_bridge *bridge,
+			    enum drm_bridge_attach_flags flags)
+{
+	struct tc_data *tc = bridge_to_tc(bridge);
+	int ret;
+
+	ret = tc_attach_host(tc);
+	if (ret)
+		return ret;
+
+	/* Attach the panel-bridge to the dsi bridge */
+	return drm_bridge_attach(bridge->encoder, tc->panel_bridge,
+				 &tc->bridge, flags);
+}
+
+static const struct drm_bridge_funcs tc_bridge_funcs = {
+	.attach = tc_bridge_attach,
+	.pre_enable = tc_bridge_pre_enable,
+	.enable = tc_bridge_enable,
+	.mode_valid = tc_mode_valid,
+	.post_disable = tc_bridge_post_disable,
+};
 
 static int tc_probe(struct i2c_client *client)
 {
@@ -681,15 +686,7 @@ static int tc_probe(struct i2c_client *client)
 
 	i2c_set_clientdata(client, tc);
 
-	ret = tc_attach_host(tc);
-	if (ret)
-		goto err_bridge_remove;
-
 	return 0;
-
-err_bridge_remove:
-	drm_bridge_remove(&tc->bridge);
-	return ret;
 }
 
 static void tc_remove(struct i2c_client *client)
