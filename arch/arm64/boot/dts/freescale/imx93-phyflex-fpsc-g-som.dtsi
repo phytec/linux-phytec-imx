@@ -273,6 +273,14 @@
 		vcc-supply = <&buck5>;
 	};
 
+	/* User EEPROM */
+	eeprom@51 {
+		compatible = "atmel,24c32";
+		reg = <0x51>;
+		pagesize = <32>;
+		vcc-supply = <&buck5>;
+	};
+
 	/* RTC */
 	i2c_rtc: rtc@52 {
 		compatible = "microcrystal,rv3028";
