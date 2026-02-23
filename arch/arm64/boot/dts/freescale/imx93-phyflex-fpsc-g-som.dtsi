@@ -265,6 +265,12 @@
 		};
 	};
 
+	temperature-sensor@48 {
+		compatible = "ti,tmp102";
+		reg = <0x48>;
+		#thermal-sensor-cells = <1>;
+	};
+
 	/* factory EEPROM */
 	eeprom@50 {
 		compatible = "atmel,24c32";
