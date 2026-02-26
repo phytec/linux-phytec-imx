@@ -127,7 +127,9 @@ static int imx93_clk_composite_divider_set_rate(struct clk_hw *hw, unsigned long
 	 */
 	if (((strcmp(clk_hw_get_name(hw), "media_disp_pix_root") == 0) ||
 	     (strcmp(clk_hw_get_name(hw), "cam_pix_root") == 0)) &&
-		 (rate > 52000000)) {
+		 (rate > 52000000) &&
+		 (of_machine_is_compatible("phytec,imx91-phycore-som") ||
+		  of_machine_is_compatible("phytec,imx93-phycore-som"))) {
 
 		/* Identify PHYTEC PCL-077 3.3V SOM via the eMMC "no-1-8-v" flag */
 		struct device_node *np = of_find_node_by_path("/soc@0/bus@42800000/mmc@42850000");
