@@ -216,7 +216,7 @@
 			};
 
 			buck4: BUCK4 {
-				regulator-name = "VDD_3V3_BUCK";
+				regulator-name = "VDD_3V3";
 				regulator-min-microvolt = <3300000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
