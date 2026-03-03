@@ -154,7 +154,7 @@
 		regulator-name = "VDD_5V0";
 	};
 
-	reg_vdd_5v0_ref: regulator-vdd-5v0 {
+	reg_vdd_5v0_ref: regulator-vdd-5v0-ref {
 		compatible = "regulator-fixed";
 		regulator-always-on;
 		regulator-boot-on;
