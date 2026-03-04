@@ -60,6 +60,7 @@
 			"LINE1R", "Line In",
 			"MIC3R", "Microphone Jack",
 			"Microphone Jack", "Mic Bias";
+		status = "disabled";
 
 		simple-audio-card,cpu {
 			sound-dai = <&sai5>;
@@ -107,6 +108,7 @@
 		IOVDD-supply = <&reg_sound_3v3>;
 		DRVDD-supply = <&reg_sound_3v3>;
 		DVDD-supply = <&reg_sound_1v8>;
+		status = "disabled";
 	};
 
 	eeprom@57 {
@@ -123,14 +125,6 @@
 	};
 };
 
-&osc_mclk {
-	status = "okay";
-};
-
-&osc_mclk_gated {
-	status = "okay";
-};
-
 &sai5 {
 	#sound-dai-cells = <0>;
 	assigned-clocks = <&scmi_clk IMX95_CLK_AUDIOPLL1_VCO>,
@@ -143,7 +137,6 @@
 	assigned-clock-rates = <3932160000>,
 			       <3612672000>, <393216000>,
 			       <361267200>, <19200000>;
-	status = "okay";
 };
 
 
