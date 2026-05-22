@@ -90,6 +90,16 @@
 		regulator-name = "lvds1_reg_en";
 	};
 
+	reg_usb1_vbus: regulator-usb1-vbus {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb1_vbus>;
+		gpio = <&gpio1 12 GPIO_ACTIVE_LOW>;
+		regulator-max-microvolt = <5000000>;
+		regulator-min-microvolt = <5000000>;
+		regulator-name = "usb1_host_vbus";
+	};
+
 	reg_usdhc2_vmmc: regulator-usdhc2 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -333,15 +343,11 @@ csi1_i2c: &i2c3 {
 
 /* USB1 Host mode Type-A */
 &usb3_phy0 {
-	vbus-supply = <&reg_vcc_5v_sw>;
+	vbus-supply = <&reg_usb1_vbus>;
 	status = "okay";
 };
 
 &usb3_0 {
-	pinctrl-0 = <&pinctrl_usb1>;
-	pinctrl-names = "default";
-	fsl,over-current-active-low;
-	fsl,power-active-low;
 	status = "okay";
 };
 
@@ -566,19 +572,18 @@ csi1_i2c: &i2c3 {
 		>;
 	};
 
+	pinctrl_usb1_vbus: usb1vbusgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12     0x10
+		>;
+	};
+
 	pinctrl_uart2: uart2grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_UART2_RXD__UART2_DCE_RX	0x140
 			MX8MP_IOMUXC_UART2_TXD__UART2_DCE_TX	0x140
 			MX8MP_IOMUXC_SAI3_RXC__UART2_DCE_CTS	0x140
 			MX8MP_IOMUXC_SAI3_RXD__UART2_DCE_RTS	0x140
-		>;
-	};
-
-	pinctrl_usb1: usb1grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO12__USB1_PWR	0x4
-			MX8MP_IOMUXC_GPIO1_IO13__USB1_OC	0x4
 		>;
 	};
 
