@@ -1464,6 +1464,13 @@ properties:
               - fsl,imx952-frdm           # i.MX952 FRDM Board
           - const: fsl,imx952
 
+      - description: PHYTEC i.MX 95 based Boards
+        items:
+          - enum:
+            - phytec,imx95-phyflex-libra-rdk    # Libra phyFLEX-i.MX 95 FPSC
+          - const: phytec,imx95-phyflex-fpsc-g  # phyFLEX-i.MX 95 FPSC
+          - const: fsl,imx95
+
       - description: PHYTEC i.MX 95 FPSC based Boards
         items:
           - enum:
