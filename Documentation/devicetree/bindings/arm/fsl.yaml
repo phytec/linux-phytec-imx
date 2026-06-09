@@ -1457,13 +1457,6 @@ properties:
           - const: phytec,imx95-phyflex-fpsc-g  # phyFLEX-i.MX 95 FPSC
           - const: fsl,imx95
 
-      - description: PHYTEC i.MX 95 FPSC based Boards
-        items:
-          - enum:
-              - phytec,imx95-libra-rdk-fpsc   # Libra-i.MX 95 FPSC
-          - const: phytec,imx95-phycore-fpsc  # phyCORE-i.MX 95 FPSC
-          - const: fsl,imx95
-
       - description: i.MXRT1050 based Boards
         items:
           - enum:
