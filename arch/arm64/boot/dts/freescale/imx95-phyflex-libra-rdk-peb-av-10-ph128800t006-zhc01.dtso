@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2025 PHYTEC Messtechnik GmbH
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "imx95-phyflex-libra-rdk-peb-av-10.dtsi"
+
+&backlight {
+	status = "okay";
+};
+
+&display_pixel_link {
+	status = "okay";
+};
+
+&displaymix_irqsteer {
+	status = "okay";
+};
+
+&dpu {
+	status = "okay";
+};
+
+&ldb {
+	status = "okay";
+	channel@1 {
+		status = "okay";
+	};
+};
+
+&ldb1_phy {
+	status = "okay";
+};
+
+
+&panel_lvds2 {
+	compatible = "powertip,ph128800t006-zhc01";
+	status = "okay";
+};
+
+&pixel_interleaver {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	channel@1 {
+		status = "okay";
+	};
+};
+
+&tpm3 {
+	status = "okay";
+};
+
