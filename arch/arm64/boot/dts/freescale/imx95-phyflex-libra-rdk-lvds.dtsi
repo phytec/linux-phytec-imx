@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2025 PHYTEC Messtechnik GmbH
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include "imx95-clock.h"
+
+#include "imx95-pinfunc.h"
+
+/dts-v1/;
+/plugin/;
+
+&backlight {
+	status = "okay";
+};
+
+&display_pixel_link {
+	status = "okay";
+};
+
+&displaymix_irqsteer {
+	status = "okay";
+};
+
+&dpu {
+	status = "okay";
+};
+
+&ldb {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	/* 72.4 MHz Pixel clock */
+	assigned-clocks = <&scmi_clk IMX95_CLK_LDBPLL_VCO>,
+			  <&scmi_clk IMX95_CLK_LDBPLL>;
+	assigned-clock-rates = <3040800000>, <506800000>;
+	status = "okay";
+
+	channel@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+		reg = <0>;
+
+		port@1 {
+			reg = <1>;
+			lvds1_out: endpoint {
+				remote-endpoint = <&panel0_in>;
+			};
+		};
+	};
+};
+
+&ldb0_phy {
+	status = "okay";
+};
+
+&pixel_interleaver {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	channel@0 {
+		reg = <0>;
+		status = "okay";
+	};
+};
+
+&panel_lvds1 {
+	/* compatible panel in overlay */
+	port {
+		panel0_in: endpoint {
+			remote-endpoint = <&lvds1_out>;
+		};
+	};
+};
+
+&tpm3 {
+	status = "okay";
+};
+
+/* activate pull up */
+&pinctrl_tpm3 {
+	fsl,pins = <
+		IMX95_PAD_GPIO_IO24__TPM3_CH3     0x31e   /* PWM1 */
+	>;
+};
