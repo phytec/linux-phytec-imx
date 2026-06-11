@@ -117,10 +117,11 @@ static int cc33xx_sdio_power_on(struct cc33xx_sdio_glue *glue)
 	ret = pm_runtime_get_sync(&card->dev);
 	if (ret < 0) {
 		pm_runtime_put_noidle(&card->dev);
-		dev_err(glue->dev, "%s: failed to get_sync(%d)\n",
-			__func__, ret);
-
-		return ret;
+		if (ret != -EACCES) {
+			dev_err(glue->dev, "%s: failed to get_sync(%d)\n",
+				__func__, ret);
+			return ret;
+		}
 	}
 
 	sdio_claim_host(func);
