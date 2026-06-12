@@ -1737,6 +1737,27 @@ static void aic3x_configure_ocmv(struct device *dev, struct aic3x_priv *aic3x)
 	}
 }
 
+static int aic3x_detect(struct aic3x_priv *aic3x)
+{
+	unsigned int val;
+	int ret;
+
+	/* De-assert reset */
+	if (aic3x->gpio_reset)
+		gpiod_set_value(aic3x->gpio_reset, 0);
+
+	/* Try one bus read */
+	ret = regmap_read_bypassed(aic3x->regmap, 0x00, &val);
+	if (ret)
+		return ret;
+
+	/* Assert back reset */
+	if (aic3x->gpio_reset)
+		gpiod_set_value(aic3x->gpio_reset, 1);
+
+	return 0;
+}
+
 int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver_data)
 {
 	struct aic3x_priv *aic3x;
@@ -1829,6 +1850,12 @@ int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver
 	ret = devm_snd_soc_register_component(dev, &soc_component_dev_aic3x, &aic3x_dai, 1);
 	if (ret)
 		return ret;
+
+	ret = aic3x_detect(aic3x);
+	if (ret) {
+		dev_err(dev, "Could not detect codec (err %d)\n", ret);
+		return ret;
+	}
 
 	return 0;
 }
