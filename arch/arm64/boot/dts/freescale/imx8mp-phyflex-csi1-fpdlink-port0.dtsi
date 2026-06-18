@@ -4,12 +4,12 @@
  * Author: Stefan Riedmüller <s.riedmueller@phytec.de>
  */
 
-#include "imx8mp-phyflex-libra-rdk-csi2-fpdlink.dtsi"
+#include "imx8mp-phyflex-csi1-fpdlink.dtsi"
 
-&des_csi2_port0_link {
+&des_csi1_port0_link {
 	ti,rx-mode = <3>;
 
-	ser_csi2_port0: serializer {
+	ser_csi1_port0: serializer {
 		compatible = "ti,ds90ub953-q1";
 
 		gpio-controller;
@@ -22,24 +22,24 @@
 			#size-cells = <0x0>;
 			port@0 {
 				reg = <0>;
-				ser_csi2_port0_in: endpoint {};
+				ser_csi1_port0_in: endpoint {};
 			};
 
 			port@1 {
 				reg = <1>;
-				ser_csi2_port0_out: endpoint {
-					remote-endpoint = <&des_csi2_port0_in>;
+				ser_csi1_port0_out: endpoint {
+					remote-endpoint = <&des_csi1_port0_in>;
 				};
 			};
 		};
 
-		i2c_csi2_port0: i2c {
+		i2c_csi1_port0: i2c {
 			#address-cells = <1>;
 			#size-cells = <0>;
 		};
 	};
 };
 
-&des_csi2_port0_in {
-	remote-endpoint = <&ser_csi2_port0_out>;
+&des_csi1_port0_in {
+	remote-endpoint = <&ser_csi1_port0_out>;
 };

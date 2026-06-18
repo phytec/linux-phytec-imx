@@ -9,16 +9,16 @@
 
 #include "imx8mp-phycore-isi-csi1.dtsi"
 #include "imx8mp-phycore-isp-csi1.dtsi"
-#include "imx8mp-phyflex-libra-rdk-csi1-fpdlink-port0.dtsi"
+#include "imx8mp-phyflex-csi1-fpdlink-port0.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 
 &i2c_csi1_port0 {
-	camera@36 {
+	camera@10 {
 		#address-cells = <0x1>;
 		#size-cells = <0x0>;
 
-		compatible = "onsemi,ar0521";
-		reg = <0x36>;
+		compatible = "onsemi,ar0144";
+		reg = <0x10>;
 		clocks = <&ser_csi1_port0>;
 		clock-names = "ext";
 		isp-bus-info = "csi0";
@@ -32,13 +32,15 @@
 		port@0 {
 			reg = <0>;
 
-			vm017_csi1_port0_ep: endpoint {
+			vm016_csi1_port0_ep: endpoint {
 				remote-endpoint = <&ser_csi1_port0_in>;
 				bus-type = <4>; /* MIPI CSI-2 D-PHY */
-				link-frequencies = /bits/ 64 <288000000>;
-				data-lanes = <1 2 3 4>;
+				link-frequencies = /bits/ 64 <222750000>;
+				data-lanes = <1 2>;
 				clock-lanes = <0>;
 				clock-noncontinuous = <1>;
+				onsemi,t-hs-prep = <1>;
+				onsemi,t-clk-post = <9>;
 			};
 		};
 	};
@@ -51,6 +53,6 @@
 };
 
 &ser_csi1_port0_in {
-	remote-endpoint = <&vm017_csi1_port0_ep>;
-	data-lanes = <1 2 3 4>;
+	remote-endpoint = <&vm016_csi1_port0_ep>;
+	data-lanes = <1 2>;
 };
