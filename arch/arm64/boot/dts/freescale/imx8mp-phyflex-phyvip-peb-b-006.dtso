@@ -1,0 +1,229 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 PHYTEC Messtechnik GmbH
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "imx8mp-pinfunc.h"
+
+&{/} {
+	can_transceiver1: can-phy1 {
+		compatible = "ti,tcan1043";
+		#phy-cells = <0>;
+		max-bitrate = <8000000>;
+	};
+
+	can_transceiver2: can-phy2 {
+		compatible = "ti,tcan1043";
+		#phy-cells = <0>;
+		max-bitrate = <8000000>;
+	};
+
+	clk_snd: clock-sound {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <19200000>;
+	};
+
+	reg_snd_1v8: regulator-1v8 {
+		compatible = "regulator-fixed";
+		regulator-max-microvolt = <1800000>;
+		regulator-min-microvolt = <1800000>;
+		regulator-name = "VCC-1V8-AUDIO";
+	};
+
+	reg_snd_3v3: regulator-3v3 {
+		compatible = "regulator-fixed";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "VCC-3V3-AUDIO";
+	};
+
+	sound-hdmi {
+		compatible = "fsl,imx-audio-hdmi";
+		model = "audio-hdmi";
+		audio-cpu = <&aud2htx>;
+		hdmi-out;
+	};
+
+	sound-peb-b-006 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "snd-peb-b-006";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&dailink_master>;
+		simple-audio-card,frame-master = <&dailink_master>;
+		simple-audio-card,widgets =
+			"Speaker", "Speaker X16",
+			"Microphone", "Microphone X17",
+			"Headphone", "Amplifier X18";
+		simple-audio-card,routing =
+			"Speaker X16", "SPOP",
+			"Speaker X16", "SPOM",
+			"Amplifier X18", "HPLOUT",
+			"MIC3L", "Microphone X17",
+			"Microphone X17", "Mic Bias";
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai5>;
+		};
+
+		dailink_master: simple-audio-card,codec {
+			sound-dai = <&codec>;
+			clocks = <&clk_snd>;
+		};
+	};
+};
+
+/* HDMI Audio */
+&aud2htx {
+	status = "okay";
+};
+
+/* CAN FD */
+&flexcan1 {
+	phys = <&can_transceiver1>;
+	status = "okay";
+};
+
+&flexcan2 {
+	phys = <&can_transceiver2>;
+	status = "okay";
+};
+
+&gpio4 {
+	gpio-line-names = "GPIO6", "RGMII2_nINT", "GPIO7", "GPIO4", "",
+			  "", "", "", "", "",
+			  "", "", "", "", "",
+			  "", "", "", "X_PMIC_IRQ_B", "",
+			  "", "GPIO5", "", "", "RGMII2_EVENT_OUT",
+			  "", "", "RGMII2_EVENT_IN", "", "CODEC_GPIO1";
+};
+
+/* HDMI */
+&hdmi_pavi {
+	status = "okay";
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&hdmiphy {
+	status = "okay";
+};
+
+/* CSI1 I2C */
+&i2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/* Audio codec */
+	codec: codec@18 {
+		compatible = "ti,tlv320aic3007";
+		reg = <0x18>;
+		#sound-dai-cells = <0>;
+		ai3x-gpio-func = <0xf 0x0>;
+		ai3x-micbias-vg = <2>;
+		AVDD-supply = <&reg_snd_3v3>;
+		DRVDD-supply = <&reg_snd_3v3>;
+		DVDD-supply = <&reg_snd_1v8>;
+		IOVDD-supply = <&reg_snd_3v3>;
+	};
+
+	/* Factory EEPROM */
+	eeprom@51 {
+		compatible = "atmel,24c32";
+		reg = <0x51>;
+		pagesize = <32>;
+		vcc-supply = <&reg_vcc_1v8>;
+	};
+};
+
+/* Needed for HDMI */
+&lcdif3 {
+	status = "okay";
+};
+
+/* RTC Backup */
+&rv3028 {
+	aux-voltage-chargeable = <1>;
+	trickle-resistor-ohms = <3000>;
+};
+
+/* Audio */
+&sai5 {
+	status = "okay";
+};
+
+/* Needed for HDMI */
+&sdma2 {
+	status = "okay";
+};
+
+/* ON/OFF */
+&snvs_pwrkey {
+	status = "okay";
+};
+
+/* RS485 */
+&uart3 {
+	uart-has-rtscts;
+	status = "okay";
+};
+
+/* USB1 Type-C */
+&usb3_phy0 {
+	vbus-supply = <&reg_vcc_5v>;
+	status = "okay";
+};
+
+&usb3_0 {
+	fsl,over-current-active-low;
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+/* USB2 USB2.0 */
+&usb3_phy1 {
+	vbus-supply = <&reg_vcc_5v>;
+	status = "okay";
+};
+
+&usb3_1 {
+	fsl,over-current-active-low;
+	status = "okay";
+};
+
+&usb_dwc3_1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&iomuxc {
+	/* FPSC pinctrl_sai5 override; configure for PEB-B-006 codec usage */
+	pinctrl_sai5: sai5grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI3_RXC__GPIO4_IO29		0x106	/* CODEC_GPIO1 */
+			MX8MP_IOMUXC_SAI3_RXD__AUDIOMIX_SAI5_RX_DATA00	0x106	/* SAI1_RX_DATA */
+			MX8MP_IOMUXC_SAI5_RXD1__AUDIOMIX_SAI5_TX_SYNC	0x106	/* SAI1_TX_SYNC */
+			MX8MP_IOMUXC_SAI5_RXD2__AUDIOMIX_SAI5_TX_BCLK	0x106	/* SAI1_TX_BCLK */
+			MX8MP_IOMUXC_SAI2_RXD0__AUDIOMIX_SAI5_TX_DATA00	0x106	/* SAI1_TX_DATA */
+		>;
+	};
+
+	/* FPSC pinctrl_uart3 override; disable pull-up on RTS line */
+	pinctrl_uart3: uart3grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA6__UART3_DTE_RX	0x140	/* UART1_RXD */
+			MX8MP_IOMUXC_SD1_DATA7__UART3_DTE_TX	0x140	/* UART1_TXD */
+			MX8MP_IOMUXC_SD1_STROBE__UART3_DTE_RTS	0x40	/* UART1_RTS */
+			MX8MP_IOMUXC_SD1_RESET_B__UART3_DTE_CTS	0x140	/* UART1_CTS */
+		>;
+	};
+};

@@ -329,6 +329,9 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-libra-rdk-vm024-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-libra-rdk-vm024-csi2.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip.dtb
+imx8mp-phyflex-phyvip-peb-b-006-dtbs := imx8mp-phyflex-phyvip.dtb \
+	imx8mp-phyflex-phyvip-peb-b-006.dtbo
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip-peb-b-006.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-rdk.dtb
 imx8mp-phyboard-pollux-etml1010g3dra-dtbs := imx8mp-phyboard-pollux-rdk.dtb \
