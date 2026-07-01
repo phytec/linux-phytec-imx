@@ -1125,6 +1125,7 @@ properties:
         items:
           - enum:
               - phytec,imx8mp-phyflex-libra-rdk  # phyFLEX-i.MX 8M Plus Libra RDK
+              - phytec,imx8mp-phyflex-phyvip     # phyFLEX-i.MX 8M Plus phyVIP
           - const: phytec,imx8mp-phyflex-fpsc-g # phyFLEX-i.MX 8M Plus FPSC-Gamma SoM
           - const: fsl,imx8mp
 
