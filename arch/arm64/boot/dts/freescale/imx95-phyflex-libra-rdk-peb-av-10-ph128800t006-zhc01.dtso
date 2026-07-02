@@ -42,8 +42,6 @@
 };
 
 &pixel_interleaver {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	status = "okay";
 
 	channel@1 {

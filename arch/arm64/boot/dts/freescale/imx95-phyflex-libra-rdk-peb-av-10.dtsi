@@ -74,17 +74,12 @@
 };
 
 &ldb {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	/* 72.4 MHz Pixel clock */
 	assigned-clocks = <&scmi_clk IMX95_CLK_LDBPLL_VCO>,
 			  <&scmi_clk IMX95_CLK_LDBPLL>;
 	assigned-clock-rates = <3040800000>, <506800000>;
 
 	channel@1 {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
 		port@1 {
 			lvds2_out: endpoint {
 				remote-endpoint = <&panel1_in>;
@@ -96,6 +91,7 @@
 &lpi2c3 {
 	#address-cells = <1>;
 	#size-cells = <0>;
+
 	codec: codec@18 {
 		compatible = "ti,tlv320aic3007";
 		reg = <0x18>;
