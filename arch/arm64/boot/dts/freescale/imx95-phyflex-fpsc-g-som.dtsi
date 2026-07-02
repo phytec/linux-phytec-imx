@@ -708,7 +708,7 @@
 
 &usdhc3 { /* FPSC SDIO */
 	bus-width = <4>;
-	non-removable;
+	broken-cd;
 	disable-wp;
 	pinctrl-0 = <&pinctrl_usdhc3>;
 	pinctrl-1 = <&pinctrl_usdhc3_100mhz>;
