@@ -111,8 +111,8 @@
 #define		BIT_GLOBAL_TRIGGER		BIT(0)
 #define		BIT_SEQ_TRIGGER_GLOBAL_FLASH	BIT(2)
 #define	AR0521_SERIAL_FORMAT			0x31ae
-#define		BIT_TYPE(n)			((n) << 8)
-#define		BIT_LANES(n)			(n)
+#define		BIT_SERIAL_FORMAT_TYPE(n)	((n) << 8)
+#define		BIT_SERIAL_FORMAT_LANES(n)	(n)
 #define	AR0521_MIPI_TIMING_0			0x31b4
 #define		BIT_HS_PREP(n)			((n) << 12)
 #define		BIT_HS_ZERO(n)			((n) << 6)
@@ -1544,8 +1544,8 @@ static int ar0521_config_mipi(struct ar0521 *sensor)
 		return ret;
 
 	ret = ar0521_write(sensor, AR0521_SERIAL_FORMAT,
-			   BIT_TYPE(AR0521_TYPE_MIPI) |
-			   BIT_LANES(sensor->info.buscfg.num_data_lanes));
+			   BIT_SERIAL_FORMAT_TYPE(AR0521_TYPE_MIPI) |
+			   BIT_SERIAL_FORMAT_LANES(sensor->info.buscfg.num_data_lanes));
 	if (ret)
 		return ret;
 
