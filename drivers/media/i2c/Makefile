@@ -22,6 +22,7 @@ obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
 obj-$(CONFIG_VIDEO_AR0144) += ar0144.o
 obj-$(CONFIG_VIDEO_PHYCAM_AR0521) += phycam-ar0521.o
 obj-$(CONFIG_VIDEO_AR0521) += ar0521.o
+obj-$(CONFIG_VIDEO_AR0830) += ar0830.o
 obj-$(CONFIG_VIDEO_BT819) += bt819.o
 obj-$(CONFIG_VIDEO_BT856) += bt856.o
 obj-$(CONFIG_VIDEO_BT866) += bt866.o

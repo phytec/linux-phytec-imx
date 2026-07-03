@@ -79,6 +79,17 @@ config VIDEO_AR0521
 	  To compile this driver as a module, choose M here: the
 	  module will be called ar0521.
 
+config VIDEO_AR0830
+        tristate "ON Semiconductor AR0830 sensor support"
+        select V4L2_CCI_I2C
+        select VIDEO_CCS_PLL
+        help
+          This driver supports AR0830 cameras from onsemi, monochrome
+          and colour models are supported via its MIPI interface.
+
+          To compile this driver as a module, choose M here: the
+          module will be called ar0830.
+
 config VIDEO_GC0308
 	tristate "GalaxyCore GC0308 sensor support"
 	select V4L2_CCI_I2C
