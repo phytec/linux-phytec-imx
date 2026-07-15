@@ -331,6 +331,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-libra-rdk-vm024-csi2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip.dtb
 imx8mp-phyflex-phyvip-peb-b-006-dtbs := imx8mp-phyflex-phyvip.dtb \
 	imx8mp-phyflex-phyvip-peb-b-006.dtbo
+imx8mp-phyflex-phyvip-temperature-dtbs := imx8mp-phyflex-phyvip.dtb \
+	imx8mp-phyflex-phyvip-temperature.dtbo
 imx8mp-phyflex-phyvip-vm016-csi1-dtbs += imx8mp-phyflex-phyvip.dtb imx8mp-phyflex-vm016-csi1.dtbo
 imx8mp-phyflex-phyvip-vm016-csi1-fpdlink-port0-dtbs += imx8mp-phyflex-phyvip.dtb \
 	imx8mp-phyflex-vm016-csi1-fpdlink-port0.dtbo
@@ -365,6 +367,7 @@ imx8mp-phyflex-phyvip-vm024-csi1-dtbs += imx8mp-phyflex-phyvip.dtb imx8mp-phyfle
 imx8mp-phyflex-phyvip-vm024-csi2-dtbs += imx8mp-phyflex-phyvip.dtb imx8mp-phyflex-vm024-csi2.dtbo
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip-peb-b-006.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip-temperature.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip-vm016-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip-vm016-csi1-fpdlink-port0.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyflex-phyvip-vm016-csi1-fpdlink-port1.dtb

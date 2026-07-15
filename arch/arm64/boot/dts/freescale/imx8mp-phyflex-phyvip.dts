@@ -78,16 +78,18 @@
 	clock-frequency = <400000>;
 	status = "okay";
 
-	temperature-sensor@48 {
+	temp_sense1: temperature-sensor@48 {
 		compatible = "ti,tmp102";
 		reg = <0x48>;
 		#thermal-sensor-cells = <1>;
+		status = "disabled";
 	};
 
-	temperature-sensor@49 {
+	temp_sense2: temperature-sensor@49 {
 		compatible = "ti,tmp102";
 		reg = <0x49>;
 		#thermal-sensor-cells = <1>;
+		status = "disabled";
 	};
 };
 
@@ -96,16 +98,18 @@
 	clock-frequency = <400000>;
 	status = "okay";
 
-	temperature-sensor@48 {
+	temp_sense3: temperature-sensor@48 {
 		compatible = "ti,tmp102";
 		reg = <0x48>;
 		#thermal-sensor-cells = <1>;
+		status = "disabled";
 	};
 
-	temperature-sensor@49 {
+	temp_sense4: temperature-sensor@49 {
 		compatible = "ti,tmp102";
 		reg = <0x49>;
 		#thermal-sensor-cells = <1>;
+		status = "disabled";
 	};
 };
 
