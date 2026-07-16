@@ -35,6 +35,23 @@
 		usb1 = &usb3;
 	};
 
+	enet_refclk_gen: enetc-clk-gen {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-accuracy = <10000>;
+		clock-frequency = <156250000>;
+		clock-output-names = "enet-ref-clk";
+	};
+
+	enet_refclk: enetc-refclk {
+		compatible = "gpio-gate-clock";
+		clocks = <&enet_refclk_gen>;
+		#clock-cells = <0>;
+		enable-gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_enet_refclk>;
+	};
+
 	memory@80000000 {
 		device_type = "memory";
 		reg = <0x00000000 0x80000000 0x00000002 0x00000000>;
@@ -325,6 +342,12 @@
 		fsl,pins = <
 			IMX95_PAD_ENET2_MDIO__NETCMIX_TOP_NETC_MDIO	0x97e	/* RGMII2_MDIO */
 			IMX95_PAD_ENET2_MDC__NETCMIX_TOP_NETC_MDC	0x502	/* RGMII2_MDC */
+		>;
+	};
+
+	pinctrl_enet_refclk: enetrefclkgrp {
+		fsl,pins = <
+			IMX95_PAD_CCM_CLKO1__GPIO3_IO_BIT26	0x51e
 		>;
 	};
 
