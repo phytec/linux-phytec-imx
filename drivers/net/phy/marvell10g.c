@@ -667,10 +667,8 @@ static int mv3310_set_mactype(struct phy_device *phydev, int mactype)
 
 static int mv3310_select_mactype(unsigned long *interfaces)
 {
-	if (test_bit(PHY_INTERFACE_MODE_USXGMII, interfaces))
-		return MV_V2_33X0_PORT_CTRL_MACTYPE_USXGMII;
-	else if (test_bit(PHY_INTERFACE_MODE_SGMII, interfaces) &&
-		 test_bit(PHY_INTERFACE_MODE_10GBASER, interfaces))
+	if (test_bit(PHY_INTERFACE_MODE_SGMII, interfaces) &&
+	    test_bit(PHY_INTERFACE_MODE_10GBASER, interfaces))
 		return MV_V2_33X0_PORT_CTRL_MACTYPE_10GBASER;
 	else if (test_bit(PHY_INTERFACE_MODE_SGMII, interfaces) &&
 		 test_bit(PHY_INTERFACE_MODE_RXAUI, interfaces))
@@ -680,6 +678,8 @@ static int mv3310_select_mactype(unsigned long *interfaces)
 		return MV_V2_3310_PORT_CTRL_MACTYPE_XAUI;
 	else if (test_bit(PHY_INTERFACE_MODE_10GBASER, interfaces))
 		return MV_V2_33X0_PORT_CTRL_MACTYPE_10GBASER_RATE_MATCH;
+	else if (test_bit(PHY_INTERFACE_MODE_USXGMII, interfaces))
+		return MV_V2_33X0_PORT_CTRL_MACTYPE_USXGMII;
 	else if (test_bit(PHY_INTERFACE_MODE_RXAUI, interfaces))
 		return MV_V2_33X0_PORT_CTRL_MACTYPE_RXAUI_RATE_MATCH;
 	else if (test_bit(PHY_INTERFACE_MODE_XAUI, interfaces))
