@@ -510,6 +510,10 @@ static const struct sfp_quirk sfp_quirks[] = {
 	SFP_QUIRK("ALCATELLUCENT", "3FE46541AA", sfp_quirk_2500basex,
 		  sfp_fixup_nokia),
 
+	// ATGBICS SFP-10GAT-MSA-AT needs the same quirk as Fiberstore SFP+
+	// transceiver
+	SFP_QUIRK_F("ATGBICS", "SFP-10GAT-MSA-AT", sfp_fixup_fs_10gt),
+
 	SFP_QUIRK_F("BIDB", "X-ONU-SFPP", sfp_fixup_potron),
 
 	// FLYPRO SFP-10GT-CS-30M uses Rollball protocol to talk to the PHY.
