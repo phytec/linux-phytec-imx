@@ -754,3 +754,8 @@
 	boot = <&vpu_boot>;
 	sram = <&sram1>;
 };
+
+&wdog3 {
+	fsl,ext-reset-output;
+	status = "okay";
+};
