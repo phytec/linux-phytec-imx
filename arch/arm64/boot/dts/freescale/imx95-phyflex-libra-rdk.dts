@@ -245,6 +245,14 @@
 			  "LVDS1_BL_EN";
 };
 
+&lpi2c1 {
+	temperature-sensor@4f {
+		compatible = "nxp,p3t1755";
+		reg = <0x4f>;
+		vs-supply = <&reg_vdd_1v8>;
+	};
+};
+
 &lpi2c3 {
 	status = "okay";
 
