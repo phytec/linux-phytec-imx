@@ -458,6 +458,10 @@
 	wakeup-source;
 };
 
+&scmi_bbm {
+	linux,code = <KEY_POWER>;
+};
+
 &scmi_iomuxc {
 	pinctrl_lpuart2: lpuart2grp { /* FPSC proprietary */
 		fsl,pins = <
