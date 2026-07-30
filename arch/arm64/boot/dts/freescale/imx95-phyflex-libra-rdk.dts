@@ -549,6 +549,7 @@
 };
 
 &usb3_phy {
+	orientation-switch;
 	status = "okay";
 	vbus-supply = <&reg_usb3_phy>;
 };
