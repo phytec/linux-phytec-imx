@@ -52,7 +52,13 @@ properties:
             const: 4 # MIPI CSI-2 D-PHY
 
           link-frequencies:
-            maximum: 750000000
+            oneOf:
+              - 288000000
+              - 375000000
+              - 500000000
+              - 562500000
+              - 600000000
+              - 750000000
 
           data-lanes:
             oneOf:
