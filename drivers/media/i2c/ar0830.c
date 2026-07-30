@@ -112,27 +112,8 @@
 #define		AR0830_AE_ANALOG_GAIN(n)				(((n) >> 11) & 0x7)
 #define		AR0830_AE_DIGITAL_GAIN(n)				(((n) >> 0) & 0x7ff)
 #define AR0830_AE_COARSE_INTEGRATION_TIME			CCI_REG16(0x3d38)
-#define AR0830_MIPI_TIMING_0					CCI_REG16(0x3f02)
-#define		AR0830_T_HS_PREPARE(n)					((n) << 12)
-#define		AR0830_T_HS_ZERO(n)					((n) << 6)
-#define		AR0830_T_HS_TRAIL(n)					((n) << 1)
-#define AR0830_MIPI_TIMING_1					CCI_REG16(0x3f04)
-#define		AR0830_T_CLK_PREPARE(n)					((n) << 12)
-#define		AR0830_T_CLK_ZERO(n)					((n) << 5)
-#define		AR0830_T_CLK_TRAIL(n)					((n) << 0)
-#define AR0830_MIPI_TIMING_2					CCI_REG16(0x3f06)
-#define		AR0830_T_CLK_PRE(n)					((n) << 6)
-#define		AR0830_T_CLK_POST(n)					((n) << 0)
-#define AR0830_MIPI_TIMING_3					CCI_REG16(0x3f08)
-#define		AR0830_T_LPX(n)						((n) << 7)
-#define		AR0830_T_WAKE_UP(n)					((n) << 0)
 #define AR0830_MIPI_TIMING_4					CCI_REG16(0x3f0a)
 #define		AR0830_CONT_TX_CLK					BIT(15)
-#define		AR0830_HEAVY_LP_LOAD					BIT(14)
-#define		AR0830_T_HS_EXIT(n)					((n) << 7)
-#define		AR0830_T_INIT(n)					((n) << 0)
-#define AR0830_MIPI_TIMING_5					CCI_REG16(0x3f0c)
-#define		AR0830_T_BGAP(n)					((n) << 0)
 
 #define AR0830_CHIP_VERSION			0x0553
 
@@ -156,6 +137,9 @@
 #define AR0830_MIN_HEIGHT			32U
 #define AR0830_MAX_HEIGHT			2160U
 #define AR0830_STEP_HEIGHT			2U
+
+#define AR0830_10BIT_INFO			0
+#define AR0830_8BIT_INFO			1
 
 #define V4L2_CID_USER_AR0830_BASE				(V4L2_CID_USER_BASE + 0x2500)
 #define V4L2_CID_AR0830_ROW_BINNING				(V4L2_CID_USER_AR0830_BASE + 1)
@@ -211,6 +195,29 @@ static const int ar0830_test_pattern_val[] = {
 	AR0830_TEST_PATTERN_COLOR_TILE,
 };
 
+struct ar0830_pll_config {
+	u16 vt_pll_mul;
+	u16 vt_pre_pll_clk_div;
+	u16 vt_pix_clk_div;
+	u16 vt_sys_clk_div;
+	u16 op_pll_mul;
+	u16 op_pre_pll_clk_div;
+	u16 op_pix_clk_div;
+	u16 op_sys_clk_div;
+	u32 link_freq;
+	u32 pixel_rate_csi;
+	u32 pixel_rate_pixel_array;
+};
+
+static const s64 ar0830_link_frequencies[] = {
+	288000000,
+	375000000,
+	500000000,
+	562500000,
+	600000000,
+	750000000,
+};
+
 struct ar0830 {
 	struct device *dev;
 
@@ -219,10 +226,9 @@ struct ar0830 {
 	struct gpio_desc *reset;
 
 	struct v4l2_fwnode_endpoint buscfg;
-	u64 valid_link_freqs[ARRAY_SIZE(ar0830_formats)];
-	u32 valid_formats;
+	unsigned long valid_link_freqs[ARRAY_SIZE(ar0830_formats)];
 
-	struct ccs_pll pll;
+	struct ar0830_pll_config pll;
 
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler ctrls;
@@ -278,7 +284,7 @@ ar0830_get_format_info(struct ar0830 *sensor, u32 code, bool use_def)
 		const struct ar0830_format_info *info = &ar0830_formats[i];
 		u32 info_code = ar0830_format_code(sensor, info);
 
-		if (!(sensor->valid_formats & BIT(i)))
+		if (!sensor->valid_link_freqs[i])
 			continue;
 
 		if (info_code == code)
@@ -1001,21 +1007,21 @@ static int ar0830_configure_pll(struct ar0830 *sensor)
 	cci_update_bits(sensor->regmap, AR0830_RESET_REGISTER, BIT(3), 0, &ret);
 
 	cci_write(sensor->regmap, AR0830_VT_PRE_PLL_CLK_DIV,
-		  sensor->pll.vt_fr.pre_pll_clk_div, &ret);
+		  sensor->pll.vt_pre_pll_clk_div, &ret);
 	cci_write(sensor->regmap, AR0830_VT_PLL_MULTIPLIER,
-		  sensor->pll.vt_fr.pll_multiplier, &ret);
+		  sensor->pll.vt_pll_mul, &ret);
 	cci_write(sensor->regmap, AR0830_VT_PIX_CLK_DIV,
-		  sensor->pll.vt_bk.pix_clk_div, &ret);
+		  sensor->pll.vt_pix_clk_div, &ret);
 	cci_write(sensor->regmap, AR0830_VT_SYS_CLK_DIV,
-		  sensor->pll.vt_bk.sys_clk_div, &ret);
+		  sensor->pll.vt_sys_clk_div, &ret);
 	cci_write(sensor->regmap, AR0830_OP_PRE_PLL_CLK_DIV,
-		  sensor->pll.op_fr.pre_pll_clk_div, &ret);
+		  sensor->pll.op_pre_pll_clk_div, &ret);
 	cci_write(sensor->regmap, AR0830_OP_PLL_MULTIPLIER,
-		  sensor->pll.op_fr.pll_multiplier, &ret);
+		  sensor->pll.op_pll_mul, &ret);
 	cci_write(sensor->regmap, AR0830_OP_PIX_CLK_DIV,
-		  sensor->pll.op_bk.pix_clk_div, &ret);
+		  sensor->pll.op_pix_clk_div, &ret);
 	cci_write(sensor->regmap, AR0830_OP_SYS_CLK_DIV,
-		  sensor->pll.op_bk.sys_clk_div, &ret);
+		  sensor->pll.op_sys_clk_div, &ret);
 
 	fsleep(1000);
 
@@ -1023,14 +1029,83 @@ static int ar0830_configure_pll(struct ar0830 *sensor)
 }
 
 static const struct cci_reg_sequence mipi_regs[] = {
-	{ CCI_REG16(0x3ec0), 0x006f },
-	{ CCI_REG16(0x3ec2), 0x0034 },
 	{ CCI_REG16(0x3ec4), 0x0204 },
 	{ CCI_REG16(0x3ec6), 0x000f },
 	{ CCI_REG16(0x3c80), 0x0010 },
 	{ CCI_REG16(0x3600), 0x94d8 },
-	{ CCI_REG16(0x3f1c), 0x0ad3 },
 	{ CCI_REG16(0x3f20), 0x8008 },
+};
+
+static const struct cci_reg_sequence mipi_timing_1500mbps[] = {
+	{ CCI_REG16(0x3ec0), 0x006f },
+	{ CCI_REG16(0x3ec2), 0x0034 },
+	{ CCI_REG16(0x3f02), 0x83d6 },
+	{ CCI_REG16(0x3f04), 0x75ca },
+	{ CCI_REG16(0x3f06), 0x00d0 },
+	{ CCI_REG16(0x3f08), 0x0493 },
+	{ CCI_REG16(0x3f0a), 0x880f },
+	{ CCI_REG16(0x3f0c), 0x000c },
+	{ CCI_REG16(0x3f1c), 0x1028 },
+};
+
+static const struct cci_reg_sequence mipi_timing_1200mbps[] = {
+	{ CCI_REG16(0x3ec0), 0x0070 },
+	{ CCI_REG16(0x3ec2), 0x0035 },
+	{ CCI_REG16(0x3f02), 0x83d6 },
+	{ CCI_REG16(0x3f04), 0x75aa },
+	{ CCI_REG16(0x3f06), 0x00d0 },
+	{ CCI_REG16(0x3f08), 0x0493 },
+	{ CCI_REG16(0x3f0a), 0x880f },
+	{ CCI_REG16(0x3f0c), 0x000c },
+	{ CCI_REG16(0x3f1c), 0x1028 },
+};
+
+static const struct cci_reg_sequence mipi_timing_1125mbps[] = {
+	{ CCI_REG16(0x3ec0), 0x006d },
+	{ CCI_REG16(0x3ec2), 0x0034 },
+	{ CCI_REG16(0x3f02), 0x8394 },
+	{ CCI_REG16(0x3f04), 0x756a },
+	{ CCI_REG16(0x3f06), 0x00cf },
+	{ CCI_REG16(0x3f08), 0x0492 },
+	{ CCI_REG16(0x3f0a), 0x880e },
+	{ CCI_REG16(0x3f0c), 0x000b },
+	{ CCI_REG16(0x3f1c), 0x1027 },
+};
+
+static const struct cci_reg_sequence mipi_timing_1000mbps[] = {
+	{ CCI_REG16(0x3ec0), 0x0064 },
+	{ CCI_REG16(0x3ec2), 0x0031 },
+	{ CCI_REG16(0x3f02), 0x7352 },
+	{ CCI_REG16(0x3f04), 0x64c9 },
+	{ CCI_REG16(0x3f06), 0x00ce },
+	{ CCI_REG16(0x3f08), 0x0410 },
+	{ CCI_REG16(0x3f0a), 0x870d },
+	{ CCI_REG16(0x3f0c), 0x000a },
+	{ CCI_REG16(0x3f1c), 0x1023 },
+};
+
+static const struct cci_reg_sequence mipi_timing_750mbps[] = {
+	{ CCI_REG16(0x3ec0), 0x0052 },
+	{ CCI_REG16(0x3ec2), 0x002a },
+	{ CCI_REG16(0x3f02), 0x6250 },
+	{ CCI_REG16(0x3f04), 0x53a7 },
+	{ CCI_REG16(0x3f06), 0x00cd },
+	{ CCI_REG16(0x3f08), 0x030c },
+	{ CCI_REG16(0x3f0a), 0x858a },
+	{ CCI_REG16(0x3f0c), 0x0008 },
+	{ CCI_REG16(0x3f1c), 0x101a },
+};
+
+static const struct cci_reg_sequence mipi_timing_576mbps[] = {
+	{ CCI_REG16(0x3ec0), 0x0046 },
+	{ CCI_REG16(0x3ec2), 0x0026 },
+	{ CCI_REG16(0x3f02), 0x51cc },
+	{ CCI_REG16(0x3f04), 0x42c6 },
+	{ CCI_REG16(0x3f06), 0x00cb },
+	{ CCI_REG16(0x3f08), 0x0289 },
+	{ CCI_REG16(0x3f0a), 0x8488 },
+	{ CCI_REG16(0x3f0c), 0x0006 },
+	{ CCI_REG16(0x3f1c), 0x1015 },
 };
 
 static int ar0830_configure_mipi(struct ar0830 *sensor, const struct ar0830_format_info *info)
@@ -1046,18 +1121,35 @@ static int ar0830_configure_mipi(struct ar0830 *sensor, const struct ar0830_form
 
 	cci_multi_reg_write(sensor->regmap, mipi_regs, ARRAY_SIZE(mipi_regs), &ret);
 
-	cci_write(sensor->regmap, AR0830_MIPI_TIMING_0,
-		  AR0830_T_HS_PREPARE(7) | AR0830_T_HS_ZERO(14) | AR0830_T_HS_TRAIL(10), &ret);
-	cci_write(sensor->regmap, AR0830_MIPI_TIMING_1,
-		  AR0830_T_CLK_PREPARE(6) | AR0830_T_CLK_ZERO(44) | AR0830_T_CLK_TRAIL(9), &ret);
-	cci_write(sensor->regmap, AR0830_MIPI_TIMING_2,
-		  AR0830_T_CLK_PRE(3) | AR0830_T_CLK_POST(14), &ret);
-	cci_write(sensor->regmap, AR0830_MIPI_TIMING_3,
-		  AR0830_T_LPX(8) | AR0830_T_WAKE_UP(24), &ret);
-	cci_write(sensor->regmap, AR0830_MIPI_TIMING_4,
-		  (cont_clk ? AR0830_CONT_TX_CLK : 0) | AR0830_T_HS_EXIT(15) |
-		  AR0830_T_INIT(14), &ret);
-	cci_write(sensor->regmap, AR0830_MIPI_TIMING_5, AR0830_T_BGAP(12), &ret);
+	switch (sensor->pll.link_freq) {
+	case 750000000:
+		cci_multi_reg_write(sensor->regmap, mipi_timing_1500mbps,
+				    ARRAY_SIZE(mipi_timing_1500mbps), &ret);
+		break;
+	case 600000000:
+		cci_multi_reg_write(sensor->regmap, mipi_timing_1200mbps,
+				    ARRAY_SIZE(mipi_timing_1200mbps), &ret);
+		break;
+	case 562500000:
+		cci_multi_reg_write(sensor->regmap, mipi_timing_1125mbps,
+				    ARRAY_SIZE(mipi_timing_1125mbps), &ret);
+		break;
+	case 500000000:
+		cci_multi_reg_write(sensor->regmap, mipi_timing_1000mbps,
+				    ARRAY_SIZE(mipi_timing_1000mbps), &ret);
+		break;
+	case 375000000:
+		cci_multi_reg_write(sensor->regmap, mipi_timing_750mbps,
+				    ARRAY_SIZE(mipi_timing_750mbps), &ret);
+		break;
+	case 288000000:
+		cci_multi_reg_write(sensor->regmap, mipi_timing_576mbps,
+				    ARRAY_SIZE(mipi_timing_576mbps), &ret);
+		break;
+	}
+
+	cci_update_bits(sensor->regmap, AR0830_MIPI_TIMING_4,
+			AR0830_CONT_TX_CLK, (cont_clk ? AR0830_CONT_TX_CLK : 0), &ret);
 
 	return ret;
 }
@@ -1199,118 +1291,59 @@ static void ar0830_reset(struct ar0830 *sensor)
 	fsleep(reset_delay);
 }
 
-static int ar0830_calculate_pll(struct ar0830 *sensor, unsigned int link_freq,
-				struct ccs_pll *pll, unsigned int bpp)
+static int ar0830_update_pll_settings(struct ar0830 *sensor, unsigned int link_freq,
+				      struct ar0830_pll_config *pll, unsigned int bpp)
 {
-	struct ccs_pll_limits limits = {
-		.min_ext_clk_freq_hz = 6000000,
-		.max_ext_clk_freq_hz = 48000000,
-
-		.vt_fr = {
-			.min_pre_pll_clk_div = 1,
-			.max_pre_pll_clk_div = 63,
-			.min_pll_multiplier = 16,
-			.max_pll_multiplier = 255,
-			.min_pll_op_clk_freq_hz = 384000000,
-			.max_pll_op_clk_freq_hz = 900000000,
-		},
-		.vt_bk = {
-			.min_sys_clk_div = 1,
-			.max_sys_clk_div = 8,
-			.min_pix_clk_div = 4,
-			.max_pix_clk_div = 10,
-			.min_pix_clk_freq_hz = 64000000,
-			.max_pix_clk_freq_hz = 150000000,
-		},
-		.op_fr = {
-			.min_pre_pll_clk_div = 1,
-			.max_pre_pll_clk_div = 63,
-			.min_pll_multiplier = 16,
-			.max_pll_multiplier = 255,
-			.min_pll_op_clk_freq_hz = 384000000,
-			.max_pll_op_clk_freq_hz = 1800000000,
-		},
-		.op_bk = {
-			.min_sys_clk_div = 1,
-			.max_sys_clk_div = 8,
-			.min_pix_clk_div = bpp,
-			.max_pix_clk_div = bpp,
-			.min_pix_clk_freq_hz = 64000000,
-			.max_pix_clk_freq_hz = 150000000,
-		},
-
-		.min_line_length_pck_bin = 4496,
-		.min_line_length_pck = 4496,
-	};
-	unsigned int num_lanes = sensor->buscfg.bus.mipi_csi2.num_data_lanes;
-	int ret;
-
-	/*
-	 * There are no documented constraints on the PLL input clock
-	 * frequency, for either branch. Recover them based on the external
-	 * clock frequency and pre_pll_clk_div limits on one hand, and the PLL
-	 * output clock and the pll_multiplier limits on the other hand.
-	 */
-
-	limits.vt_fr.min_pll_ip_clk_freq_hz =
-		max(limits.min_ext_clk_freq_hz / limits.vt_fr.max_pre_pll_clk_div,
-		    limits.vt_fr.min_pll_op_clk_freq_hz / limits.vt_fr.max_pll_multiplier);
-	limits.vt_fr.max_pll_ip_clk_freq_hz =
-		min(limits.max_ext_clk_freq_hz / limits.vt_fr.min_pre_pll_clk_div,
-		    limits.vt_fr.max_pll_op_clk_freq_hz / limits.vt_fr.min_pll_multiplier);
-
-	limits.op_fr.min_pll_ip_clk_freq_hz =
-		max(limits.min_ext_clk_freq_hz / limits.op_fr.max_pre_pll_clk_div,
-		    limits.op_fr.min_pll_op_clk_freq_hz / limits.op_fr.max_pll_multiplier);
-	limits.op_fr.max_pll_ip_clk_freq_hz =
-		min(limits.max_ext_clk_freq_hz / limits.op_fr.min_pre_pll_clk_div,
-		    limits.op_fr.max_pll_op_clk_freq_hz / limits.op_fr.min_pll_multiplier);
-
-	/*
-	 * There are no documented constraints on the sys clock frequency, for
-	 * either branch. Recover them based on the PLL output clock frequency
-	 * and sys_clk_div limits on one hand, and the pix clock frequency and
-	 * the pix_clk_div limits on the other hand.
-	 */
-
-	limits.vt_bk.min_sys_clk_freq_hz =
-		max(limits.vt_fr.min_pll_op_clk_freq_hz / limits.vt_bk.max_sys_clk_div,
-		    limits.vt_bk.min_pix_clk_freq_hz * limits.vt_bk.min_pix_clk_div);
-	limits.vt_bk.max_sys_clk_freq_hz =
-		min(limits.vt_fr.max_pll_op_clk_freq_hz / limits.vt_bk.min_sys_clk_div,
-		    limits.vt_bk.max_pix_clk_freq_hz * limits.vt_bk.max_pix_clk_div);
-
-	limits.op_bk.min_sys_clk_freq_hz =
-		max(limits.op_fr.min_pll_op_clk_freq_hz / limits.op_bk.max_sys_clk_div,
-		    limits.op_bk.min_pix_clk_freq_hz * limits.op_bk.min_pix_clk_div);
-	limits.op_bk.max_sys_clk_freq_hz =
-		min(limits.op_fr.max_pll_op_clk_freq_hz / limits.op_bk.min_sys_clk_div,
-		    limits.op_bk.max_pix_clk_freq_hz * limits.op_bk.max_pix_clk_div);
+	if (link_freq == 750000000 && bpp == 8)
+		return -EINVAL;
 
 	memset(pll, 0, sizeof(*pll));
 
-	pll->bus_type = CCS_PLL_BUS_TYPE_CSI2_DPHY;
-	pll->op_lanes = num_lanes;
-	pll->vt_lanes = num_lanes;
-	pll->csi2.lanes = num_lanes;
-	/*
-	 * Since we don't use FIFO derating, binning doesn't
-	 * influence the PLL configuration. Hardcode the binning factors.
-	 */
-	pll->binning_horizontal = 1;
-	pll->binning_vertical = 1;
-	pll->scale_m = 1;
-	pll->scale_n = 1;
-	pll->bits_per_pixel = bpp;
-	pll->flags = CCS_PLL_FLAG_LANE_SPEED_MODEL |
-		    CCS_PLL_FLAG_DUAL_PLL |
-		    CCS_PLL_FLAG_EXT_IP_PLL_DIVIDER;
 	pll->link_freq = link_freq;
-	pll->ext_clk_freq_hz = clk_get_rate(sensor->extclk);
+	pll->pixel_rate_pixel_array = 600000000;
 
-	ret = ccs_pll_calculate(sensor->dev, &limits, pll);
-	if (ret)
-		return ret;
+	pll->vt_pll_mul = 45;
+	pll->vt_pre_pll_clk_div = 1;
+	pll->vt_pix_clk_div = 6;
+	pll->vt_sys_clk_div = 1;
+
+	switch (link_freq) {
+	case 750000000:
+		pll->op_pll_mul = 75;
+		pll->op_pre_pll_clk_div = 1;
+		pll->op_sys_clk_div = 1;
+		break;
+	case 600000000:
+		pll->op_pll_mul = 60;
+		pll->op_pre_pll_clk_div = 1;
+		pll->op_sys_clk_div = 1;
+		break;
+	case 562500000:
+		pll->op_pll_mul = 225;
+		pll->op_pre_pll_clk_div = 4;
+		pll->op_sys_clk_div = 1;
+		break;
+	case 500000000:
+		pll->op_pll_mul = 50;
+		pll->op_pre_pll_clk_div = 1;
+		pll->op_sys_clk_div = 1;
+		break;
+	case 375000000:
+		pll->op_pll_mul = 75;
+		pll->op_pre_pll_clk_div = 1;
+		pll->op_sys_clk_div = 2;
+		break;
+	case 288000000:
+		pll->op_pll_mul = 144;
+		pll->op_pre_pll_clk_div = 5;
+		pll->op_sys_clk_div = 1;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	pll->op_pix_clk_div = bpp;
+	pll->pixel_rate_csi = link_freq * 2 / pll->op_pix_clk_div * 4;
 
 	return 0;
 }
@@ -1321,7 +1354,7 @@ static int ar0830_pll_update(struct ar0830 *sensor, const struct ar0830_format_i
 	int ret;
 
 	link_freq = sensor->buscfg.link_frequencies[sensor->link_freq->val];
-	ret = ar0830_calculate_pll(sensor, link_freq, &sensor->pll, info->bpp);
+	ret = ar0830_update_pll_settings(sensor, link_freq, &sensor->pll, info->bpp);
 	if (ret) {
 		dev_err(sensor->dev, "PLL calculation failed: %d\n", ret);
 		return ret;
@@ -1349,11 +1382,18 @@ static void ar0830_update_link_freqs(struct ar0830 *sensor, const struct ar0830_
 static void ar0830_update_blankings(struct ar0830 *sensor, const struct v4l2_subdev_state *state)
 {
 	const struct v4l2_mbus_framefmt *format;
+	unsigned int num_lanes = sensor->buscfg.bus.mipi_csi2.num_data_lanes;
 	unsigned int min, max;
+	unsigned long min_llp;
 
 	format = v4l2_subdev_state_get_format(state, 0);
 
-	min = max_t(int, AR0830_MIN_LINE_LENGTH_PCK - format->width, AR0830_MIN_HBLANK);
+	min_llp = (format->width / num_lanes) + 111;
+	min_llp = min_llp * sensor->pll.pixel_rate_pixel_array / sensor->pll.pixel_rate_csi;
+	min_llp *= 4;
+	min_llp = max_t(unsigned int, AR0830_MIN_LINE_LENGTH_PCK, min_llp);
+
+	min = max_t(unsigned int, min_llp - format->width, AR0830_MIN_HBLANK);
 	max = AR0830_MAX_LINE_LENGTH_PCK - format->width;
 
 	__v4l2_ctrl_modify_range(sensor->hblank, min, max, 1, min);
@@ -1528,6 +1568,9 @@ static int ar0830_s_ctrl(struct v4l2_ctrl *ctrl)
 		break;
 	case V4L2_CID_LINK_FREQ:
 		ret = ar0830_pll_update(sensor, info);
+		if (ret)
+			return ret;
+		ar0830_update_blankings(sensor, state);
 		break;
 	default:
 		break;
@@ -1626,7 +1669,8 @@ static int ar0830_init_ctrls(struct ar0830 *sensor)
 
 	sensor->link_freq = v4l2_ctrl_new_int_menu(&sensor->ctrls, &ar0830_ctrl_ops,
 						   V4L2_CID_LINK_FREQ,
-						   sensor->buscfg.nr_of_link_frequencies - 1, 0,
+						   sensor->buscfg.nr_of_link_frequencies - 1,
+						   sensor->buscfg.nr_of_link_frequencies - 1,
 						   sensor->buscfg.link_frequencies);
 
 	sensor->hblank = v4l2_ctrl_new_std(&sensor->ctrls, &ar0830_ctrl_ops,
@@ -1703,7 +1747,7 @@ static int ar0830_enum_mbus_code(struct v4l2_subdev *sd,
 	for (i = 0; i < ARRAY_SIZE(ar0830_formats); i++) {
 		const struct ar0830_format_info *info = &ar0830_formats[i];
 
-		if (!(sensor->valid_formats & BIT(i)))
+		if (!sensor->valid_link_freqs[i])
 			continue;
 
 		if (code->index == index) {
@@ -1783,10 +1827,10 @@ static int ar0830_set_fmt(struct v4l2_subdev *sd,
 		return 0;
 
 	ar0830_update_ae_max_exposure(sensor, state);
-	ar0830_update_blankings(sensor, state);
 	ar0830_update_binning(sensor, state);
 	ar0830_update_link_freqs(sensor, info);
 	ar0830_pll_update(sensor, info);
+	ar0830_update_blankings(sensor, state);
 
 	return 0;
 }
@@ -1862,7 +1906,7 @@ static int ar0830_get_frame_interval(struct v4l2_subdev *sd,
 
 	format = v4l2_subdev_state_get_format(state, interval->pad);
 
-	pix_freq = sensor->pll.pixel_rate_csi;
+	pix_freq = sensor->pll.pixel_rate_pixel_array;
 	hlen = format->width + sensor->hblank->val;
 	vlen = format->height + sensor->vblank->val;
 
@@ -2054,9 +2098,7 @@ static int ar0830_parse_dt(struct ar0830 *sensor)
 {
 	struct v4l2_fwnode_endpoint *ep = &sensor->buscfg;
 	struct fwnode_handle *endpoint;
-	u64 valid_link_freqs = 0;
 	unsigned int nlanes;
-	unsigned int i, j;
 	int ret;
 
 	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(sensor->dev), NULL);
@@ -2097,39 +2139,20 @@ static int ar0830_parse_dt(struct ar0830 *sensor)
 		goto error;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(ar0830_formats); i++) {
-		const struct ar0830_format_info *info = &ar0830_formats[i];
+	ret = v4l2_link_freq_to_bitmap(sensor->dev, ep->link_frequencies,
+				       ep->nr_of_link_frequencies,
+				       ar0830_link_frequencies,
+				       ARRAY_SIZE(ar0830_link_frequencies),
+				       &sensor->valid_link_freqs[AR0830_10BIT_INFO]);
 
-		for (j = 0; j < ep->nr_of_link_frequencies; j++) {
-			u64 link_freq = ep->link_frequencies[j];
-			struct ccs_pll pll;
+	/* Filter out 750 MHz link frequency from 8 bit since it is not supported. */
+	sensor->valid_link_freqs[AR0830_8BIT_INFO] = sensor->valid_link_freqs[AR0830_10BIT_INFO];
+	sensor->valid_link_freqs[AR0830_8BIT_INFO] &= 0x1f;
 
-			ret = ar0830_calculate_pll(sensor, link_freq, &pll, info->bpp);
-			if (ret)
-				continue;
-
-			sensor->valid_link_freqs[i] |= BIT(j);
-			valid_link_freqs |= BIT(j);
-		}
-
-		if (!sensor->valid_link_freqs[i]) {
-			dev_warn(sensor->dev, "No valid link frequency for %u bpp\n", info->bpp);
-			continue;
-		}
-
-		sensor->valid_formats |= BIT(i);
-	}
-
-	if (!sensor->valid_formats) {
+	if (!sensor->valid_link_freqs[0] && !sensor->valid_link_freqs[1]) {
 		dev_err(sensor->dev, "No valid link frequency found for any format\n");
 		ret = -EINVAL;
 		goto error;
-	}
-
-	for (i = 0; i < ep->nr_of_link_frequencies; i++) {
-		if (!(valid_link_freqs & BIT(i)))
-			dev_warn(sensor->dev, "Link frequency %llu not valid for any formats\n",
-				 ep->link_frequencies[i]);
 	}
 
 	return 0;
