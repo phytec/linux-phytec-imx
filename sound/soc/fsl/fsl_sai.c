@@ -226,7 +226,7 @@ static int fsl_sai_set_mclk_rate(struct snd_soc_dai *dai, int clk_id, unsigned i
 
 	ret = clk_set_rate(sai->mclk_clk[clk_id], freq);
 	if (ret < 0)
-		dev_err(dai->dev, "failed to set clock rate (%u): %d\n", freq, ret);
+		dev_dbg(dai->dev, "failed to set clock rate (%u): %d\n", freq, ret);
 
 	return ret;
 }
@@ -250,13 +250,10 @@ static int fsl_sai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
 		return -EINVAL;
 	}
 
-	if (sai->mclk_streams == 0 && freq > 0) {
-		ret = fsl_sai_set_mclk_rate(cpu_dai,
-					    clk_id ? clk_id : FSL_SAI_CLK_MAST1,
-					    freq);
-		if (ret < 0)
-			return ret;
-	}
+	if (sai->mclk_streams == 0 && freq > 0)
+		fsl_sai_set_mclk_rate(cpu_dai,
+				      clk_id ? clk_id : FSL_SAI_CLK_MAST1,
+				      freq);
 
 	ret = fsl_sai_set_dai_sysclk_tr(cpu_dai, clk_id, freq, true);
 	if (ret) {
