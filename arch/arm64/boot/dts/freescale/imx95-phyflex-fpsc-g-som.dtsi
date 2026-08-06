@@ -102,6 +102,11 @@
 			no-map;
 		};
 	};
+
+	reset_ctrl {
+                compatible = "nxp,imx95-resetctrl";
+                status = "okay";
+        };
 };
 
 &ele_if0 {
