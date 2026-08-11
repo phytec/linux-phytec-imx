@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2026 PHYTEC Messtechnik GmbH
+ */
+
+/dts-v1/;
+/plugin/;
+
+&sfp_cage {
+	status = "okay";
+};
+
+&enet_refclk {
+	status = "okay";
+};
+
+&enetc_port2 {
+	status = "okay";
+};

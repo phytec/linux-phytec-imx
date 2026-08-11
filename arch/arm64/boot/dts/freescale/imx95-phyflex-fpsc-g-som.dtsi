@@ -50,6 +50,7 @@
 		enable-gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_enet_refclk>;
+		status = "disabled";
 	};
 
 	memory@80000000 {

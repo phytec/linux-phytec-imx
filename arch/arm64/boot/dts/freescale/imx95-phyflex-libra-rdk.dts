@@ -189,6 +189,7 @@
 		rate-select1-gpios = <&gpio_expander2 15 GPIO_ACTIVE_HIGH>;
 		tx-fault-gpios = <&gpio_expander2 10 GPIO_ACTIVE_HIGH>;
 		tx-disable-gpios = <&gpio_expander2 11 GPIO_ACTIVE_HIGH>;
+		status = "disabled";
 	};
 };
 
@@ -207,7 +208,6 @@
 	max-speed = <10000>;
 	phy-mode = "10gbase-r";
 	sfp = <&sfp_cage>;
-	status = "okay";
 };
 
 /* CAN FD */
