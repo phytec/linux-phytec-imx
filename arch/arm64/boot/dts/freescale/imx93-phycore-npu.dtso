@@ -19,9 +19,9 @@
 		#address-cells = <2>;
 		#size-cells = <2>;
 
-		ethosu_mem: ethosu_region@88000000 {
+		ethosu_mem: ethosu_region@a8000000 {
 			compatible = "shared-dma-pool";
-			reg = <0x0 0x88000000 0x0 0x8000000>;
+			reg = <0x0 0xa8000000 0x0 0x8000000>;
 			reusable;
 		};
 	};
