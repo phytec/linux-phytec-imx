@@ -84,22 +84,22 @@
 		#address-cells = <2>;
 		#size-cells = <2>;
 
-		ele_reserved: ele-reserved@a4120000 {
+		ele_reserved: ele-reserved@90100000 {
 			compatible = "shared-dma-pool";
-			reg = <0 0xa4120000 0 0x100000>;
+			reg = <0 0x90100000 0 0x100000>;
 			no-map;
 		};
 
 		linux,cma {
 			compatible = "shared-dma-pool";
-			alloc-ranges = <0x00000001 0x00000000 0x00000000 0x80000000>;
+			alloc-ranges = <0x00000000 0x90200000 0x00000000 0x6fe00000>;
 			reusable;
 			size = <0x00000000 0x3c000000>;
 			linux,cma-default;
 		};
 
-		vpu_boot: vpu_boot@a0000000 {
-			reg = <0 0xa0000000 0 0x100000>;
+		vpu_boot: vpu_boot@90000000 {
+			reg = <0 0x90000000 0 0x100000>;
 			no-map;
 		};
 	};
