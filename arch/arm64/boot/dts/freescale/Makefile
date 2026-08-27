@@ -396,6 +396,7 @@ imx8mp-phyboard-pollux-isi-csi1-dtbs := imx8mp-phyboard-pollux-rdk.dtb imx8mp-ph
 imx8mp-phyboard-pollux-isi-csi2-dtbs := imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-isi-csi2.dtbo
 imx8mp-phyboard-pollux-isp-csi1-dtbs := imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-isp-csi1.dtbo
 imx8mp-phyboard-pollux-isp-csi2-dtbs := imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-isp-csi2.dtbo
+imx8mp-phyboard-pollux-pca9533-dtbs := imx8mp-phyboard-pollux-rdk.dtb imx8mp-phyboard-pollux-pca9533.dtbo
 imx8mp-phyboard-pollux-peb-av-10-dtbs := imx8mp-phyboard-pollux-rdk.dtb \
 	imx8mp-phyboard-pollux-peb-av-10.dtbo
 imx8mp-phyboard-pollux-peb-av-10-etml1010g3dra-dtbs := imx8mp-phyboard-pollux-rdk.dtb \
@@ -447,6 +448,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-isi-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-isi-csi2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-isp-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-isp-csi2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-pca9533.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-peb-av-10.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-peb-av-10-etml1010g3dra.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-phyboard-pollux-peb-av-10-ph128800t006.dtb
