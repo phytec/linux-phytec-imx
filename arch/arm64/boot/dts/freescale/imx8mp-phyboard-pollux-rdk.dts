@@ -191,6 +191,8 @@
 		ethphy0: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <0x1>;
+			eee-broken-100tx;
+			eee-broken-1000t;
 			ti,rx-internal-delay = <DP83867_RGMIIDCTL_1_50_NS>;
 			ti,tx-internal-delay = <DP83867_RGMIIDCTL_1_50_NS>;
 			ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_4_B_NIB>;
