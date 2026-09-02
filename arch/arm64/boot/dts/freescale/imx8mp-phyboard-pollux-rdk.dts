@@ -248,8 +248,8 @@ csi2_i2c: &i2c2 {
 		vcc-supply = <&reg_vcc_3v3_sw>;
 	};
 
-	pca9633: led-controller@62 {
-		compatible = "nxp,pca9633";
+	pca9632: led-controller@62 {
+		compatible = "nxp,pca9632";
 		reg = <0x62>;
 		#address-cells = <1>;
 		#size-cells = <0>;

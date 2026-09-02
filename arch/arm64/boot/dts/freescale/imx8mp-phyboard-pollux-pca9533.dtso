@@ -8,7 +8,7 @@
 /dts-v1/;
 /plugin/;
 
-&pca9633 {
+&pca9632 {
 	status = "disabled";
 };
 
