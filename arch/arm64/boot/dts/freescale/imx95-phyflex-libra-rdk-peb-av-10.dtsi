@@ -9,6 +9,14 @@
 
 
 &{/} {
+	osc_mclk: oscillator-mclk {
+                status = "okay";
+        };
+
+        osc_mclk_gated: oscillator-mclk-gated {
+                status = "okay";
+        };
+
 	panel_lvds2: panel-lvds1 {
 		backlight = <&backlight>;
 		pinctrl-0 = <&pinctrl_lvds1>;
@@ -60,7 +68,7 @@
 			"LINE1R", "Line In",
 			"MIC3R", "Microphone Jack",
 			"Microphone Jack", "Mic Bias";
-		status = "disabled";
+		status = "okay";
 
 		simple-audio-card,cpu {
 			sound-dai = <&sai5>;
@@ -104,7 +112,7 @@
 		IOVDD-supply = <&reg_sound_3v3>;
 		DRVDD-supply = <&reg_sound_3v3>;
 		DVDD-supply = <&reg_sound_1v8>;
-		status = "disabled";
+		status = "okay";
 	};
 
 	eeprom@57 {
@@ -133,6 +141,7 @@
 	assigned-clock-rates = <3932160000>,
 			       <3612672000>, <393216000>,
 			       <361267200>, <19200000>;
+	status = "okay";
 };
 
 
