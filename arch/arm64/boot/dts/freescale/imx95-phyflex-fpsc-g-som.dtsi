@@ -180,6 +180,8 @@
 	clock-frequency = <400000>;
 	pinctrl-0 = <&pinctrl_lpi2c1>;
 	pinctrl-names = "default";
+	/delete-property/ dmas;
+	/delete-property/ dma-names;
 	status = "okay";
 
 	dram_sense: temperature-sensor@48 {
