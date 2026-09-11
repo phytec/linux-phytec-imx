@@ -324,7 +324,7 @@
 	};
 
 	led-controller@62 {
-		compatible = "nxp,pca9633";
+		compatible = "nxp,pca9632";
 		reg = <0x62>;
 		#address-cells = <1>;
 		#size-cells = <0>;
