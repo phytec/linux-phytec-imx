@@ -518,35 +518,74 @@ static u8 get_vc(struct csi_formatter *formatter, unsigned int stream)
 	return entry->bus.csi2.vc;
 }
 
-static int csi_formatter_start_stream(struct csi_formatter *formatter,
-				      u64 stream_mask)
+static u32 get_dt(struct csi_formatter *formatter,
+		  struct v4l2_subdev_state *state,
+		  u32 pad,
+		  unsigned int stream)
 {
-	const struct formatter_pix_format *fmt = formatter->fmt;
-	unsigned int i;
-	u32 val;
+	struct v4l2_mbus_framefmt *fmt;
+	struct formatter_pix_format const *format;
+
+	fmt = v4l2_subdev_state_get_format(state, pad, stream);
+	format = find_csi_format(fmt->code);
+
+	return format->data_type;
+}
+
+static void csi_formatter_stop_stream(struct csi_formatter *formatter,
+				     struct v4l2_subdev_state *state,
+				     u64 stream_mask)
+{
+	struct v4l2_subdev_route *route;
 	u8 vc;
 
-	for (i = 0; i < V4L2_FRAME_DESC_ENTRY_MAX; ++i) {
-		if (stream_mask & BIT(i))
-			break;
+	for_each_active_route(&state->routing, route) {
+		if (!(stream_mask & BIT_ULL(route->source_stream)))
+			continue;
+
+		vc = get_vc(formatter, route->sink_stream);
+
+		if (vc < 0 || vc > CSI_FORMATTER_VC_MAX) {
+			dev_warn(formatter->dev, "Invalid virtual channel(%d)\n", vc);
+			continue;
+		}
+
+		formatter_write(formatter, CSI_VCx_PIXEL_DATA_TYPE(vc), 0);
 	}
+}
 
-	if (i == V4L2_FRAME_DESC_ENTRY_MAX) {
-		dev_err(formatter->dev, "Stream ID out of range\n");
-		return -EINVAL;
+static int csi_formatter_start_stream(struct csi_formatter *formatter,
+				      struct v4l2_subdev_state *state,
+				      u64 streams_mask)
+{
+	struct v4l2_subdev_route *route;
+	int ret;
+	u32 dt, val;
+	u8 vc;
+
+	for_each_active_route(&state->routing, route) {
+		if (!(streams_mask & BIT_ULL(route->source_stream)))
+			continue;
+
+		vc = get_vc(formatter, route->sink_stream);
+		dt = get_dt(formatter, state, route->sink_pad, route->sink_stream);
+		val = BIT(get_index_by_dt(dt));
+
+		if (vc < 0 || vc > CSI_FORMATTER_VC_MAX) {
+			dev_err(formatter->dev, "Invalid virtual channel(%d)\n", vc);
+			ret = -EINVAL;
+			goto error_cleanup;
+		}
+
+		formatter_write(formatter, CSI_VCx_PIXEL_DATA_TYPE(vc), val);
+
 	}
-
-	val = BIT(get_index_by_dt(fmt->data_type));
-	vc = get_vc(formatter, i);
-
-	if (vc < 0 || vc > CSI_FORMATTER_VC_MAX) {
-		dev_err(formatter->dev, "Invalid virtual channel(%d)\n", vc);
-		return -EINVAL;
-	}
-
-	formatter_write(formatter, CSI_VCx_PIXEL_DATA_TYPE(vc), val);
 
 	return 0;
+
+error_cleanup:
+	csi_formatter_stop_stream(formatter, state, streams_mask);
+	return ret;
 }
 
 static int formatter_subdev_enable_streams(struct v4l2_subdev *sd,
@@ -571,7 +610,7 @@ static int formatter_subdev_enable_streams(struct v4l2_subdev *sd,
 		}
 	}
 
-	ret = csi_formatter_start_stream(formatter, streams_mask);
+	ret = csi_formatter_start_stream(formatter, state, streams_mask);
 	if (ret)
 		goto runtime_put;
 
@@ -593,36 +632,9 @@ static int formatter_subdev_enable_streams(struct v4l2_subdev *sd,
 	return 0;
 
 runtime_put:
+	csi_formatter_stop_stream(formatter, state, streams_mask);
 	pm_runtime_put(formatter->dev);
 	return ret;
-}
-
-static int csi_formatter_stop_stream(struct csi_formatter *formatter,
-				     u64 stream_mask)
-{
-	unsigned int i;
-	u8 vc;
-
-	for (i = 0; i < V4L2_FRAME_DESC_ENTRY_MAX; ++i) {
-		if (stream_mask & BIT(i))
-			break;
-	}
-
-	if (i == V4L2_FRAME_DESC_ENTRY_MAX) {
-		dev_err(formatter->dev, "Stream ID out of range\n");
-		return -EINVAL;
-	}
-
-	vc = get_vc(formatter, i);
-
-	if (vc < 0 || vc > CSI_FORMATTER_VC_MAX) {
-		dev_err(formatter->dev, "Invalid virtual channel(%d)\n", vc);
-		return -EINVAL;
-	}
-
-	formatter_write(formatter, CSI_VCx_PIXEL_DATA_TYPE(vc), 0);
-
-	return 0;
 }
 
 static int formatter_subdev_disable_streams(struct v4l2_subdev *sd,
@@ -643,7 +655,7 @@ static int formatter_subdev_disable_streams(struct v4l2_subdev *sd,
 	if (ret)
 		return ret;
 
-	csi_formatter_stop_stream(formatter, streams_mask);
+	csi_formatter_stop_stream(formatter, state, streams_mask);
 
 	formatter->enabled_streams &= ~streams_mask;
 
