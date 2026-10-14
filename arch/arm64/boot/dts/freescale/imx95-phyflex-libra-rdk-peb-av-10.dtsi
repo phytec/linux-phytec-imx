@@ -10,12 +10,13 @@
 
 &{/} {
 	osc_mclk: oscillator-mclk {
-                status = "okay";
-        };
+		status = "okay";
+	};
 
-        osc_mclk_gated: oscillator-mclk-gated {
-                status = "okay";
-        };
+	osc_mclk_gated: oscillator-mclk-gated {
+		#clock-cells = <0>;
+		status = "okay";
+	};
 
 	panel_lvds2: panel-lvds1 {
 		backlight = <&backlight>;
