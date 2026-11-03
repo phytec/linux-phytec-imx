@@ -695,7 +695,7 @@
 		>;
 	};
 
-	pinctrl_usdhc3_200mhz: usdhc2-200mhzgrp {
+	pinctrl_usdhc3_200mhz: usdhc3-200mhzgrp {
 		fsl,pins = <
 			IMX95_PAD_SD3_CLK__USDHC3_CLK		0x159e	/* SDIO_CLK */
 			IMX95_PAD_SD3_CMD__USDHC3_CMD		0x139e	/* SDIO_CMD */
