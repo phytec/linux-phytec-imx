@@ -153,10 +153,10 @@
 };
 
 &gpio2 { /* FPSC GPIO */
-	gpio-line-names = "", "", "", "", "",
+	gpio-line-names = "", "", "", "", "SPI1_CS",
+			  "", "", "", "SPI2_CS", "",
 			  "", "", "", "", "",
-			  "", "", "", "", "",
-			  "", "RGMII2_nINT", "GPIO4";
+			  "", "RGMII2_nINT", "GPIO4", "SPI3_CS";
 	pinctrl-0 = <&pinctrl_gpio2>;
 	pinctrl-names = "default";
 };
